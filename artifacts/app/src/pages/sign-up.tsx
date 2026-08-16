@@ -1,5 +1,6 @@
 import { SignUp } from "@clerk/react";
 import { MessageCircle } from "lucide-react";
+import { basePath } from "@/App";
 
 export default function SignUpPage() {
   return (
@@ -11,7 +12,12 @@ export default function SignUpPage() {
         <h1 className="text-3xl font-bold text-white tracking-tight">ZapCentral</h1>
         <p className="text-[#8899A6] mt-2">Central Operacional Inteligente</p>
       </div>
-      <SignUp />
+      {/* path must be the full browser path — Clerk reads window.location.pathname directly */}
+      <SignUp
+        routing="path"
+        path={`${basePath}/sign-up`}
+        signInUrl={`${basePath}/sign-in`}
+      />
     </div>
   );
 }

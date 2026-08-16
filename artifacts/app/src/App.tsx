@@ -29,6 +29,16 @@ const clerkPubKey = publishableKeyFromHost(
 );
 const clerkProxyUrl = getClerkProxyUrl();
 
+export const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
+
+// Clerk passes full paths to routerPush/routerReplace, but wouter's
+// setLocation prepends the base — strip it to avoid doubling.
+function stripBase(path: string): string {
+  return basePath && path.startsWith(basePath)
+    ? path.slice(basePath.length) || "/"
+    : path;
+}
+
 function ProtectedRoute({ component: Component }: { component: React.ComponentType }) {
   const { isSignedIn, isLoaded } = useAuth();
   const [, setLocation] = useLocation();
@@ -92,17 +102,33 @@ function AppRoutes() {
   );
 }
 
-export default function App() {
+function ClerkProviderWithRoutes() {
+  const [, setLocation] = useLocation();
+
   return (
-    <ClerkProvider publishableKey={clerkPubKey} proxyUrl={clerkProxyUrl} afterSignOutUrl="/sign-in">
+    <ClerkProvider
+      publishableKey={clerkPubKey}
+      proxyUrl={clerkProxyUrl}
+      signInUrl={`${basePath}/sign-in`}
+      signUpUrl={`${basePath}/sign-up`}
+      afterSignOutUrl={basePath || "/"}
+      routerPush={(to) => setLocation(stripBase(to))}
+      routerReplace={(to) => setLocation(stripBase(to), { replace: true })}
+    >
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
-          <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-            <AppRoutes />
-          </WouterRouter>
+          <AppRoutes />
           <Toaster />
         </TooltipProvider>
       </QueryClientProvider>
     </ClerkProvider>
+  );
+}
+
+export default function App() {
+  return (
+    <WouterRouter base={basePath}>
+      <ClerkProviderWithRoutes />
+    </WouterRouter>
   );
 }
