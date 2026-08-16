@@ -12,7 +12,9 @@ import {
   Smartphone,
   PhoneCall,
   Loader2,
+  Headset,
 } from "lucide-react";
+import { useInternalChatNotifications } from "@/hooks/useInternalChat";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -38,6 +40,7 @@ import {
 const navItems = [
   { name: "Dashboard", path: "/", icon: LayoutDashboard },
   { name: "Atendimento", path: "/atendimento", icon: MessageCircle },
+  { name: "Equipe", path: "/equipe", icon: Headset },
   { name: "WhatsApp", path: "/whatsapp", icon: Smartphone },
   { name: "CRM", path: "/crm", icon: Users },
   { name: "Relatórios", path: "/relatorios", icon: BarChart3 },
@@ -46,6 +49,8 @@ const navItems = [
 
 export function Sidebar() {
   const [location] = useLocation();
+  const tenantId = useTenantId();
+  const internalUnread = useInternalChatNotifications(tenantId);
 
   return (
     <div className="fixed inset-y-0 left-0 w-64 bg-[#0F1923] flex flex-col z-10 sidebar-transition print:hidden">
@@ -74,6 +79,11 @@ export function Sidebar() {
               >
                 <Icon className="w-5 h-5 mr-3" />
                 <span className="font-medium text-sm">{item.name}</span>
+                {item.path === "/equipe" && internalUnread > 0 && (
+                  <span className="ml-auto bg-[#25D366] text-white text-[10px] font-semibold rounded-full px-1.5 py-0.5 min-w-[18px] text-center">
+                    {internalUnread > 99 ? "99+" : internalUnread}
+                  </span>
+                )}
               </div>
             </Link>
           );

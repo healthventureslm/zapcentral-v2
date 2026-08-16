@@ -416,6 +416,59 @@ export const removeDepartmentAgent = (
     { method: "DELETE" },
   );
 
+// ---------------------------------------------------------------------------
+// Internal chat (ramal-to-ramal)
+// ---------------------------------------------------------------------------
+
+export interface InternalPeer {
+  clerkUserId: string;
+  email: string;
+  firstName: string | null;
+  lastName: string | null;
+  avatarUrl: string | null;
+}
+
+export interface InternalConversationRow {
+  id: number;
+  peer: InternalPeer;
+  lastMessage: { content: string; senderId: string; createdAt: string } | null;
+  unreadCount: number;
+  lastMessageAt: string | null;
+}
+
+export interface InternalMessage {
+  id: number;
+  conversationId: number;
+  tenantId: number;
+  senderId: string;
+  content: string;
+  createdAt: string;
+}
+
+export const listInternalConversations = (tenantId: number) =>
+  apiFetch<InternalConversationRow[]>(`/tenants/${tenantId}/internal/conversations`);
+
+export const startInternalConversation = (tenantId: number, peerId: string) =>
+  apiFetch<{ id: number }>(`/tenants/${tenantId}/internal/conversations`, {
+    method: "POST",
+    body: JSON.stringify({ peerId }),
+  });
+
+export const listInternalMessages = (tenantId: number, conversationId: number) =>
+  apiFetch<InternalMessage[]>(
+    `/tenants/${tenantId}/internal/conversations/${conversationId}/messages`,
+  );
+
+export const sendInternalMessage = (
+  tenantId: number,
+  conversationId: number,
+  content: string,
+) =>
+  apiFetch<InternalMessage>(
+    `/tenants/${tenantId}/internal/conversations/${conversationId}/messages`,
+    { method: "POST", body: JSON.stringify({ content }) },
+  );
+
 export interface PublicWaLink {
   tenantName: string;
   connected: boolean;

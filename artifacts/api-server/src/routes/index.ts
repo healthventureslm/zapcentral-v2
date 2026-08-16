@@ -17,6 +17,7 @@ import tagsRouter from "./tags";
 import dealsRouter from "./deals";
 import customFieldsRouter from "./customFields";
 import reportsRouter from "./reports";
+import internalChatRouter from "./internalChat";
 
 const router: IRouter = Router();
 
@@ -40,5 +41,6 @@ router.use(tagsRouter);
 router.use(dealsRouter);
 router.use(customFieldsRouter);
 router.use(reportsRouter);
+router.use(internalChatRouter);
 
 export default router;

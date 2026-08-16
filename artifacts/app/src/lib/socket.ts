@@ -18,9 +18,11 @@ function getApiServerOrigin(): string {
  * Safe to call multiple times — recreates the socket only when necessary.
  */
 export function initSocket(token: string | null): Socket {
-  if (_socket?.connected) return _socket;
+  // Reuse both connected AND connecting sockets — recreating a socket that
+  // is mid-handshake would orphan listeners attached by other consumers
+  // (e.g. Sidebar notifications vs. chat pages racing on getToken()).
+  if (_socket && (_socket.connected || _socket.active)) return _socket;
 
-  // Disconnect stale socket before creating a new one
   if (_socket) {
     _socket.disconnect();
     _socket = null;

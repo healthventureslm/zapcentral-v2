@@ -156,11 +156,16 @@ function handleConnection(socket: Socket): void {
     }
 
     void socket.join(`tenant:${tenantId}`);
+    // Tenant-scoped per-agent room: only joined after membership verification,
+    // so tenant-private payloads (e.g. internal chat) never leak to sockets
+    // authenticated as the same user but authorized in a different tenant.
+    void socket.join(`tenant:${tenantId}:agent:${userId}`);
   });
 
   socket.on("leave_tenant", (tenantId: unknown) => {
     if (typeof tenantId === "number" && tenantId > 0) {
       void socket.leave(`tenant:${tenantId}`);
+      void socket.leave(`tenant:${tenantId}:agent:${userId}`);
     }
   });
 
@@ -202,6 +207,23 @@ export function emitToAgent(
 ): void {
   try {
     getIo().to(`agent:${clerkUserId}`).emit(event, data);
+  } catch {
+    // Socket may not be initialized
+  }
+}
+
+/**
+ * Emit to an agent only on sockets that passed membership verification for
+ * this tenant (see join_tenant). Use for tenant-private payloads.
+ */
+export function emitToTenantAgent(
+  tenantId: number,
+  clerkUserId: string,
+  event: string,
+  data: unknown,
+): void {
+  try {
+    getIo().to(`tenant:${tenantId}:agent:${clerkUserId}`).emit(event, data);
   } catch {
     // Socket may not be initialized
   }

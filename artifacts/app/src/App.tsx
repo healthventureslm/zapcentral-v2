@@ -12,6 +12,7 @@ import SignUpPage from "@/pages/sign-up";
 import DashboardPage from "@/pages/dashboard";
 import SettingsPage from "@/pages/settings";
 import ChatPage from "@/pages/chat";
+import InternalChatPage from "@/pages/internal-chat";
 import WhatsAppConnectPage from "@/pages/whatsapp-connect";
 import ChannelSettingsPage from "@/pages/channel-settings";
 import ContactsPage from "@/pages/crm/contacts";
@@ -58,6 +59,9 @@ function AppRoutes() {
       <Route path="/sign-up/*?" component={SignUpPage} />
       <Route path="/settings">
         <ProtectedRoute component={SettingsPage} />
+      </Route>
+      <Route path="/equipe">
+        <ProtectedRoute component={InternalChatPage} />
       </Route>
       <Route path="/atendimento">
         <ProtectedRoute component={ChatPage} />

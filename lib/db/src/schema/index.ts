@@ -14,3 +14,4 @@ export * from "./tags";
 export * from "./deals";
 export * from "./contactNotes";
 export * from "./customFields";
+export * from "./internalChat";
