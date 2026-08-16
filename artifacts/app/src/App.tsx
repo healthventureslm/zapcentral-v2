@@ -17,6 +17,7 @@ import ChannelSettingsPage from "@/pages/channel-settings";
 import ContactsPage from "@/pages/crm/contacts";
 import ContactDetailPage from "@/pages/crm/contact-detail";
 import KanbanPage from "@/pages/crm/kanban";
+import ReportsPage from "@/pages/reports";
 
 const queryClient = new QueryClient();
 
@@ -74,6 +75,9 @@ function AppRoutes() {
       </Route>
       <Route path="/crm">
         <ProtectedRoute component={ContactsPage} />
+      </Route>
+      <Route path="/relatorios">
+        <ProtectedRoute component={ReportsPage} />
       </Route>
       <Route path="/">
         <ProtectedRoute component={DashboardPage} />

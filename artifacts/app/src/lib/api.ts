@@ -569,3 +569,114 @@ export const updateDeal = (
 
 export const deleteDeal = (tenantId: number, dealId: number) =>
   apiFetch<void>(`/tenants/${tenantId}/deals/${dealId}`, { method: "DELETE" });
+
+// ---------------------------------------------------------------------------
+// Reports & analytics
+// ---------------------------------------------------------------------------
+export interface ReportFilters {
+  from?: string;
+  to?: string;
+  departmentId?: number;
+  agentId?: string;
+  tagId?: number;
+  [key: string]: unknown;
+}
+
+function reportQs(params: Record<string, unknown> = {}) {
+  const qs = new URLSearchParams();
+  for (const [k, v] of Object.entries(params)) {
+    if (v !== undefined && v !== null && v !== "") qs.set(k, String(v));
+  }
+  return qs.toString();
+}
+
+export interface ReportOverview {
+  period: {
+    total: number;
+    closed: number;
+    avgFirstResponseSecs: number | null;
+    avgResolutionSecs: number | null;
+  };
+  live: { active: number; waiting: number; inIvr: number; closedToday: number };
+}
+
+export interface VolumePoint {
+  bucket: string;
+  total: number;
+  closed: number;
+}
+
+export interface AgentReportRow {
+  agentId: string;
+  handled: number;
+  closed: number;
+  avgFirstResponseSecs: number | null;
+  avgResolutionSecs: number | null;
+}
+
+export interface DepartmentReportRow {
+  departmentId: number;
+  departmentName: string;
+  departmentColor: string | null;
+  total: number;
+  closed: number;
+  resolutionRate: number | null;
+  avgFirstResponseSecs: number | null;
+  avgResolutionSecs: number | null;
+}
+
+export interface FunnelReport {
+  stages: {
+    stageId: number;
+    name: string;
+    color: string;
+    position: number;
+    openCount: number;
+    openValue: string;
+  }[];
+  won: { count: number; value: string };
+  lost: { count: number; value: string };
+}
+
+export interface ConversationReportRow {
+  id: number;
+  status: ConversationStatus;
+  createdAt: string;
+  closedAt: string | null;
+  assignedTo: string | null;
+  departmentName: string | null;
+  contactName: string | null;
+  contactPhone: string;
+  firstResponseSecs: number | null;
+  resolutionSecs: number | null;
+}
+
+export const getReportOverview = (tenantId: number, f: ReportFilters = {}) =>
+  apiFetch<ReportOverview>(`/tenants/${tenantId}/reports/overview?${reportQs(f)}`);
+
+export const getReportVolume = (
+  tenantId: number,
+  f: ReportFilters & { granularity?: "hour" | "day" | "week" | "month" } = {},
+) => apiFetch<VolumePoint[]>(`/tenants/${tenantId}/reports/volume?${reportQs(f)}`);
+
+export const getReportAgents = (tenantId: number, f: ReportFilters = {}) =>
+  apiFetch<AgentReportRow[]>(`/tenants/${tenantId}/reports/agents?${reportQs(f)}`);
+
+export const getReportDepartments = (tenantId: number, f: ReportFilters = {}) =>
+  apiFetch<DepartmentReportRow[]>(
+    `/tenants/${tenantId}/reports/departments?${reportQs(f)}`,
+  );
+
+export const getReportFunnel = (tenantId: number, f: ReportFilters = {}) =>
+  apiFetch<FunnelReport>(`/tenants/${tenantId}/reports/funnel?${reportQs(f)}`);
+
+export const getReportConversations = (
+  tenantId: number,
+  f: ReportFilters & { limit?: number } = {},
+) =>
+  apiFetch<ConversationReportRow[]>(
+    `/tenants/${tenantId}/reports/conversations?${reportQs(f)}`,
+  );
+
+export const reportConversationsCsvUrl = (tenantId: number, f: ReportFilters = {}) =>
+  `/api-server/api/tenants/${tenantId}/reports/conversations?${reportQs({ ...f, format: "csv" })}`;

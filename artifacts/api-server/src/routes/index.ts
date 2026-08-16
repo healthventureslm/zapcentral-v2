@@ -16,6 +16,7 @@ import crmContactsRouter from "./crmContacts";
 import tagsRouter from "./tags";
 import dealsRouter from "./deals";
 import customFieldsRouter from "./customFields";
+import reportsRouter from "./reports";
 
 const router: IRouter = Router();
 
@@ -38,5 +39,6 @@ router.use(crmContactsRouter);
 router.use(tagsRouter);
 router.use(dealsRouter);
 router.use(customFieldsRouter);
+router.use(reportsRouter);
 
 export default router;
