@@ -12,6 +12,10 @@ import conversationsRouter from "./conversations";
 import messagesRouter from "./messages";
 import agentStatusRouter from "./agentStatus";
 import channelSettingsRouter from "./channelSettings";
+import crmContactsRouter from "./crmContacts";
+import tagsRouter from "./tags";
+import dealsRouter from "./deals";
+import customFieldsRouter from "./customFields";
 
 const router: IRouter = Router();
 
@@ -30,5 +34,9 @@ router.use(conversationsRouter);
 router.use(messagesRouter);
 router.use(agentStatusRouter);
 router.use(channelSettingsRouter);
+router.use(crmContactsRouter);
+router.use(tagsRouter);
+router.use(dealsRouter);
+router.use(customFieldsRouter);
 
 export default router;

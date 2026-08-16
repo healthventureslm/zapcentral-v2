@@ -24,6 +24,9 @@ export const contactsTable = pgTable(
     name: text("name"),
     avatarUrl: text("avatar_url"),
     email: text("email"),
+    company: text("company"),
+    /** Clerk user id of the responsible agent */
+    assignedTo: text("assigned_to"),
     notes: text("notes"),
     /** Arbitrary extra data for CRM integration */
     customData: jsonb("custom_data").$type<Record<string, unknown>>(),

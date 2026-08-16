@@ -10,3 +10,7 @@ export * from "./conversations";
 export * from "./messages";
 export * from "./agentStatuses";
 export * from "./quickReplies";
+export * from "./tags";
+export * from "./deals";
+export * from "./contactNotes";
+export * from "./customFields";

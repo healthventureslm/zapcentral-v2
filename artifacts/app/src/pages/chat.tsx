@@ -6,8 +6,9 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@clerk/react";
 import { initSocket, getSocket } from "@/lib/socket";
-import { Send, Phone, X, ArrowRightLeft, Loader2, Wifi, WifiOff, ChevronDown, MessageCircle } from "lucide-react";
+import { Send, Phone, X, ArrowRightLeft, Loader2, Wifi, WifiOff, ChevronDown, MessageCircle, PanelRightOpen, PanelRightClose } from "lucide-react";
 import { Sidebar } from "./dashboard";
+import { ContactPanel } from "@/components/ContactPanel";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
@@ -197,6 +198,7 @@ export default function ChatPage() {
   const [agentStatus, setAgentStatus] = useState<"available" | "busy" | "away" | "offline">("offline");
   const [showStatusMenu, setShowStatusMenu] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
+  const [showContactPanel, setShowContactPanel] = useState(true);
 
   // Load agent status
   const { data: myStatus } = useQuery({
@@ -466,6 +468,18 @@ export default function ChatPage() {
                   {STATUS_LABELS[selectedConv.status]}
                 </Badge>
 
+                <button
+                  onClick={() => setShowContactPanel((v) => !v)}
+                  className="text-[#8899A6] hover:text-white p-1.5 rounded-md hover:bg-white/5 transition-colors"
+                  title={showContactPanel ? "Ocultar dados do contato" : "Mostrar dados do contato"}
+                >
+                  {showContactPanel ? (
+                    <PanelRightClose className="w-4 h-4" />
+                  ) : (
+                    <PanelRightOpen className="w-4 h-4" />
+                  )}
+                </button>
+
                 {selectedConv.status === "waiting" && (
                   <button
                     onClick={() => pickMutation.mutate(selectedConv.id)}
@@ -551,6 +565,15 @@ export default function ChatPage() {
           </>
         )}
       </div>
+
+      {/* Contact context panel */}
+      {selectedConv && showContactPanel && tenantId && (
+        <ContactPanel
+          tenantId={tenantId}
+          contactId={selectedConv.contactId}
+          conversationId={selectedConv.id}
+        />
+      )}
     </div>
   );
 }

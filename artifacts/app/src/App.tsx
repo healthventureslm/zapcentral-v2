@@ -14,6 +14,9 @@ import SettingsPage from "@/pages/settings";
 import ChatPage from "@/pages/chat";
 import WhatsAppConnectPage from "@/pages/whatsapp-connect";
 import ChannelSettingsPage from "@/pages/channel-settings";
+import ContactsPage from "@/pages/crm/contacts";
+import ContactDetailPage from "@/pages/crm/contact-detail";
+import KanbanPage from "@/pages/crm/kanban";
 
 const queryClient = new QueryClient();
 
@@ -62,6 +65,15 @@ function AppRoutes() {
       </Route>
       <Route path="/configuracoes-canal">
         <ProtectedRoute component={ChannelSettingsPage} />
+      </Route>
+      <Route path="/crm/contatos/:id">
+        <ProtectedRoute component={ContactDetailPage} />
+      </Route>
+      <Route path="/crm/funil">
+        <ProtectedRoute component={KanbanPage} />
+      </Route>
+      <Route path="/crm">
+        <ProtectedRoute component={ContactsPage} />
       </Route>
       <Route path="/">
         <ProtectedRoute component={DashboardPage} />
