@@ -1,0 +1,18 @@
+[
+  { "id": "f1a2b3c4-d5e6-4789-abcd-ef0123456789", "position": 1, "filepath": "src/pages/slides/Slide01Title.tsx", "title": "ZapCentral", "description": "Slide de abertura — produto e KPIs", "speakerNotes": "" },
+  { "id": "a2b3c4d5-e6f7-4890-bcde-f01234567890", "position": 2, "filepath": "src/pages/slides/Slide02Problem.tsx", "title": "O problema", "description": "Caos no atendimento via WhatsApp", "speakerNotes": "" },
+  { "id": "b3c4d5e6-f7a8-4901-cdef-012345678901", "position": 3, "filepath": "src/pages/slides/Slide03Solution.tsx", "title": "A solução", "description": "Um PABX para o WhatsApp", "speakerNotes": "" },
+  { "id": "c4d5e6f7-a8b9-4012-def0-123456789012", "position": 4, "filepath": "src/pages/slides/Slide04HowItWorks.tsx", "title": "Como funciona", "description": "Fluxo do atendimento em 4 passos", "speakerNotes": "" },
+  { "id": "d5e6f7a8-b9c0-4123-ef01-234567890123", "position": 5, "filepath": "src/pages/slides/Slide05RealTime.tsx", "title": "Atendimento em tempo real", "description": "Painel ao vivo com WebSocket", "speakerNotes": "" },
+  { "id": "e6f7a8b9-c0d1-4234-f012-345678901234", "position": 6, "filepath": "src/pages/slides/Slide06Setores.tsx", "title": "Setores e ramais", "description": "Estrutura PABX com filas por setor", "speakerNotes": "" },
+  { "id": "f7a8b9c0-d1e2-4345-0123-456789012345", "position": 7, "filepath": "src/pages/slides/Slide07Teams.tsx", "title": "Equipes e permissões", "description": "Papéis: admin, supervisor e agente", "speakerNotes": "" },
+  { "id": "a8b9c0d1-e2f3-4456-1234-567890123456", "position": 8, "filepath": "src/pages/slides/Slide08InternalChat.tsx", "title": "Chat interno da equipe", "description": "Comunicação interna sem sair da plataforma", "speakerNotes": "" },
+  { "id": "b9c0d1e2-f3a4-4567-2345-678901234567", "position": 9, "filepath": "src/pages/slides/Slide09CRM.tsx", "title": "CRM integrado", "description": "Contatos, funil kanban, tags e histórico", "speakerNotes": "" },
+  { "id": "c0d1e2f3-a4b5-4678-3456-789012345678", "position": 10, "filepath": "src/pages/slides/Slide10Survey.tsx", "title": "Pesquisa de satisfação", "description": "Avaliação automática ao encerrar conversa", "speakerNotes": "" },
+  { "id": "d1e2f3a4-b5c6-4789-4567-890123456789", "position": 11, "filepath": "src/pages/slides/Slide11Reports.tsx", "title": "Relatórios e métricas", "description": "KPIs, volume, SLA e exportação CSV", "speakerNotes": "" },
+  { "id": "e2f3a4b5-c6d7-4890-5678-901234567890", "position": 12, "filepath": "src/pages/slides/Slide12Ranking.tsx", "title": "Ranking de agentes", "description": "Desempenho individual por agente", "speakerNotes": "" },
+  { "id": "f3a4b5c6-d7e8-4901-6789-012345678901", "position": 13, "filepath": "src/pages/slides/Slide13Tech.tsx", "title": "Tecnologia", "description": "Stack: Evolution API, React, PostgreSQL, Clerk", "speakerNotes": "" },
+  { "id": "a4b5c6d7-e8f9-4012-789a-123456789012", "position": 14, "filepath": "src/pages/slides/Slide14Security.tsx", "title": "Segurança e isolamento", "description": "Multi-tenant, revogação e acesso restrito", "speakerNotes": "" },
+  { "id": "b5c6d7e8-f9a0-4123-89ab-234567890123", "position": 15, "filepath": "src/pages/slides/Slide15NextSteps.tsx", "title": "Próximos passos", "description": "Roadmap de funcionalidades", "speakerNotes": "" },
+  { "id": "c6d7e8f9-a0b1-4234-9abc-345678901234", "position": 16, "filepath": "src/pages/slides/Slide16Closing.tsx", "title": "ZapCentral: seu WhatsApp, organizado", "description": "Slide de encerramento com CTA", "speakerNotes": "" }
+]

@@ -1,0 +1,28 @@
+kind = "slides"
+previewPath = "/zapcentral-deck/"
+title = "ZapCentral Pitch Deck"
+description = "Apresentação do ZapCentral — plataforma SaaS de atendimento via WhatsApp com setores, filas IVR, CRM e relatórios"
+version = "1.0.0"
+id = "artifacts/zapcentral-deck"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/zapcentral-deck/" ]
+localPort = 24376
+
+[services.development]
+run = "pnpm --filter @workspace/zapcentral-deck run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/zapcentral-deck", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/zapcentral-deck/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "24376"
+BASE_PATH = "/zapcentral-deck/"
