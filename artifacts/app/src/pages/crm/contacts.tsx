@@ -23,6 +23,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
+import { isValidCpf } from "@/lib/cpf";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -629,7 +630,7 @@ function CreateContactDialog() {
   const { createContact } = useContacts({});
   const { toast } = useToast();
 
-  const [form, setForm] = useState({ phone: "", name: "", email: "", company: "" });
+  const [form, setForm] = useState({ phone: "", name: "", email: "", cpf: "", company: "" });
 
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -637,13 +638,18 @@ function CreateContactDialog() {
       toast({ title: "Telefone é obrigatório", variant: "destructive" });
       return;
     }
+    const cpfDigits = form.cpf.replace(/\D/g, "");
+    if (cpfDigits && !isValidCpf(cpfDigits)) {
+      toast({ title: "CPF inválido", description: "Verifique os dígitos informados.", variant: "destructive" });
+      return;
+    }
     createContact.mutate(
-      { ...form },
+      { ...form, cpf: cpfDigits || null, origin: "invite" as const },
       {
         onSuccess: () => {
           toast({ title: "Contato criado!" });
           setOpen(false);
-          setForm({ phone: "", name: "", email: "", company: "" });
+          setForm({ phone: "", name: "", email: "", cpf: "", company: "" });
         },
       }
     );
@@ -669,6 +675,10 @@ function CreateContactDialog() {
           <div className="space-y-2">
             <label className="text-sm font-medium">WhatsApp (com DDI e DDD)</label>
             <Input value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} placeholder="Ex: 5511999999999" />
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium">CPF</label>
+            <Input value={form.cpf} onChange={e => setForm({ ...form, cpf: e.target.value })} placeholder="Ex: 000.000.000-00" />
           </div>
           <div className="space-y-2">
             <label className="text-sm font-medium">Email</label>
@@ -738,7 +748,7 @@ function ImportCsvDialog() {
         </DialogHeader>
         <div className="space-y-4 py-2">
           <p className="text-sm text-gray-500">
-            Envie um arquivo .csv com cabeçalhos como: <code>phone, name, email, company</code>. O telefone é obrigatório.
+            Envie um arquivo .csv com cabeçalhos como: <code>phone, name, cpf, email, company</code>. O telefone é obrigatório.
           </p>
           
           <div className="space-y-2">

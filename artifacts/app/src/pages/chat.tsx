@@ -25,6 +25,7 @@ import {
 import { useTenantId } from "@/hooks/useTenantId";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { formatCpf } from "@/lib/cpf";
 
 const STATUS_LABELS: Record<string, string> = {
   new: "Novo",
@@ -458,6 +459,7 @@ export default function ChatPage() {
                   </p>
                   <p className="text-xs text-[#8899A6]">
                     {selectedConv.contact.phone}
+                    {selectedConv.contact.cpf && ` · CPF: ${formatCpf(selectedConv.contact.cpf)}`}
                     {selectedConv.departmentName && ` · ${selectedConv.departmentName}`}
                   </p>
                 </div>

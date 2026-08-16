@@ -96,7 +96,7 @@ export function useContacts(params: { q?: string; tagId?: number; assignedTo?: s
   });
 
   const createContact = useMutation({
-    mutationFn: (data: { phone: string; name?: string | null; email?: string | null; company?: string | null; notes?: string | null }) => api.createContact(tenantId!, data),
+    mutationFn: (data: { phone: string; name?: string | null; email?: string | null; cpf?: string | null; origin?: "invite" | "qr" | "organic"; company?: string | null; notes?: string | null }) => api.createContact(tenantId!, data),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["crm", "contacts", tenantId] }),
   });
 
@@ -129,7 +129,7 @@ export function useContactDetail(contactId: number) {
   });
 
   const updateContact = useMutation({
-    mutationFn: (data: Partial<{ phone: string; name: string | null; email: string | null; company: string | null; notes: string | null; assignedTo: string | null }>) => api.updateContact(tenantId!, contactId, data),
+    mutationFn: (data: Partial<{ phone: string; name: string | null; email: string | null; cpf: string | null; company: string | null; notes: string | null; assignedTo: string | null }>) => api.updateContact(tenantId!, contactId, data),
     onSuccess: (updated) => {
       qc.setQueryData(["crm", "contact", tenantId, contactId], (old: any) => old ? { ...old, ...updated } : old);
       qc.invalidateQueries({ queryKey: ["crm", "contacts", tenantId] });

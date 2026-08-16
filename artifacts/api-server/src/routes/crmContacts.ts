@@ -24,6 +24,15 @@ import {
   requireTenantMember,
   requireTenantAdmin,
 } from "../middlewares/auth";
+import { isValidCpf, normalizeCpf } from "../lib/cpf";
+
+/** Maps a unique-constraint violation to a user-facing conflict message. */
+function conflictMessage(err: unknown): string {
+  const text = err instanceof Error ? err.message : String(err);
+  if (text.includes("contacts_tenant_cpf_idx"))
+    return "Já existe um cliente com este CPF";
+  return "Contact with this phone already exists";
+}
 
 const router: IRouter = Router();
 
@@ -31,6 +40,14 @@ const contactInputSchema = z.object({
   phone: z.string().min(8).max(20).regex(/^\d+$/, "Digits only"),
   name: z.string().max(120).nullable().optional(),
   email: z.string().email().max(200).nullable().optional(),
+  cpf: z
+    .string()
+    .max(20)
+    .transform((v) => normalizeCpf(v))
+    .refine((v) => isValidCpf(v), { message: "CPF inválido" })
+    .nullable()
+    .optional(),
+  origin: z.enum(["invite", "qr", "organic"]).optional(),
   company: z.string().max(120).nullable().optional(),
   notes: z.string().max(5000).nullable().optional(),
   assignedTo: z.string().max(100).nullable().optional(),
@@ -165,10 +182,10 @@ router.get(
       const safe = /^[\s]*[=+\-@\t\r]/.test(v) ? `'${v}` : v;
       return `"${safe.replace(/"/g, '""')}"`;
     };
-    const lines = ["name,phone,email,company,notes"];
+    const lines = ["name,phone,cpf,email,company,notes"];
     for (const c of contacts) {
       lines.push(
-        [esc(c.name), esc(c.phone), esc(c.email), esc(c.company), esc(c.notes)].join(","),
+        [esc(c.name), esc(c.phone), esc(c.cpf), esc(c.email), esc(c.company), esc(c.notes)].join(","),
       );
     }
     res.setHeader("Content-Type", "text/csv; charset=utf-8");
@@ -253,6 +270,7 @@ router.post(
         header.indexOf("notes") !== -1
           ? header.indexOf("notes")
           : header.indexOf("notas"),
+      cpf: header.indexOf("cpf"),
     };
     if (idx.phone === -1) {
       res.status(400).json({ error: "CSV must have a 'phone'/'telefone' column" });
@@ -271,6 +289,17 @@ router.post(
         continue;
       }
       const val = (j: number) => (j >= 0 ? cols[j]?.trim() || null : null);
+      const rawCpf = val(idx.cpf);
+      let cpf: string | null = null;
+      if (rawCpf) {
+        const normalized = normalizeCpf(rawCpf);
+        if (!isValidCpf(normalized)) {
+          skipped++;
+          errors.push(`Linha ${i + 1}: CPF inválido`);
+          continue;
+        }
+        cpf = normalized;
+      }
       try {
         await db
           .insert(contactsTable)
@@ -279,6 +308,8 @@ router.post(
             phone,
             name: val(idx.name),
             email: val(idx.email),
+            cpf,
+            origin: "invite",
             company: val(idx.company),
             notes: val(idx.notes),
           })
@@ -287,6 +318,7 @@ router.post(
             set: {
               name: sql`COALESCE(EXCLUDED.name, ${contactsTable.name})`,
               email: sql`COALESCE(EXCLUDED.email, ${contactsTable.email})`,
+              cpf: sql`COALESCE(EXCLUDED.cpf, ${contactsTable.cpf})`,
               company: sql`COALESCE(EXCLUDED.company, ${contactsTable.company})`,
               updatedAt: new Date(),
             },
@@ -517,8 +549,8 @@ router.post(
         .values({ tenantId, ...parsed.data })
         .returning();
       res.status(201).json(contact);
-    } catch {
-      res.status(409).json({ error: "Contact with this phone already exists" });
+    } catch (err) {
+      res.status(409).json({ error: conflictMessage(err) });
     }
   },
 );
@@ -648,8 +680,8 @@ router.patch(
         return;
       }
       res.json(updated);
-    } catch {
-      res.status(409).json({ error: "Contact with this phone already exists" });
+    } catch (err) {
+      res.status(409).json({ error: conflictMessage(err) });
     }
   },
 );

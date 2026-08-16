@@ -11,13 +11,78 @@ import {
   AlertTriangle,
   Loader2,
   X,
+  QrCode,
+  Copy,
 } from "lucide-react";
 import { useAuth } from "@clerk/react";
 import { Sidebar } from "./dashboard";
-import { getWhatsAppStatus, connectWhatsApp, getWhatsAppQr, disconnectWhatsApp } from "@/lib/api";
+import { getWhatsAppStatus, connectWhatsApp, getWhatsAppQr, disconnectWhatsApp, getQrShareToken } from "@/lib/api";
 import { useTenantId } from "@/hooks/useTenantId";
 import { useToast } from "@/hooks/use-toast";
 import { initSocket, getSocket } from "@/lib/socket";
+
+function ShareQrCard({ tenantId }: { tenantId: number }) {
+  const { toast } = useToast();
+  const [msg, setMsg] = useState("Olá! Gostaria de atendimento.");
+
+  const { data: share } = useQuery({
+    queryKey: ["qr-share", tenantId],
+    queryFn: () => getQrShareToken(tenantId),
+  });
+
+  const base = `${window.location.origin}${import.meta.env.BASE_URL.replace(/\/$/, "")}`;
+  const pageUrl = share
+    ? `${base}/qr/${share.token}${msg.trim() ? `?msg=${encodeURIComponent(msg.trim())}` : ""}`
+    : null;
+
+  if (!pageUrl) return null;
+
+  return (
+    <div className="bg-white rounded-xl shadow-sm p-6 mt-6">
+      <h2 className="font-semibold text-gray-800 mb-1 flex items-center gap-2">
+        <QrCode className="w-4 h-4 text-[#25D366]" />
+        Divulgue sua central
+      </h2>
+      <p className="text-sm text-gray-500 mb-4">
+        Compartilhe ou imprima a página pública de QR code — quem escanear abre
+        uma conversa direto com o WhatsApp da central.
+      </p>
+
+      <label className="text-xs font-medium text-gray-600 block mb-1">
+        Mensagem inicial pré-preenchida (opcional)
+      </label>
+      <input
+        value={msg}
+        onChange={(e) => setMsg(e.target.value)}
+        maxLength={200}
+        className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mb-4 focus:outline-none focus:ring-2 focus:ring-[#25D366]/40"
+        placeholder="Ex: Olá! Gostaria de atendimento."
+      />
+
+      <div className="flex flex-wrap gap-3">
+        <a
+          href={pageUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="bg-[#25D366] hover:bg-[#1ebe57] text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors"
+        >
+          <QrCode className="w-4 h-4" />
+          Abrir página do QR
+        </a>
+        <button
+          onClick={() => {
+            void navigator.clipboard.writeText(pageUrl);
+            toast({ title: "Link copiado!" });
+          }}
+          className="border border-gray-200 hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors"
+        >
+          <Copy className="w-4 h-4" />
+          Copiar link
+        </button>
+      </div>
+    </div>
+  );
+}
 
 const STATUS_INFO: Record<
   string,
@@ -286,6 +351,11 @@ export default function WhatsAppConnectPage() {
                 )}
               </div>
             </div>
+          )}
+
+          {/* Share QR page */}
+          {status === "connected" && tenantId && (
+            <ShareQrCard tenantId={tenantId} />
           )}
 
           {/* Instructions */}

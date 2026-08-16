@@ -13,9 +13,11 @@ import {
   messagesTable,
   channelSettingsTable,
   agentStatusesTable,
+  tenantsTable,
 } from "@workspace/db";
 import { eq, and, sql } from "drizzle-orm";
 import { jidToPhone } from "../services/evolution";
+import { extractQrMarker, matchesQrMarker } from "../lib/qrMarker";
 import {
   processIvrMessage,
   sendTenantMessage,
@@ -305,6 +307,34 @@ router.post(
           .returning();
 
         if (!contact) throw new Error("Failed to upsert contact");
+
+        // QR attribution: the public QR page appends a "QR-xxxxxx" marker
+        // (first 6 hex chars of the tenant's share token) to the pre-filled
+        // message. If present and matching, tag the contact's origin as 'qr'.
+        // Precedence: a valid QR marker overrides 'organic' AND 'invite'
+        // (scanning the QR is a definitive channel event; pre-registration
+        // provenance remains visible via the contact's name/CPF). Once 'qr',
+        // it stays 'qr'.
+        if (
+          contact.origin !== "qr" &&
+          msgContent.type === "text" &&
+          msgContent.content
+        ) {
+          const marker = extractQrMarker(msgContent.content);
+          if (marker) {
+            const [tenant] = await db
+              .select({ qrShareToken: tenantsTable.qrShareToken })
+              .from(tenantsTable)
+              .where(eq(tenantsTable.id, tenantId))
+              .limit(1);
+            if (matchesQrMarker(msgContent.content, tenant?.qrShareToken)) {
+              await db
+                .update(contactsTable)
+                .set({ origin: "qr", updatedAt: new Date() })
+                .where(eq(contactsTable.id, contact.id));
+            }
+          }
+        }
 
         // Find or create open conversation for this contact
         let [conversation] = await db

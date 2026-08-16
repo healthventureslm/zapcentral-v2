@@ -16,10 +16,13 @@ import {
   Briefcase,
   Building2,
   Mail,
+  Pencil,
+  IdCard,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
   getContact,
+  updateContact,
   listTags,
   createTag,
   addContactTag,
@@ -33,6 +36,7 @@ import {
 } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { isValidCpf, formatCpf, normalizeCpf } from "@/lib/cpf";
 
 const brl = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 
@@ -144,6 +148,9 @@ export function ContactPanel({
   const qc = useQueryClient();
   const { toast } = useToast();
   const [noteText, setNoteText] = useState("");
+  const [editing, setEditing] = useState(false);
+  const [editName, setEditName] = useState("");
+  const [editCpf, setEditCpf] = useState("");
 
   const { data: contact, isLoading } = useQuery({
     queryKey: ["crm", "contact", tenantId, contactId],
@@ -158,6 +165,39 @@ export function ContactPanel({
   const invalidate = () => {
     void qc.invalidateQueries({ queryKey: ["crm", "contact", tenantId, contactId] });
     void qc.invalidateQueries({ queryKey: ["conversation-tags", tenantId, conversationId] });
+  };
+
+  const updateContactM = useMutation({
+    mutationFn: () => {
+      const cpfDigits = normalizeCpf(editCpf);
+      return updateContact(tenantId, contactId, {
+        name: editName.trim() || null,
+        cpf: cpfDigits || null,
+      });
+    },
+    onSuccess: () => {
+      setEditing(false);
+      invalidate();
+      void qc.invalidateQueries({ queryKey: ["conversations", tenantId] });
+      toast({ title: "Cadastro atualizado" });
+    },
+    onError: (err: Error) =>
+      toast({ title: "Erro ao salvar", description: err.message, variant: "destructive" }),
+  });
+
+  const startEditing = () => {
+    setEditName(contact?.name ?? "");
+    setEditCpf(contact?.cpf ? formatCpf(contact.cpf) : "");
+    setEditing(true);
+  };
+
+  const saveEdit = () => {
+    const cpfDigits = normalizeCpf(editCpf);
+    if (cpfDigits && !isValidCpf(cpfDigits)) {
+      toast({ title: "CPF inválido", variant: "destructive" });
+      return;
+    }
+    updateContactM.mutate();
   };
 
   const addContactTagM = useMutation({
@@ -210,15 +250,70 @@ export function ContactPanel({
           <p className="text-sm font-semibold text-white truncate">
             {contact.name ?? contact.phone}
           </p>
-          <Link
-            href={`/crm/contatos/${contact.id}`}
-            className="text-[#8899A6] hover:text-[#25D366]"
-            title="Abrir perfil no CRM"
-          >
-            <ExternalLink className="w-3.5 h-3.5" />
-          </Link>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => (editing ? setEditing(false) : startEditing())}
+              className="text-[#8899A6] hover:text-[#25D366]"
+              title="Completar cadastro"
+            >
+              <Pencil className="w-3.5 h-3.5" />
+            </button>
+            <Link
+              href={`/crm/contatos/${contact.id}`}
+              className="text-[#8899A6] hover:text-[#25D366]"
+              title="Abrir perfil no CRM"
+            >
+              <ExternalLink className="w-3.5 h-3.5" />
+            </Link>
+          </div>
         </div>
         <p className="text-xs text-[#8899A6]">{contact.phone}</p>
+        {editing ? (
+          <div className="mt-2 space-y-2">
+            <input
+              value={editName}
+              onChange={(e) => setEditName(e.target.value)}
+              placeholder="Nome completo"
+              className="w-full bg-[#1A2B38] border border-white/10 rounded px-2 py-1.5 text-xs text-white placeholder:text-[#8899A6] focus:outline-none focus:border-[#25D366]/50"
+            />
+            <input
+              value={editCpf}
+              onChange={(e) => setEditCpf(e.target.value)}
+              placeholder="CPF (000.000.000-00)"
+              className="w-full bg-[#1A2B38] border border-white/10 rounded px-2 py-1.5 text-xs text-white placeholder:text-[#8899A6] focus:outline-none focus:border-[#25D366]/50"
+            />
+            <div className="flex gap-2">
+              <button
+                onClick={saveEdit}
+                disabled={updateContactM.isPending}
+                className="flex-1 bg-[#25D366] hover:bg-[#1ebe57] disabled:opacity-50 text-white text-xs py-1.5 rounded transition-colors"
+              >
+                {updateContactM.isPending ? "Salvando..." : "Salvar"}
+              </button>
+              <button
+                onClick={() => setEditing(false)}
+                className="px-3 text-xs text-[#8899A6] hover:text-white"
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        ) : (
+          <>
+            {contact.cpf ? (
+              <p className="text-xs text-[#8899A6] flex items-center gap-1.5 mt-1">
+                <IdCard className="w-3 h-3" /> CPF: {formatCpf(contact.cpf)}
+              </p>
+            ) : (
+              <button
+                onClick={startEditing}
+                className="text-xs text-amber-400/80 hover:text-amber-300 flex items-center gap-1.5 mt-1"
+              >
+                <IdCard className="w-3 h-3" /> Cadastro incompleto — adicionar CPF
+              </button>
+            )}
+          </>
+        )}
         {contact.email && (
           <p className="text-xs text-[#8899A6] flex items-center gap-1.5 mt-1">
             <Mail className="w-3 h-3" /> {contact.email}

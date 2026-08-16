@@ -7,6 +7,7 @@ import {
   pgEnum,
   uniqueIndex,
 } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 
@@ -33,6 +34,8 @@ export const tenantsTable = pgTable(
     planType: tenantPlanEnum("plan_type").notNull().default("trial"),
     status: tenantStatusEnum("status").notNull().default("pending"),
     maxAgents: integer("max_agents").notNull().default(5),
+    /** Unguessable token for the public QR share page (null = sharing disabled) */
+    qrShareToken: text("qr_share_token"),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
@@ -40,7 +43,12 @@ export const tenantsTable = pgTable(
       .notNull()
       .defaultNow(),
   },
-  (t) => [uniqueIndex("tenants_slug_idx").on(t.slug)],
+  (t) => [
+    uniqueIndex("tenants_slug_idx").on(t.slug),
+    uniqueIndex("tenants_qr_share_token_idx")
+      .on(t.qrShareToken)
+      .where(sql`${t.qrShareToken} IS NOT NULL`),
+  ],
 );
 
 export const insertTenantSchema = createInsertSchema(tenantsTable).omit({

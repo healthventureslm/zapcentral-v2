@@ -150,6 +150,7 @@ router.get(
             id: contactsTable.id,
             phone: contactsTable.phone,
             name: contactsTable.name,
+            cpf: contactsTable.cpf,
             avatarUrl: contactsTable.avatarUrl,
           },
           departmentName: departmentsTable.name,

@@ -4,7 +4,7 @@
 import { Router } from "express";
 import { getAuth } from "@clerk/express";
 import { db } from "@workspace/db";
-import { whatsappInstancesTable } from "@workspace/db";
+import { whatsappInstancesTable, tenantsTable } from "@workspace/db";
 import { eq, and } from "drizzle-orm";
 import { randomBytes } from "crypto";
 import {
@@ -31,6 +31,95 @@ function getWebhookUrl(req: import("express").Request, instanceName: string): st
     : `${req.protocol}://${req.get("host")}`;
   return `${base}/api/webhooks/evolution/${instanceName}`;
 }
+
+/**
+ * GET /api/public/wa-link/:token
+ * Public endpoint (no auth) used by the shareable QR page.
+ * The token is an unguessable per-tenant share token (revocable by
+ * regenerating). Returns only the tenant's display name, connected
+ * WhatsApp number and the QR attribution marker.
+ */
+router.get("/public/wa-link/:token", async (req, res): Promise<void> => {
+  const token = String(req.params["token"] ?? "");
+  if (!/^[a-f0-9]{32,64}$/.test(token)) {
+    res.status(404).json({ error: "Not found" });
+    return;
+  }
+
+  const [row] = await db
+    .select({
+      tenantName: tenantsTable.name,
+      phoneNumber: whatsappInstancesTable.phoneNumber,
+      status: whatsappInstancesTable.status,
+    })
+    .from(tenantsTable)
+    .leftJoin(
+      whatsappInstancesTable,
+      eq(whatsappInstancesTable.tenantId, tenantsTable.id),
+    )
+    .where(eq(tenantsTable.qrShareToken, token))
+    .limit(1);
+
+  if (!row) {
+    res.status(404).json({ error: "Not found" });
+    return;
+  }
+
+  const connected = row.status === "connected" && !!row.phoneNumber;
+  res.json({
+    tenantName: row.tenantName,
+    connected,
+    phoneNumber: connected ? row.phoneNumber : null,
+    // Short marker appended to the pre-filled message so the webhook can
+    // attribute the first inbound message to the QR channel.
+    qrMarker: `QR-${token.slice(0, 6)}`,
+  });
+});
+
+/**
+ * GET /api/tenants/:tenantId/whatsapp/qr-share
+ * Returns (generating on first call) the tenant's public QR share token.
+ * POST .../qr-share/rotate regenerates it, invalidating the old link.
+ */
+async function generateShareToken(tenantId: number): Promise<string> {
+  const token = randomBytes(24).toString("hex");
+  await db
+    .update(tenantsTable)
+    .set({ qrShareToken: token, updatedAt: new Date() })
+    .where(eq(tenantsTable.id, tenantId));
+  return token;
+}
+
+router.get(
+  "/tenants/:tenantId/whatsapp/qr-share",
+  requireAuth,
+  requireTenantAdmin,
+  async (req, res): Promise<void> => {
+    const tenantId = Number(req.params["tenantId"]);
+    const [tenant] = await db
+      .select({ qrShareToken: tenantsTable.qrShareToken })
+      .from(tenantsTable)
+      .where(eq(tenantsTable.id, tenantId))
+      .limit(1);
+    if (!tenant) {
+      res.status(404).json({ error: "Tenant not found" });
+      return;
+    }
+    const token = tenant.qrShareToken ?? (await generateShareToken(tenantId));
+    res.json({ token });
+  },
+);
+
+router.post(
+  "/tenants/:tenantId/whatsapp/qr-share/rotate",
+  requireAuth,
+  requireTenantAdmin,
+  async (req, res): Promise<void> => {
+    const tenantId = Number(req.params["tenantId"]);
+    const token = await generateShareToken(tenantId);
+    res.json({ token });
+  },
+);
 
 /**
  * GET /api/tenants/:tenantId/whatsapp/status

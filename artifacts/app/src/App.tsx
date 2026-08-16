@@ -18,6 +18,7 @@ import ContactsPage from "@/pages/crm/contacts";
 import ContactDetailPage from "@/pages/crm/contact-detail";
 import KanbanPage from "@/pages/crm/kanban";
 import ReportsPage from "@/pages/reports";
+import QrPublicPage from "@/pages/qr-public";
 
 const queryClient = new QueryClient();
 
@@ -76,6 +77,7 @@ function AppRoutes() {
       <Route path="/crm">
         <ProtectedRoute component={ContactsPage} />
       </Route>
+      <Route path="/qr/:token" component={QrPublicPage} />
       <Route path="/relatorios">
         <ProtectedRoute component={ReportsPage} />
       </Route>

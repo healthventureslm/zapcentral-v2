@@ -41,6 +41,7 @@ export interface Contact {
   id: number;
   phone: string;
   name: string | null;
+  cpf?: string | null;
   email: string | null;
   avatarUrl: string | null;
 }
@@ -275,6 +276,8 @@ export interface CrmContact {
   phone: string;
   name: string | null;
   email: string | null;
+  cpf: string | null;
+  origin: "invite" | "qr" | "organic";
   company: string | null;
   avatarUrl: string | null;
   notes: string | null;
@@ -283,6 +286,26 @@ export interface CrmContact {
   lastContactAt: string;
   tags: Tag[];
 }
+
+export interface PublicWaLink {
+  tenantName: string;
+  connected: boolean;
+  phoneNumber: string | null;
+  qrMarker: string;
+}
+
+/** Public (unauthenticated) — used by the shareable QR page. */
+export const getPublicWaLink = (token: string) =>
+  apiFetch<PublicWaLink>(`/public/wa-link/${encodeURIComponent(token)}`);
+
+/** Admin — returns (creating if needed) the tenant's QR share token. */
+export const getQrShareToken = (tenantId: number) =>
+  apiFetch<{ token: string }>(`/tenants/${tenantId}/whatsapp/qr-share`);
+
+export const rotateQrShareToken = (tenantId: number) =>
+  apiFetch<{ token: string }>(`/tenants/${tenantId}/whatsapp/qr-share/rotate`, {
+    method: "POST",
+  });
 
 export interface CustomField {
   id: number;
@@ -353,7 +376,7 @@ export const getContact = (tenantId: number, contactId: number) =>
 
 export const createContact = (
   tenantId: number,
-  body: { phone: string; name?: string | null; email?: string | null; company?: string | null; notes?: string | null },
+  body: { phone: string; name?: string | null; email?: string | null; cpf?: string | null; origin?: "invite" | "qr" | "organic"; company?: string | null; notes?: string | null },
 ) =>
   apiFetch<CrmContact>(`/tenants/${tenantId}/contacts`, {
     method: "POST",
@@ -363,7 +386,7 @@ export const createContact = (
 export const updateContact = (
   tenantId: number,
   contactId: number,
-  body: Partial<{ phone: string; name: string | null; email: string | null; company: string | null; notes: string | null; assignedTo: string | null }>,
+  body: Partial<{ phone: string; name: string | null; email: string | null; cpf: string | null; company: string | null; notes: string | null; assignedTo: string | null }>,
 ) =>
   apiFetch<CrmContact>(`/tenants/${tenantId}/contacts/${contactId}`, {
     method: "PATCH",
