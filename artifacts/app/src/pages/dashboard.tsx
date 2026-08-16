@@ -13,9 +13,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
+import { Smartphone } from "lucide-react";
+
 const navItems = [
   { name: "Dashboard", path: "/", icon: LayoutDashboard },
   { name: "Atendimento", path: "/atendimento", icon: MessageCircle },
+  { name: "WhatsApp", path: "/whatsapp", icon: Smartphone },
   { name: "CRM", path: "/crm", icon: Users },
   { name: "Relatórios", path: "/relatorios", icon: BarChart3 },
   { name: "Configurações", path: "/settings", icon: Settings },

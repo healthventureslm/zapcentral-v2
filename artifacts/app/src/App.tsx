@@ -11,6 +11,9 @@ import SignInPage from "@/pages/sign-in";
 import SignUpPage from "@/pages/sign-up";
 import DashboardPage from "@/pages/dashboard";
 import SettingsPage from "@/pages/settings";
+import ChatPage from "@/pages/chat";
+import WhatsAppConnectPage from "@/pages/whatsapp-connect";
+import ChannelSettingsPage from "@/pages/channel-settings";
 
 const queryClient = new QueryClient();
 
@@ -50,6 +53,15 @@ function AppRoutes() {
       <Route path="/sign-up/*?" component={SignUpPage} />
       <Route path="/settings">
         <ProtectedRoute component={SettingsPage} />
+      </Route>
+      <Route path="/atendimento">
+        <ProtectedRoute component={ChatPage} />
+      </Route>
+      <Route path="/whatsapp">
+        <ProtectedRoute component={WhatsAppConnectPage} />
+      </Route>
+      <Route path="/configuracoes-canal">
+        <ProtectedRoute component={ChannelSettingsPage} />
       </Route>
       <Route path="/">
         <ProtectedRoute component={DashboardPage} />
