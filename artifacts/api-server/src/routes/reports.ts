@@ -71,11 +71,19 @@ const timingCte = (where: SQL) => sql`
   WITH conv AS (
     SELECT
       c.id, c.tenant_id, c.department_id, c.assigned_to, c.status,
-      c.created_at, c.closed_at,
+      c.created_at, c.closed_at, c.rating,
+      -- Agent-authored first response only (first_response_at is set by the
+      -- agent message route). Fallback to first outbound message *sent by a
+      -- user* for legacy rows; automated IVR/closing/survey messages have
+      -- sent_by NULL and never count.
       EXTRACT(EPOCH FROM (
-        (SELECT MIN(m.timestamp) FROM messages m
-          WHERE m.conversation_id = c.id AND m.direction = 'outbound')
-        - c.created_at
+        COALESCE(
+          c.first_response_at,
+          (SELECT MIN(m.timestamp) FROM messages m
+            WHERE m.conversation_id = c.id
+              AND m.direction = 'outbound'
+              AND m.sent_by IS NOT NULL)
+        ) - c.created_at
       )) AS first_response_secs,
       CASE WHEN c.closed_at IS NOT NULL
         THEN EXTRACT(EPOCH FROM (c.closed_at - c.created_at))
@@ -184,7 +192,9 @@ router.get(
         COUNT(*)::int AS handled,
         COUNT(*) FILTER (WHERE status = 'closed')::int AS closed,
         ROUND(AVG(first_response_secs) FILTER (WHERE first_response_secs >= 0))::int AS avg_first_response_secs,
-        ROUND(AVG(resolution_secs))::int AS avg_resolution_secs
+        ROUND(AVG(resolution_secs))::int AS avg_resolution_secs,
+        ROUND(AVG(rating)::numeric, 2)::float AS avg_rating,
+        COUNT(rating)::int AS rating_count
       FROM conv
       WHERE assigned_to IS NOT NULL
       GROUP BY assigned_to
@@ -197,6 +207,8 @@ router.get(
         closed: r["closed"],
         avgFirstResponseSecs: r["avg_first_response_secs"],
         avgResolutionSecs: r["avg_resolution_secs"],
+        avgRating: r["avg_rating"],
+        ratingCount: r["rating_count"],
       })),
     );
   },

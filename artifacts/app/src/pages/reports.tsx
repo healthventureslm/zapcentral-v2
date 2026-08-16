@@ -12,7 +12,8 @@ import {
   CheckCircle2,
   TrendingUp,
   FileSpreadsheet,
-  MessageCircle
+  MessageCircle,
+  Star
 } from "lucide-react";
 import { Sidebar } from "@/pages/dashboard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -421,6 +422,18 @@ export default function ReportsPage() {
                                 <div>
                                   <p className="text-xs text-gray-500 mb-0.5">T.M. Resolução</p>
                                   <p className="font-medium text-gray-900">{formatDuration(row.avgResolutionSecs)}</p>
+                                </div>
+                                <div>
+                                  <p className="text-xs text-gray-500 mb-0.5">Satisfação</p>
+                                  {row.avgRating != null ? (
+                                    <p className="font-medium text-gray-900 flex items-center justify-end gap-1">
+                                      <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
+                                      {row.avgRating.toFixed(1)}
+                                      <span className="text-xs text-gray-400 font-normal">({row.ratingCount})</span>
+                                    </p>
+                                  ) : (
+                                    <p className="font-medium text-gray-400">—</p>
+                                  )}
                                 </div>
                               </div>
                             </div>

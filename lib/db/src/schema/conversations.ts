@@ -43,6 +43,14 @@ export const conversationsTable = pgTable(
     lastMessageAt: timestamp("last_message_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
+    /** Timestamp of the first outbound message sent by the assigned agent */
+    firstResponseAt: timestamp("first_response_at", { withTimezone: true }),
+    /** When the post-service satisfaction survey was sent (null = not sent) */
+    surveySentAt: timestamp("survey_sent_at", { withTimezone: true }),
+    /** Customer satisfaction rating 1–5 (null = not answered) */
+    rating: integer("rating"),
+    /** Optional free-text comment sent alongside the rating */
+    ratingComment: text("rating_comment"),
     closedAt: timestamp("closed_at", { withTimezone: true }),
     /** clerkUserId who closed the conversation */
     closedBy: text("closed_by"),

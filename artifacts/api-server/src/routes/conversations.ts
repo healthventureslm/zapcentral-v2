@@ -816,33 +816,59 @@ router.post(
       .where(eq(contactsTable.id, conv.contactId))
       .then((r) => r[0]);
 
-    if (contact && settings?.closingMessage) {
-      const [instance] = await db
-        .select({ phoneNumber: whatsappInstancesTable.phoneNumber })
-        .from(whatsappInstancesTable)
-        .where(eq(whatsappInstancesTable.tenantId, tenantId))
-        .limit(1);
-
-      await sendTenantMessage(
-        tenantId,
-        conversationId,
-        contact.phone,
-        settings.closingMessage,
-        instance?.phoneNumber ?? "",
-      ).catch(() => null);
-    }
-
-    const [updated] = await db
+    // Persist the closed + survey-eligible state BEFORE sending anything:
+    // the customer can reply the instant WhatsApp delivers the survey, and
+    // the webhook must already see an eligible closed conversation. If the
+    // survey send fails afterwards, we clear surveySentAt.
+    let [updated] = await db
       .update(conversationsTable)
       .set({
         status: "closed",
         closedAt: new Date(),
         closedBy: uid,
         closingNote: parsed.data.note ?? null,
+        surveySentAt: contact ? new Date() : null,
         updatedAt: new Date(),
       })
       .where(eq(conversationsTable.id, conversationId))
       .returning();
+
+    if (contact) {
+      const [instance] = await db
+        .select({ phoneNumber: whatsappInstancesTable.phoneNumber })
+        .from(whatsappInstancesTable)
+        .where(eq(whatsappInstancesTable.tenantId, tenantId))
+        .limit(1);
+
+      if (settings?.closingMessage) {
+        await sendTenantMessage(
+          tenantId,
+          conversationId,
+          contact.phone,
+          settings.closingMessage,
+          instance?.phoneNumber ?? "",
+        ).catch(() => null);
+      }
+
+      // Post-service satisfaction survey (1–5)
+      const surveyResult = await sendTenantMessage(
+        tenantId,
+        conversationId,
+        contact.phone,
+        "Como você avalia o nosso atendimento? Responda com uma nota de 1 a 5 (5 = excelente). Se quiser, escreva um comentário junto com a nota.",
+        instance?.phoneNumber ?? "",
+      ).catch(() => null);
+
+      if (surveyResult === null) {
+        // Survey never reached the customer — withdraw eligibility
+        const [reverted] = await db
+          .update(conversationsTable)
+          .set({ surveySentAt: null, updatedAt: new Date() })
+          .where(eq(conversationsTable.id, conversationId))
+          .returning();
+        updated = reverted;
+      }
+    }
 
     // Decrement agent's count
     if (conv.assignedTo) {

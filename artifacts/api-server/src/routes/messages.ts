@@ -11,7 +11,7 @@ import {
   contactsTable,
   whatsappInstancesTable,
 } from "@workspace/db";
-import { eq, and, asc, desc } from "drizzle-orm";
+import { eq, and, asc, desc, sql } from "drizzle-orm";
 import { z } from "zod";
 import { requireAuth, requireTenantMember } from "../middlewares/auth";
 import { sendText, sendMedia, isEvolutionConfigured } from "../services/evolution";
@@ -266,10 +266,14 @@ router.post(
       })
       .returning();
 
-    // Update last message time
+    // Update last message time; record first agent response time (once)
     await db
       .update(conversationsTable)
-      .set({ lastMessageAt: new Date(), updatedAt: new Date() })
+      .set({
+        lastMessageAt: new Date(),
+        updatedAt: new Date(),
+        firstResponseAt: sql`COALESCE(${conversationsTable.firstResponseAt}, NOW())`,
+      })
       .where(eq(conversationsTable.id, conversationId));
 
     emitToTenant(tenantId, "new_message", {

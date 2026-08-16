@@ -817,6 +817,8 @@ export interface AgentReportRow {
   closed: number;
   avgFirstResponseSecs: number | null;
   avgResolutionSecs: number | null;
+  avgRating: number | null;
+  ratingCount: number;
 }
 
 export interface DepartmentReportRow {

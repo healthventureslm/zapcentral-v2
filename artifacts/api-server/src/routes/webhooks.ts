@@ -336,7 +336,7 @@ router.post(
           }
         }
 
-        // Find or create open conversation for this contact
+        // Find open conversation for this contact (created later if needed)
         let [conversation] = await db
           .select()
           .from(conversationsTable)
@@ -349,6 +349,93 @@ router.post(
           )
           .limit(1);
 
+        // Satisfaction survey capture: ONLY when the contact has no open
+        // conversation (otherwise "3" might be an IVR menu choice or a live
+        // reply). If there is a recently closed conversation awaiting a
+        // rating (survey sent < 24h ago) and the reply starts with a digit
+        // 1–5, record it as the rating (rest of the text = optional
+        // comment) and stop here — no new conversation is opened. Any other
+        // reply falls through to the normal flow (silent survey timeout).
+        if (!conversation && msgContent.type === "text" && msgContent.content) {
+          const ratingMatch = /^\s*([1-5])\b[\s.,;:-]*([\s\S]*)$/.exec(
+            msgContent.content,
+          );
+          if (ratingMatch) {
+            const [pendingSurvey] = await db
+              .select({
+                id: conversationsTable.id,
+                assignedTo: conversationsTable.assignedTo,
+              })
+              .from(conversationsTable)
+              .where(
+                and(
+                  eq(conversationsTable.tenantId, tenantId),
+                  eq(conversationsTable.contactId, contact.id),
+                  eq(conversationsTable.status, "closed"),
+                  sql`${conversationsTable.surveySentAt} IS NOT NULL`,
+                  sql`${conversationsTable.rating} IS NULL`,
+                  sql`${conversationsTable.surveySentAt} > NOW() - INTERVAL '24 hours'`,
+                ),
+              )
+              .orderBy(sql`${conversationsTable.surveySentAt} DESC`)
+              .limit(1);
+
+            if (pendingSurvey) {
+              const rating = Number(ratingMatch[1]);
+              const comment = (ratingMatch[2] ?? "").trim() || null;
+
+              // Atomic: only the first rating wins
+              const [rated] = await db
+                .update(conversationsTable)
+                .set({
+                  rating,
+                  ratingComment: comment,
+                  updatedAt: new Date(),
+                })
+                .where(
+                  and(
+                    eq(conversationsTable.id, pendingSurvey.id),
+                    sql`${conversationsTable.rating} IS NULL`,
+                  ),
+                )
+                .returning({ id: conversationsTable.id });
+
+              if (rated) {
+                // Store the reply on the closed conversation for audit
+                await db.insert(messagesTable).values({
+                  conversationId: pendingSurvey.id,
+                  tenantId,
+                  messageId: msgId,
+                  fromPhone: phone,
+                  toPhone: instance.phoneNumber ?? "",
+                  type: "text",
+                  content: msgContent.content,
+                  direction: "inbound",
+                  status: "received",
+                  timestamp: msgTimestamp,
+                });
+
+                await sendTenantMessage(
+                  tenantId,
+                  pendingSurvey.id,
+                  phone,
+                  "Obrigado pela sua avaliação!",
+                  instance.phoneNumber ?? "",
+                ).catch(() => null);
+
+                emitToTenant(tenantId, "conversation_updated", {
+                  conversationId: pendingSurvey.id,
+                  rating,
+                });
+
+                res.status(200).json({ ok: true });
+                return;
+              }
+            }
+          }
+        }
+
+        // Create a conversation if none is open
         if (!conversation) {
           const [newConv] = await db
             .insert(conversationsTable)
