@@ -1,0 +1,14 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "XnW9LGMMC5s5H7quoAH3Y"
+uri = "file://.local/outputs/ZapCentral-Pitch-Deck.pdf"
+type = "pdf"
+title = "ZapCentral Pitch Deck.pdf"
+
+[[outputs]]
+id = "yxIPnD4VSPpaNWC__YDYD"
+uri = "file://.local/outputs/ZapCentral-Pitch-Deck.pptx"
+type = "slides"
+title = "ZapCentral Pitch Deck.pptx"
