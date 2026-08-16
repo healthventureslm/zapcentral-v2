@@ -4,9 +4,14 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Switch } from "@/components/ui/switch";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Sidebar } from "@/pages/dashboard";
+import { useTenantId, useMyRole } from "@/hooks/useTenantId";
+import { TeamSection, DepartmentsSection } from "@/components/settings/team-management";
 
 export default function SettingsPage() {
   const { user } = useUser();
+  const tenantId = useTenantId();
+  const role = useMyRole();
+  const isAdmin = role === "admin" || role === "supervisor";
 
   return (
     <div className="min-h-[100dvh] bg-[#F4F7F8]">
@@ -61,6 +66,13 @@ export default function SettingsPage() {
                 </div>
               </CardContent>
             </Card>
+
+            {isAdmin && tenantId && (
+              <>
+                <TeamSection tenantId={tenantId} myUserId={user?.id} />
+                <DepartmentsSection tenantId={tenantId} />
+              </>
+            )}
 
             <Card>
               <CardHeader>

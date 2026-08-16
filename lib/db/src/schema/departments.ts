@@ -27,6 +27,8 @@ export const departmentsTable = pgTable(
     description: text("description"),
     color: text("color").notNull().default("#25D366"),
     status: departmentStatusEnum("status").notNull().default("active"),
+    /** Null = unlimited; otherwise the max number of agents ("hotel room" capacity) */
+    maxAgents: integer("max_agents"),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),

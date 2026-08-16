@@ -16,14 +16,27 @@ import {
 
 const router = Router();
 
+/** ISO date string in the future, or null for continuous access */
+const accessExpiresAtSchema = z
+  .string()
+  .datetime({ offset: true })
+  .nullable()
+  .optional()
+  .transform((v) => (v == null ? v : new Date(v)))
+  .refine((v) => v == null || v.getTime() > Date.now(), {
+    message: "accessExpiresAt must be in the future",
+  });
+
 const inviteSchema = z.object({
   email: z.string().email(),
   role: z.enum(["admin", "supervisor", "agent"]),
+  accessExpiresAt: accessExpiresAtSchema,
 });
 
 const userPatchSchema = z.object({
   role: z.enum(["admin", "supervisor", "agent"]).optional(),
   status: z.enum(["active", "suspended"]).optional(),
+  accessExpiresAt: accessExpiresAtSchema,
 });
 
 /**
@@ -32,7 +45,7 @@ const userPatchSchema = z.object({
 router.get(
   "/tenants/:tenantId/users",
   requireAuth,
-  requireTenantMember,
+  requireTenantAdmin,
   async (req, res): Promise<void> => {
     const tenantId = Number(req.params["tenantId"]);
 
@@ -65,6 +78,7 @@ router.get(
           avatarUrl: u.avatarUrl,
           role: u.role,
           status: u.status,
+          accessExpiresAt: u.accessExpiresAt,
           departments: depts.map((d) => d.name),
           joinedAt: u.joinedAt,
         };
@@ -95,7 +109,7 @@ router.post(
         .json({ error: "Invalid input", details: parsed.error.format() });
       return;
     }
-    const { email, role } = parsed.data;
+    const { email, role, accessExpiresAt } = parsed.data;
 
     // Check if user is already a member (by email)
     const [alreadyMember] = await db
@@ -139,10 +153,17 @@ router.post(
         email,
         role,
         status: "invited",
+        accessExpiresAt: accessExpiresAt ?? null,
       })
       .onConflictDoUpdate({
         target: [tenantUsersTable.tenantId, tenantUsersTable.clerkUserId],
-        set: { role, status: "invited", email, updatedAt: new Date() },
+        set: {
+          role,
+          status: "invited",
+          email,
+          accessExpiresAt: accessExpiresAt ?? null,
+          updatedAt: new Date(),
+        },
       })
       .returning();
 
@@ -179,16 +200,24 @@ router.patch(
       return;
     }
 
-    const { role, status } = parsed.data;
+    const { role, status, accessExpiresAt } = parsed.data;
 
-    if (role === undefined && status === undefined) {
-      res.status(400).json({ error: "At least one of role or status is required" });
+    if (
+      role === undefined &&
+      status === undefined &&
+      accessExpiresAt === undefined
+    ) {
+      res.status(400).json({
+        error: "At least one of role, status or accessExpiresAt is required",
+      });
       return;
     }
 
     const updates: Record<string, unknown> = { updatedAt: new Date() };
     if (role !== undefined) updates["role"] = role;
     if (status !== undefined) updates["status"] = status;
+    if (accessExpiresAt !== undefined)
+      updates["accessExpiresAt"] = accessExpiresAt;
 
     const [updated] = await db
       .update(tenantUsersTable)

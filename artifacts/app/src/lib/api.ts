@@ -287,6 +287,135 @@ export interface CrmContact {
   tags: Tag[];
 }
 
+// ---------------------------------------------------------------------------
+// Team & department management (admin)
+// ---------------------------------------------------------------------------
+
+export interface TenantUserRow {
+  clerkUserId: string;
+  email: string;
+  firstName: string | null;
+  lastName: string | null;
+  avatarUrl: string | null;
+  role: "admin" | "supervisor" | "agent";
+  status: "active" | "invited" | "suspended";
+  accessExpiresAt: string | null;
+  departments: string[];
+  joinedAt: string;
+}
+
+export const listTenantUsers = (tenantId: number) =>
+  apiFetch<TenantUserRow[]>(`/tenants/${tenantId}/users`);
+
+export const inviteTenantUser = (
+  tenantId: number,
+  body: { email: string; role: TenantUserRow["role"]; accessExpiresAt?: string | null },
+) =>
+  apiFetch<TenantUserRow>(`/tenants/${tenantId}/users/invite`, {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+
+export const patchTenantUser = (
+  tenantId: number,
+  userId: string,
+  body: Partial<{
+    role: TenantUserRow["role"];
+    status: "active" | "suspended";
+    accessExpiresAt: string | null;
+  }>,
+) =>
+  apiFetch<TenantUserRow>(`/tenants/${tenantId}/users/${encodeURIComponent(userId)}`, {
+    method: "PATCH",
+    body: JSON.stringify(body),
+  });
+
+export const removeTenantUser = (tenantId: number, userId: string) =>
+  apiFetch<void>(`/tenants/${tenantId}/users/${encodeURIComponent(userId)}`, {
+    method: "DELETE",
+  });
+
+export interface DepartmentRow {
+  id: number;
+  tenantId: number;
+  name: string;
+  description: string | null;
+  color: string;
+  status: "active" | "inactive";
+  maxAgents: number | null;
+  agentCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface DepartmentAgentRow {
+  clerkUserId: string;
+  isPrimary: boolean;
+  addedAt: string;
+  email: string;
+  firstName: string | null;
+  lastName: string | null;
+  avatarUrl: string | null;
+}
+
+export const listDepartments = (tenantId: number) =>
+  apiFetch<DepartmentRow[]>(`/tenants/${tenantId}/departments`);
+
+export const createDepartment = (
+  tenantId: number,
+  body: { name: string; description?: string | null; color?: string; maxAgents?: number | null },
+) =>
+  apiFetch<DepartmentRow>(`/tenants/${tenantId}/departments`, {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+
+export const updateDepartment = (
+  tenantId: number,
+  departmentId: number,
+  body: Partial<{
+    name: string;
+    description: string | null;
+    color: string;
+    status: "active" | "inactive";
+    maxAgents: number | null;
+  }>,
+) =>
+  apiFetch<DepartmentRow>(`/tenants/${tenantId}/departments/${departmentId}`, {
+    method: "PATCH",
+    body: JSON.stringify(body),
+  });
+
+export const deleteDepartment = (tenantId: number, departmentId: number) =>
+  apiFetch<void>(`/tenants/${tenantId}/departments/${departmentId}`, {
+    method: "DELETE",
+  });
+
+export const listDepartmentAgents = (tenantId: number, departmentId: number) =>
+  apiFetch<DepartmentAgentRow[]>(
+    `/tenants/${tenantId}/departments/${departmentId}/agents`,
+  );
+
+export const addDepartmentAgent = (
+  tenantId: number,
+  departmentId: number,
+  body: { clerkUserId: string; isPrimary?: boolean },
+) =>
+  apiFetch<DepartmentAgentRow>(
+    `/tenants/${tenantId}/departments/${departmentId}/agents`,
+    { method: "POST", body: JSON.stringify(body) },
+  );
+
+export const removeDepartmentAgent = (
+  tenantId: number,
+  departmentId: number,
+  userId: string,
+) =>
+  apiFetch<void>(
+    `/tenants/${tenantId}/departments/${departmentId}/agents/${encodeURIComponent(userId)}`,
+    { method: "DELETE" },
+  );
+
 export interface PublicWaLink {
   tenantName: string;
   connected: boolean;

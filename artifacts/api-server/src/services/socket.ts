@@ -132,6 +132,7 @@ function handleConnection(socket: Socket): void {
         isSuperAdmin: tenantUsersTable.isSuperAdmin,
         status: tenantUsersTable.status,
         tenantId: tenantUsersTable.tenantId,
+        accessExpiresAt: tenantUsersTable.accessExpiresAt,
       })
       .from(tenantUsersTable)
       .where(
@@ -143,7 +144,11 @@ function handleConnection(socket: Socket): void {
       .limit(1);
 
     const isSuperAdmin = tenantMember?.isSuperAdmin === true;
-    const isActiveMember = tenantMember && tenantMember.status === "active";
+    const notExpired =
+      !tenantMember?.accessExpiresAt ||
+      tenantMember.accessExpiresAt.getTime() > Date.now();
+    const isActiveMember =
+      tenantMember && tenantMember.status === "active" && notExpired;
 
     if (!isActiveMember && !isSuperAdmin) {
       // Silently ignore unauthorized join attempts

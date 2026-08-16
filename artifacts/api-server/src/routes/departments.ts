@@ -21,6 +21,7 @@ const departmentPatchSchema = z.object({
   description: z.string().max(500).nullable().optional(),
   color: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional(),
   status: z.enum(["active", "inactive"]).optional(),
+  maxAgents: z.number().int().min(1).max(1000).nullable().optional(),
 });
 
 const agentAddSchema = z.object({
@@ -46,6 +47,7 @@ router.get(
         description: departmentsTable.description,
         color: departmentsTable.color,
         status: departmentsTable.status,
+        maxAgents: departmentsTable.maxAgents,
         createdAt: departmentsTable.createdAt,
         updatedAt: departmentsTable.updatedAt,
         agentCount: sql<number>`count(${departmentAgentsTable.clerkUserId})::int`,
@@ -80,6 +82,24 @@ router.post(
       return;
     }
 
+    // insertDepartmentSchema (zod v4, drizzle-generated) does not bound
+    // maxAgents; enforce the same limits as the PATCH schema here.
+    const maxCheck = z
+      .number()
+      .int()
+      .min(1)
+      .max(1000)
+      .nullable()
+      .optional()
+      .safeParse(parsed.data.maxAgents);
+    if (!maxCheck.success) {
+      res.status(400).json({
+        error: "Invalid input",
+        details: { maxAgents: "deve ser um inteiro entre 1 e 1000" },
+      });
+      return;
+    }
+
     const [dept] = await db
       .insert(departmentsTable)
       .values(parsed.data)
@@ -107,6 +127,7 @@ router.get(
         description: departmentsTable.description,
         color: departmentsTable.color,
         status: departmentsTable.status,
+        maxAgents: departmentsTable.maxAgents,
         createdAt: departmentsTable.createdAt,
         updatedAt: departmentsTable.updatedAt,
         agentCount: sql<number>`count(${departmentAgentsTable.clerkUserId})::int`,
@@ -174,12 +195,28 @@ router.patch(
       return;
     }
 
-    const { name, description, color, status } = parsed.data;
+    const { name, description, color, status, maxAgents } = parsed.data;
+
+    // Lowering capacity below the current occupancy is not allowed
+    if (maxAgents !== undefined && maxAgents !== null) {
+      const [occ] = await db
+        .select({ count: sql<number>`count(*)::int` })
+        .from(departmentAgentsTable)
+        .where(eq(departmentAgentsTable.departmentId, departmentId));
+      if ((occ?.count ?? 0) > maxAgents) {
+        res.status(409).json({
+          error: `O setor tem ${occ?.count} agentes; remova agentes antes de reduzir a lotação para ${maxAgents}`,
+        });
+        return;
+      }
+    }
+
     const updates: Record<string, unknown> = { updatedAt: new Date() };
     if (name !== undefined) updates["name"] = name;
     if (description !== undefined) updates["description"] = description;
     if (color !== undefined) updates["color"] = color;
     if (status !== undefined) updates["status"] = status;
+    if (maxAgents !== undefined) updates["maxAgents"] = maxAgents;
 
     const [updated] = await db
       .update(departmentsTable)
@@ -243,6 +280,62 @@ router.delete(
 );
 
 /**
+ * GET /api/tenants/:tenantId/departments/:departmentId/agents — member
+ */
+router.get(
+  "/tenants/:tenantId/departments/:departmentId/agents",
+  requireAuth,
+  requireTenantMember,
+  async (req, res): Promise<void> => {
+    const tenantId = Number(req.params["tenantId"]);
+    const departmentId = Number(req.params["departmentId"]);
+
+    const [dept] = await db
+      .select({ id: departmentsTable.id })
+      .from(departmentsTable)
+      .where(
+        and(
+          eq(departmentsTable.id, departmentId),
+          eq(departmentsTable.tenantId, tenantId),
+        ),
+      )
+      .limit(1);
+
+    if (!dept) {
+      res.status(404).json({ error: "Department not found in this tenant" });
+      return;
+    }
+
+    const agents = await db
+      .select({
+        clerkUserId: departmentAgentsTable.clerkUserId,
+        isPrimary: departmentAgentsTable.isPrimary,
+        addedAt: departmentAgentsTable.addedAt,
+        email: tenantUsersTable.email,
+        firstName: tenantUsersTable.firstName,
+        lastName: tenantUsersTable.lastName,
+        avatarUrl: tenantUsersTable.avatarUrl,
+      })
+      .from(departmentAgentsTable)
+      .innerJoin(
+        tenantUsersTable,
+        and(
+          eq(tenantUsersTable.clerkUserId, departmentAgentsTable.clerkUserId),
+          eq(tenantUsersTable.tenantId, tenantId),
+        ),
+      )
+      .where(
+        and(
+          eq(departmentAgentsTable.departmentId, departmentId),
+          eq(departmentAgentsTable.tenantId, tenantId),
+        ),
+      );
+
+    res.json(agents);
+  },
+);
+
+/**
  * POST /api/tenants/:tenantId/departments/:departmentId/agents — admin
  */
 router.post(
@@ -264,7 +357,10 @@ router.post(
 
     // Verify department belongs to this tenant (cross-tenant isolation)
     const [dept] = await db
-      .select({ id: departmentsTable.id })
+      .select({
+        id: departmentsTable.id,
+        maxAgents: departmentsTable.maxAgents,
+      })
       .from(departmentsTable)
       .where(
         and(
@@ -299,17 +395,73 @@ router.post(
       return;
     }
 
-    const [agent] = await db
-      .insert(departmentAgentsTable)
-      .values({ departmentId, tenantId, clerkUserId, isPrimary })
-      .onConflictDoUpdate({
-        target: [
-          departmentAgentsTable.departmentId,
-          departmentAgentsTable.clerkUserId,
-        ],
-        set: { isPrimary },
-      })
-      .returning();
+    if (
+      member.accessExpiresAt !== null &&
+      member.accessExpiresAt.getTime() <= Date.now()
+    ) {
+      res
+        .status(400)
+        .json({ error: "O acesso deste usuário expirou; renove antes de adicioná-lo a um setor" });
+      return;
+    }
+
+    // Atomic capacity admission: lock the department row so concurrent
+    // additions cannot both pass the occupancy check and exceed maxAgents.
+    // Re-adding an existing agent (idempotent upsert) is always allowed.
+    let agent: typeof departmentAgentsTable.$inferSelect | undefined;
+    try {
+      agent = await db.transaction(async (tx) => {
+        const [locked] = await tx
+          .select({ maxAgents: departmentsTable.maxAgents })
+          .from(departmentsTable)
+          .where(eq(departmentsTable.id, departmentId))
+          .for("update");
+
+        if (locked?.maxAgents != null) {
+          const [existing] = await tx
+            .select({ clerkUserId: departmentAgentsTable.clerkUserId })
+            .from(departmentAgentsTable)
+            .where(
+              and(
+                eq(departmentAgentsTable.departmentId, departmentId),
+                eq(departmentAgentsTable.clerkUserId, clerkUserId),
+              ),
+            )
+            .limit(1);
+
+          if (!existing) {
+            const [occ] = await tx
+              .select({ count: sql<number>`count(*)::int` })
+              .from(departmentAgentsTable)
+              .where(eq(departmentAgentsTable.departmentId, departmentId));
+            if ((occ?.count ?? 0) >= locked.maxAgents) {
+              throw new Error("DEPARTMENT_FULL");
+            }
+          }
+        }
+
+        const [row] = await tx
+          .insert(departmentAgentsTable)
+          .values({ departmentId, tenantId, clerkUserId, isPrimary })
+          .onConflictDoUpdate({
+            target: [
+              departmentAgentsTable.departmentId,
+              departmentAgentsTable.clerkUserId,
+            ],
+            set: { isPrimary },
+          })
+          .returning();
+        return row;
+      });
+    } catch (err) {
+      if (err instanceof Error && err.message === "DEPARTMENT_FULL") {
+        res.status(409).json({
+          error: `Setor lotado: limite de ${dept.maxAgents} agentes atingido`,
+        });
+        return;
+      }
+      throw err;
+    }
 
     res.status(201).json({
       departmentId: agent?.departmentId,

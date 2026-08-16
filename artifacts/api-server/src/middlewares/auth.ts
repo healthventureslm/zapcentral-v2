@@ -4,6 +4,16 @@ import { db } from "@workspace/db";
 import { tenantUsersTable } from "@workspace/db";
 import { eq, and } from "drizzle-orm";
 
+/** True when the membership's temporary access window has passed. */
+export function isAccessExpired(membership: {
+  accessExpiresAt: Date | null;
+}): boolean {
+  return (
+    membership.accessExpiresAt !== null &&
+    membership.accessExpiresAt.getTime() <= Date.now()
+  );
+}
+
 /** Require a valid Clerk session. Returns 401 if not authenticated. */
 export function requireAuth(
   req: Request,
@@ -106,6 +116,11 @@ export async function requireTenantMember(
     return;
   }
 
+  if (isAccessExpired(membership)) {
+    res.status(403).json({ error: "Forbidden: your access has expired" });
+    return;
+  }
+
   (req as Request & { tenantMembership: typeof membership }).tenantMembership =
     membership;
   next();
@@ -140,7 +155,11 @@ export async function requireTenantAdmin(
   }
 
   const [membership] = await db
-    .select({ role: tenantUsersTable.role, status: tenantUsersTable.status })
+    .select({
+      role: tenantUsersTable.role,
+      status: tenantUsersTable.status,
+      accessExpiresAt: tenantUsersTable.accessExpiresAt,
+    })
     .from(tenantUsersTable)
     .where(
       and(
@@ -157,6 +176,11 @@ export async function requireTenantAdmin(
 
   if (membership.status === "suspended") {
     res.status(403).json({ error: "Forbidden: your membership is suspended" });
+    return;
+  }
+
+  if (isAccessExpired(membership)) {
+    res.status(403).json({ error: "Forbidden: your access has expired" });
     return;
   }
 

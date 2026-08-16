@@ -38,6 +38,8 @@ export const tenantUsersTable = pgTable(
     role: userRoleEnum("role").notNull().default("agent"),
     status: userStatusEnum("status").notNull().default("invited"),
     isSuperAdmin: boolean("is_super_admin").notNull().default(false),
+    /** Null = continuous access; a date = access expires automatically then */
+    accessExpiresAt: timestamp("access_expires_at", { withTimezone: true }),
     joinedAt: timestamp("joined_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
