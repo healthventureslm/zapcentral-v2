@@ -1,6 +1,6 @@
 import { ClerkProvider, useAuth } from "@clerk/react";
 import { publishableKeyFromHost } from "@clerk/shared/keys";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider, useQuery } from "@tanstack/react-query";
 import { Route, Switch, useLocation, Router as WouterRouter } from "wouter";
 import { useEffect, type ReactNode } from "react";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -20,6 +20,8 @@ import ContactDetailPage from "@/pages/crm/contact-detail";
 import KanbanPage from "@/pages/crm/kanban";
 import ReportsPage from "@/pages/reports";
 import QrPublicPage from "@/pages/qr-public";
+import SetupPage from "@/pages/setup";
+import NoAccessPage from "@/pages/no-access";
 
 const queryClient = new QueryClient();
 
@@ -39,17 +41,75 @@ function stripBase(path: string): string {
     : path;
 }
 
-function ProtectedRoute({ component: Component }: { component: React.ComponentType }) {
-  const { isSignedIn, isLoaded } = useAuth();
+const API_BASE = "/api-server/api";
+
+interface MeResponse {
+  isSuperAdmin: boolean;
+  tenants: { tenantId: number; tenantSlug: string; role: string; status: string }[];
+}
+
+interface OnboardStatus {
+  bootstrapped: boolean;
+}
+
+/**
+ * Checks whether the signed-in user has a real tenant membership.
+ * If not, redirects to /setup (platform virgin) or /sem-acesso (already bootstrapped).
+ * Children are only rendered when the user has an active real tenant.
+ */
+function TenantGuard({ children }: { children: ReactNode }) {
+  const { isSignedIn, isLoaded, getToken } = useAuth();
   const [, setLocation] = useLocation();
 
-  useEffect(() => {
-    if (isLoaded && !isSignedIn) {
-      setLocation("/sign-in");
-    }
-  }, [isLoaded, isSignedIn, setLocation]);
+  const meQuery = useQuery<MeResponse>({
+    queryKey: ["me"],
+    enabled: isLoaded && !!isSignedIn,
+    queryFn: async () => {
+      const res = await fetch(`${API_BASE}/me`, { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to fetch /me");
+      return res.json() as Promise<MeResponse>;
+    },
+    staleTime: 30_000,
+    retry: 2,
+  });
 
-  if (!isLoaded) {
+  const hasRealTenant =
+    meQuery.data?.tenants.some(
+      (t) => t.status === "active" && t.tenantSlug !== "system",
+    ) ?? false;
+
+  const statusQuery = useQuery<OnboardStatus>({
+    queryKey: ["onboard-status"],
+    // Only fetch if user is signed in and has NO real tenant (and me is loaded)
+    enabled: isLoaded && !!isSignedIn && meQuery.isSuccess && !hasRealTenant,
+    queryFn: async () => {
+      const res = await fetch(`${API_BASE}/onboard/status`);
+      if (!res.ok) throw new Error("Failed to fetch onboard status");
+      return res.json() as Promise<OnboardStatus>;
+    },
+    staleTime: 60_000,
+  });
+
+  useEffect(() => {
+    if (!isLoaded) return;
+    if (!isSignedIn) {
+      setLocation("/sign-in");
+      return;
+    }
+    if (!meQuery.isSuccess) return;
+    if (hasRealTenant) return; // already in the app normally
+
+    if (!statusQuery.isSuccess) return;
+
+    if (!statusQuery.data.bootstrapped) {
+      setLocation("/setup");
+    } else {
+      setLocation("/sem-acesso");
+    }
+  }, [isLoaded, isSignedIn, meQuery.isSuccess, hasRealTenant, statusQuery.isSuccess, statusQuery.data, setLocation]);
+
+  // Loading spinner while determining state
+  if (!isLoaded || (isSignedIn && (!meQuery.isSuccess || (!hasRealTenant && !statusQuery.isSuccess)))) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#F4F7F8]">
         <div className="w-8 h-8 border-2 border-[#25D366] border-t-transparent rounded-full animate-spin" />
@@ -57,9 +117,17 @@ function ProtectedRoute({ component: Component }: { component: React.ComponentTy
     );
   }
 
-  if (!isSignedIn) return null;
+  if (!isSignedIn || !hasRealTenant) return null;
 
-  return <Component />;
+  return <>{children}</>;
+}
+
+function ProtectedRoute({ component: Component }: { component: React.ComponentType }) {
+  return (
+    <TenantGuard>
+      <Component />
+    </TenantGuard>
+  );
 }
 
 function AppRoutes() {
@@ -67,6 +135,8 @@ function AppRoutes() {
     <Switch>
       <Route path="/sign-in/*?" component={SignInPage} />
       <Route path="/sign-up/*?" component={SignUpPage} />
+      <Route path="/setup" component={SetupPage} />
+      <Route path="/sem-acesso" component={NoAccessPage} />
       <Route path="/settings">
         <ProtectedRoute component={SettingsPage} />
       </Route>
