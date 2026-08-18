@@ -1,5 +1,7 @@
+@layer theme, base, clerk, components, utilities;
 @import "tailwindcss";
 @import "tw-animate-css";
+@import "@clerk/themes/shadcn.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -136,4 +138,10 @@
 
 .sidebar-transition {
   transition: width 0.2s ease-in-out, transform 0.2s ease-in-out;
+}
+
+/* Clerk dark-theme placeholder fix — must live outside @layer */
+.cl-formFieldInput::placeholder {
+  color: #8899A6;
+  opacity: 1;
 }

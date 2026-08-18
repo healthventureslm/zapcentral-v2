@@ -22,6 +22,7 @@ import ReportsPage from "@/pages/reports";
 import QrPublicPage from "@/pages/qr-public";
 import SetupPage from "@/pages/setup";
 import NoAccessPage from "@/pages/no-access";
+import { shadcn } from "@clerk/themes";
 
 const queryClient = new QueryClient();
 
@@ -33,8 +34,54 @@ const clerkProxyUrl = getClerkProxyUrl();
 
 export const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
 
-// Clerk passes full paths to routerPush/routerReplace, but wouter's
-// setLocation prepends the base — strip it to avoid doubling.
+const clerkAppearance = {
+  theme: shadcn,
+  cssLayerName: "clerk",
+  options: {
+    logoPlacement: "inside" as const,
+    logoLinkUrl: basePath || "/",
+    logoImageUrl: `${window.location.origin}${basePath}/logo.svg`,
+  },
+  variables: {
+    colorPrimary: "#25D366",
+    colorForeground: "#ffffff",
+    colorMutedForeground: "#8899A6",
+    colorDanger: "#ef4444",
+    colorBackground: "#0F1923",
+    colorInput: "#1a2735",
+    colorInputForeground: "#ffffff",
+    colorNeutral: "#2a3a4a",
+    fontFamily: "inherit",
+    borderRadius: "0.5rem",
+  },
+  elements: {
+    rootBox: "w-full flex justify-center",
+    cardBox: "bg-[#0F1923] border border-[#2a3a4a] rounded-2xl w-[440px] max-w-full overflow-hidden shadow-2xl",
+    card: "!shadow-none !border-0 !bg-transparent !rounded-none",
+    footer: "!shadow-none !border-0 !bg-transparent !rounded-none",
+    headerTitle: "text-white font-bold",
+    headerSubtitle: "text-[#8899A6]",
+    socialButtonsBlockButtonText: "text-white",
+    formFieldLabel: "text-[#8899A6]",
+    footerActionLink: "text-[#25D366] hover:text-[#1aab4e]",
+    footerActionText: "text-[#8899A6]",
+    dividerText: "text-[#8899A6]",
+    identityPreviewEditButton: "text-[#25D366]",
+    formFieldSuccessText: "text-[#25D366]",
+    alertText: "text-white",
+    logoBox: "flex justify-center w-full mb-2",
+    logoImage: "h-16 w-16",
+    socialButtonsBlockButton: "border border-[#2a3a4a] bg-[#1a2735] hover:bg-[#243447] text-white",
+    formButtonPrimary: "bg-[#25D366] hover:bg-[#1aab4e] text-white font-semibold",
+    formFieldInput: "bg-[#1a2735] border-[#2a3a4a] text-white",
+    footerAction: "bg-[#0a1520]",
+    dividerLine: "bg-[#2a3a4a]",
+    alert: "bg-[#1a2735] border-[#2a3a4a]",
+    otpCodeFieldInput: "bg-[#1a2735] border-[#2a3a4a] text-white",
+    formFieldRow: "text-white",
+    main: "text-white",
+  },
+};
 function stripBase(path: string): string {
   return basePath && path.startsWith(basePath)
     ? path.slice(basePath.length) || "/"
@@ -179,6 +226,21 @@ function ClerkProviderWithRoutes() {
     <ClerkProvider
       publishableKey={clerkPubKey}
       proxyUrl={clerkProxyUrl}
+      appearance={clerkAppearance}
+      localization={{
+        signIn: {
+          start: {
+            title: "Bem-vindo de volta",
+            subtitle: "Faça login para acessar sua conta",
+          },
+        },
+        signUp: {
+          start: {
+            title: "Crie sua conta",
+            subtitle: "Comece a usar o ZapCentral hoje",
+          },
+        },
+      }}
       signInUrl={`${basePath}/sign-in`}
       signUpUrl={`${basePath}/sign-up`}
       afterSignOutUrl={basePath || "/"}

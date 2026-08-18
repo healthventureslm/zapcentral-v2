@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120" fill="none">
+  <!-- Background circle -->
+  <circle cx="60" cy="60" r="60" fill="#0F1923"/>
+  <!-- Outer glow ring -->
+  <circle cx="60" cy="60" r="50" fill="#25D366" fill-opacity="0.08"/>
+  <!-- Message bubble -->
+  <path d="M28 42C28 36.477 32.477 32 38 32H82C87.523 32 92 36.477 92 42V68C92 73.523 87.523 78 82 78H66L52 90V78H38C32.477 78 28 73.523 28 68V42Z" fill="#25D366" fill-opacity="0.15" stroke="#25D366" stroke-width="2.5"/>
+  <!-- Lightning bolt (zap) -->
+  <path d="M66 38L50 60H62L54 82L72 58H60L66 38Z" fill="#25D366"/>
+</svg>
