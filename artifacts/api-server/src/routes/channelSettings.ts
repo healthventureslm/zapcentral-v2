@@ -37,6 +37,9 @@ const channelSettingsPatchSchema = z.object({
   autoCloseEnabled: z.boolean().optional(),
   distributionMode: z.enum(["manual", "round_robin", "least_load"]).optional(),
   workingHoursEnabled: z.boolean().optional(),
+  // A coluna e nula no banco, e o GET devolve null quando o horario ainda nao
+  // foi definido. A tela reenvia o objeto inteiro que recebeu, entao o schema
+  // precisa aceitar null — `.optional()` sozinho so cobre `undefined`.
   workingHours: z
     .record(
       z.object({
@@ -45,6 +48,7 @@ const channelSettingsPatchSchema = z.object({
         active: z.boolean(),
       }),
     )
+    .nullable()
     .optional(),
 });
 
