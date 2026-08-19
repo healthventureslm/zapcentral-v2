@@ -93,6 +93,11 @@ export default defineConfig(async ({ command }) => {
       dedupe: ['react', 'react-dom'],
     },
     root: path.resolve(import.meta.dirname),
+    // As variaveis VITE_* moram no .env da raiz do monorepo, nao na pasta do
+    // app. Sem isto, `import.meta.env.VITE_*` fica indefinido em dev local.
+    // No Vercel nao ha .env e os valores chegam por process.env, que o Vite
+    // tambem considera.
+    envDir: repoRoot,
     build: {
       outDir: path.resolve(import.meta.dirname, 'dist/public'),
       emptyOutDir: true,
