@@ -299,6 +299,7 @@ export interface TenantUserRow {
   avatarUrl: string | null;
   role: "admin" | "supervisor" | "agent";
   status: "active" | "invited" | "suspended";
+  isSuperAdmin: boolean;
   accessExpiresAt: string | null;
   departments: string[];
   joinedAt: string;

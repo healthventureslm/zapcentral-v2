@@ -77,6 +77,14 @@ function accessInfo(u: TenantUserRow): { label: string; expired: boolean } {
   };
 }
 
+function isUsableActiveAdmin(u: TenantUserRow): boolean {
+  return (
+    u.role === "admin" &&
+    u.status === "active" &&
+    (!u.accessExpiresAt || new Date(u.accessExpiresAt).getTime() > Date.now())
+  );
+}
+
 /** datetime-local value (local time) → ISO string with offset */
 function toIso(local: string): string | null {
   if (!local) return null;
@@ -114,6 +122,31 @@ export function TeamSection({ tenantId, myUserId }: { tenantId: number; myUserId
 
   const [expiryFor, setExpiryFor] = useState<string | null>(null);
   const [expiryValue, setExpiryValue] = useState("");
+  const activeAdminCount = users?.filter(isUsableActiveAdmin).length ?? 0;
+  const callerIsSuperAdmin =
+    users?.some((u) => u.clerkUserId === myUserId && u.isSuperAdmin) ?? false;
+
+  function confirmAdminAccessChange(
+    user: TenantUserRow,
+    action: "suspender" | "remover",
+  ): boolean {
+    if (!isUsableActiveAdmin(user)) {
+      return true;
+    }
+
+    if (activeAdminCount === 1 && !callerIsSuperAdmin) {
+      return window.confirm(
+        `Atenção: ${displayName(user)} é o último admin ativo. ` +
+          `A central precisa manter pelo menos um admin para gerenciar a equipe e os setores. ` +
+          `A tentativa de ${action} será bloqueada. Deseja continuar?`,
+      );
+    }
+
+    return window.confirm(
+      `Atenção: você está prestes a ${action} ${displayName(user)}, que é um admin ativo. ` +
+        "Confirme para continuar.",
+    );
+  }
 
   return (
     <Card>
@@ -193,7 +226,11 @@ export function TeamSection({ tenantId, myUserId }: { tenantId: number; myUserId
                         <Button
                           variant="ghost" size="sm" className="h-7 px-2 text-xs text-amber-700"
                           title="Revogar acesso (suspender)"
-                          onClick={() => patchM.mutate({ userId: u.clerkUserId, body: { status: "suspended" } })}
+                          onClick={() => {
+                            if (confirmAdminAccessChange(u, "suspender")) {
+                              patchM.mutate({ userId: u.clerkUserId, body: { status: "suspended" } });
+                            }
+                          }}
                         >
                           <ShieldOff className="w-3.5 h-3.5" />
                         </Button>
@@ -202,7 +239,13 @@ export function TeamSection({ tenantId, myUserId }: { tenantId: number; myUserId
                         variant="ghost" size="sm" className="h-7 px-2 text-xs text-red-600"
                         title="Remover da central"
                         onClick={() => {
-                          if (confirm(`Remover ${displayName(u)} da central?`)) removeM.mutate(u.clerkUserId);
+                          const confirmed = isUsableActiveAdmin(u)
+                            ? confirmAdminAccessChange(u, "remover")
+                            : confirm(`Remover ${displayName(u)} da central?`);
+
+                          if (confirmed) {
+                            removeM.mutate(u.clerkUserId);
+                          }
                         }}
                       >
                         <Trash2 className="w-3.5 h-3.5" />

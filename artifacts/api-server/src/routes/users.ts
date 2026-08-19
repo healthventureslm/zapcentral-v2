@@ -39,6 +39,107 @@ const userPatchSchema = z.object({
   accessExpiresAt: accessExpiresAtSchema,
 });
 
+const LAST_ADMIN_ERROR =
+  "Não é possível deixar a central sem um admin ativo. Adicione outro admin antes de continuar.";
+
+type DbTransaction = Parameters<Parameters<typeof db.transaction>[0]>[0];
+
+async function isCallerSuperAdmin(clerkUserId: string): Promise<boolean> {
+  const [membership] = await db
+    .select({ isSuperAdmin: tenantUsersTable.isSuperAdmin })
+    .from(tenantUsersTable)
+    .where(
+      and(
+        eq(tenantUsersTable.clerkUserId, clerkUserId),
+        eq(tenantUsersTable.isSuperAdmin, true),
+      ),
+    )
+    .limit(1);
+
+  return membership?.isSuperAdmin === true;
+}
+
+async function ensureSuperAdminCanManageTenant(
+  tx: DbTransaction,
+  tenantId: number,
+  clerkUserId: string,
+): Promise<void> {
+  const [existingMembership] = await tx
+    .select({ clerkUserId: tenantUsersTable.clerkUserId })
+    .from(tenantUsersTable)
+    .where(
+      and(
+        eq(tenantUsersTable.tenantId, tenantId),
+        eq(tenantUsersTable.clerkUserId, clerkUserId),
+      ),
+    )
+    .limit(1);
+
+  if (existingMembership) {
+    await tx
+      .update(tenantUsersTable)
+      .set({
+        role: "admin",
+        status: "active",
+        accessExpiresAt: null,
+        updatedAt: new Date(),
+      })
+      .where(
+        and(
+          eq(tenantUsersTable.tenantId, tenantId),
+          eq(tenantUsersTable.clerkUserId, clerkUserId),
+        ),
+      );
+    return;
+  }
+
+  const [superAdminMembership] = await tx
+    .select({
+      email: tenantUsersTable.email,
+      firstName: tenantUsersTable.firstName,
+      lastName: tenantUsersTable.lastName,
+      avatarUrl: tenantUsersTable.avatarUrl,
+    })
+    .from(tenantUsersTable)
+    .where(
+      and(
+        eq(tenantUsersTable.clerkUserId, clerkUserId),
+        eq(tenantUsersTable.isSuperAdmin, true),
+      ),
+    )
+    .limit(1);
+
+  if (!superAdminMembership) {
+    throw new Error("SUPER_ADMIN_MEMBERSHIP_NOT_FOUND");
+  }
+
+  await tx.insert(tenantUsersTable).values({
+    tenantId,
+    clerkUserId,
+    email: superAdminMembership.email,
+    firstName: superAdminMembership.firstName,
+    lastName: superAdminMembership.lastName,
+    avatarUrl: superAdminMembership.avatarUrl,
+    role: "admin",
+    status: "active",
+    isSuperAdmin: true,
+    accessExpiresAt: null,
+  });
+}
+
+function isUsableActiveAdmin(membership: {
+  role: string;
+  status: string;
+  accessExpiresAt: Date | null;
+}): boolean {
+  return (
+    membership.role === "admin" &&
+    membership.status === "active" &&
+    (membership.accessExpiresAt === null ||
+      membership.accessExpiresAt.getTime() > Date.now())
+  );
+}
+
 /**
  * GET /api/tenants/:tenantId/users — tenant member
  */
@@ -78,6 +179,7 @@ router.get(
           avatarUrl: u.avatarUrl,
           role: u.role,
           status: u.status,
+          isSuperAdmin: u.isSuperAdmin,
           accessExpiresAt: u.accessExpiresAt,
           departments: depts.map((d) => d.name),
           joinedAt: u.joinedAt,
@@ -186,6 +288,11 @@ router.patch(
     const tenantId = Number(req.params["tenantId"]);
     const userId = String(req.params["userId"]);
     const { userId: callerId } = getAuth(req);
+    if (!callerId) {
+      res.status(401).json({ error: "Unauthorized" });
+      return;
+    }
+    const callerIsSuperAdmin = await isCallerSuperAdmin(callerId);
 
     if (userId === callerId) {
       res.status(400).json({ error: "Cannot modify your own role or status" });
@@ -219,23 +326,77 @@ router.patch(
     if (accessExpiresAt !== undefined)
       updates["accessExpiresAt"] = accessExpiresAt;
 
-    const [updated] = await db
-      .update(tenantUsersTable)
-      .set(updates)
-      .where(
-        and(
-          eq(tenantUsersTable.tenantId, tenantId),
-          eq(tenantUsersTable.clerkUserId, userId),
-        ),
-      )
-      .returning();
+    const outcome = await db.transaction(async (tx) => {
+      // Lock every membership in a stable order before checking the remaining
+      // admins. Concurrent removals or suspensions for the same central will
+      // wait here, then re-read the already-updated membership state.
+      const memberships = await tx
+        .select({
+          clerkUserId: tenantUsersTable.clerkUserId,
+          role: tenantUsersTable.role,
+          status: tenantUsersTable.status,
+          accessExpiresAt: tenantUsersTable.accessExpiresAt,
+        })
+        .from(tenantUsersTable)
+        .where(eq(tenantUsersTable.tenantId, tenantId))
+        .orderBy(tenantUsersTable.clerkUserId)
+        .for("update");
 
-    if (!updated) {
+      const target = memberships.find(
+        (membership) => membership.clerkUserId === userId,
+      );
+      if (!target) return { kind: "not_found" as const };
+
+      const removesAdminAccess =
+        isUsableActiveAdmin(target) &&
+        ((role !== undefined && role !== "admin") ||
+          status === "suspended" ||
+          (accessExpiresAt !== undefined && accessExpiresAt !== null));
+      const hasOtherUsableAdmin = memberships.some(
+        (membership) =>
+          membership.clerkUserId !== userId && isUsableActiveAdmin(membership),
+      );
+
+      if (removesAdminAccess && !hasOtherUsableAdmin) {
+        if (!callerIsSuperAdmin) {
+          return { kind: "last_admin" as const };
+        }
+
+        // The platform super-admin may intervene, but becomes an active tenant
+        // admin first so the central never loses its local administrator.
+        await ensureSuperAdminCanManageTenant(tx, tenantId, callerId);
+      }
+
+      const [updated] = await tx
+        .update(tenantUsersTable)
+        .set(updates)
+        .where(
+          and(
+            eq(tenantUsersTable.tenantId, tenantId),
+            eq(tenantUsersTable.clerkUserId, userId),
+          ),
+        )
+        .returning();
+
+      return { kind: "updated" as const, user: updated };
+    });
+
+    if (outcome.kind === "not_found") {
       res.status(404).json({ error: "User not found in tenant" });
       return;
     }
 
-    res.json({ ...updated, departments: [] });
+    if (outcome.kind === "last_admin") {
+      res.status(400).json({ error: LAST_ADMIN_ERROR });
+      return;
+    }
+
+    if (!outcome.user) {
+      res.status(404).json({ error: "User not found in tenant" });
+      return;
+    }
+
+    res.json({ ...outcome.user, departments: [] });
   },
 );
 
@@ -250,29 +411,80 @@ router.delete(
     const tenantId = Number(req.params["tenantId"]);
     const userId = String(req.params["userId"]);
     const { userId: callerId } = getAuth(req);
+    if (!callerId) {
+      res.status(401).json({ error: "Unauthorized" });
+      return;
+    }
+    const callerIsSuperAdmin = await isCallerSuperAdmin(callerId);
 
     if (userId === callerId) {
       res.status(400).json({ error: "Cannot remove yourself from tenant" });
       return;
     }
 
-    await db
-      .delete(tenantUsersTable)
-      .where(
-        and(
-          eq(tenantUsersTable.tenantId, tenantId),
-          eq(tenantUsersTable.clerkUserId, userId),
-        ),
+    const outcome = await db.transaction(async (tx) => {
+      // This lock uses the same tenant-wide membership set as PATCH so a
+      // simultaneous delete, suspension, or demotion cannot race the guard.
+      const memberships = await tx
+        .select({
+          clerkUserId: tenantUsersTable.clerkUserId,
+          role: tenantUsersTable.role,
+          status: tenantUsersTable.status,
+          accessExpiresAt: tenantUsersTable.accessExpiresAt,
+        })
+        .from(tenantUsersTable)
+        .where(eq(tenantUsersTable.tenantId, tenantId))
+        .orderBy(tenantUsersTable.clerkUserId)
+        .for("update");
+
+      const target = memberships.find(
+        (membership) => membership.clerkUserId === userId,
+      );
+      if (!target) return { kind: "not_found" as const };
+
+      const hasOtherUsableAdmin = memberships.some(
+        (membership) =>
+          membership.clerkUserId !== userId && isUsableActiveAdmin(membership),
       );
 
-    await db
-      .delete(departmentAgentsTable)
-      .where(
-        and(
-          eq(departmentAgentsTable.tenantId, tenantId),
-          eq(departmentAgentsTable.clerkUserId, userId),
-        ),
-      );
+      if (isUsableActiveAdmin(target) && !hasOtherUsableAdmin) {
+        if (!callerIsSuperAdmin) {
+          return { kind: "last_admin" as const };
+        }
+
+        await ensureSuperAdminCanManageTenant(tx, tenantId, callerId);
+      }
+
+      await tx
+        .delete(tenantUsersTable)
+        .where(
+          and(
+            eq(tenantUsersTable.tenantId, tenantId),
+            eq(tenantUsersTable.clerkUserId, userId),
+          ),
+        );
+
+      await tx
+        .delete(departmentAgentsTable)
+        .where(
+          and(
+            eq(departmentAgentsTable.tenantId, tenantId),
+            eq(departmentAgentsTable.clerkUserId, userId),
+          ),
+        );
+
+      return { kind: "deleted" as const };
+    });
+
+    if (outcome.kind === "not_found") {
+      res.status(404).json({ error: "User not found in tenant" });
+      return;
+    }
+
+    if (outcome.kind === "last_admin") {
+      res.status(400).json({ error: LAST_ADMIN_ERROR });
+      return;
+    }
 
     res.status(204).end();
   },
