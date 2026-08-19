@@ -1,9 +1,11 @@
 /**
  * Typed fetch helpers for the new API endpoints.
- * All paths are relative to /api-server/api.
+ * A base e o modo de autenticacao vem de ./apiBase — veja la a diferenca
+ * entre mesma origem e origem separada (frontend no Vercel).
  */
+import { API_BASE, authHeaders } from "./apiBase";
 
-const API_BASE = "/api-server/api";
+export { API_BASE };
 
 async function apiFetch<T>(
   path: string,
@@ -13,6 +15,7 @@ async function apiFetch<T>(
     credentials: "include",
     headers: {
       "Content-Type": "application/json",
+      ...(await authHeaders()),
       ...(options.headers as Record<string, string>),
     },
     ...options,
@@ -37,13 +40,29 @@ export type ConversationStatus =
   | "active"
   | "closed";
 
+export type ChannelType = "whatsapp" | "telegram";
+
 export interface Contact {
   id: number;
-  phone: string;
+  channel?: ChannelType;
+  externalId?: string;
+  /** Nulo em contatos de Telegram, que nao expoem telefone. */
+  phone: string | null;
   name: string | null;
   cpf?: string | null;
   email: string | null;
   avatarUrl: string | null;
+}
+
+/**
+ * Identificador exibivel do contato: telefone no WhatsApp, chat_id no
+ * Telegram. Usar sempre que a UI precisar de um rotulo de fallback.
+ */
+export function contactHandle(c: {
+  phone: string | null;
+  externalId?: string;
+}): string {
+  return c.phone ?? c.externalId ?? "";
 }
 
 export interface Conversation {
@@ -144,6 +163,50 @@ export const getWhatsAppQr = (tenantId: number) =>
 
 export const disconnectWhatsApp = (tenantId: number) =>
   apiFetch<void>(`/tenants/${tenantId}/whatsapp/disconnect`, {
+    method: "DELETE",
+  });
+
+// ---------------------------------------------------------------------------
+// Telegram
+// ---------------------------------------------------------------------------
+export interface TelegramBot {
+  id: number;
+  botId: string | null;
+  botUsername: string | null;
+  botFirstName: string | null;
+  status: "connected" | "disconnected" | "error";
+  webhookUrl: string | null;
+  lastError: string | null;
+  lastConnectedAt: string | null;
+}
+
+export interface TelegramStatus {
+  connected: boolean;
+  bot: TelegramBot | null;
+  remoteUrl?: string | null;
+  pendingUpdates?: number | null;
+  /** true quando o webhook registrado no Telegram nao aponta mais para nos */
+  webhookStale?: boolean;
+}
+
+export const getTelegramStatus = (tenantId: number) =>
+  apiFetch<TelegramStatus>(`/tenants/${tenantId}/telegram/status`);
+
+export const connectTelegram = (tenantId: number, botToken: string) =>
+  apiFetch<{ connected: boolean; bot: TelegramBot }>(
+    `/tenants/${tenantId}/telegram/connect`,
+    { method: "POST", body: JSON.stringify({ botToken }) },
+  );
+
+/** Re-registra o webhook na URL publica atual (necessario quando o tunel muda). */
+export const refreshTelegramWebhook = (tenantId: number) =>
+  apiFetch<{ connected: boolean; bot: TelegramBot }>(
+    `/tenants/${tenantId}/telegram/refresh-webhook`,
+    { method: "POST" },
+  );
+
+export const disconnectTelegram = (tenantId: number) =>
+  apiFetch<void>(`/tenants/${tenantId}/telegram/disconnect`, {
     method: "DELETE",
   });
 
@@ -595,7 +658,7 @@ export const importContactsCsv = (tenantId: number, csv: string) =>
   );
 
 export const contactsExportUrl = (tenantId: number) =>
-  `/api-server/api/tenants/${tenantId}/contacts/export`;
+  `${API_BASE}/tenants/${tenantId}/contacts/export`;
 
 export const bulkContacts = (
   tenantId: number,
@@ -887,4 +950,4 @@ export const getReportConversations = (
   );
 
 export const reportConversationsCsvUrl = (tenantId: number, f: ReportFilters = {}) =>
-  `/api-server/api/tenants/${tenantId}/reports/conversations?${reportQs({ ...f, format: "csv" })}`;
+  `${API_BASE}/tenants/${tenantId}/reports/conversations?${reportQs({ ...f, format: "csv" })}`;

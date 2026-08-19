@@ -305,6 +305,7 @@ router.post(
           .insert(contactsTable)
           .values({
             tenantId,
+            externalId: phone,
             phone,
             name: val(idx.name),
             email: val(idx.email),
@@ -314,7 +315,11 @@ router.post(
             notes: val(idx.notes),
           })
           .onConflictDoUpdate({
-            target: [contactsTable.tenantId, contactsTable.phone],
+            target: [
+              contactsTable.tenantId,
+              contactsTable.channel,
+              contactsTable.externalId,
+            ],
             set: {
               name: sql`COALESCE(EXCLUDED.name, ${contactsTable.name})`,
               email: sql`COALESCE(EXCLUDED.email, ${contactsTable.email})`,
@@ -546,7 +551,7 @@ router.post(
     try {
       const [contact] = await db
         .insert(contactsTable)
-        .values({ tenantId, ...parsed.data })
+        .values({ tenantId, externalId: parsed.data.phone, ...parsed.data })
         .returning();
       res.status(201).json(contact);
     } catch (err) {

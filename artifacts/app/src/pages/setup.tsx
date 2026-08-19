@@ -13,8 +13,9 @@ import { Loader2, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { API_BASE, authHeaders } from "@/lib/apiBase";
 
-const API_BASE = "/api-server/api";
+
 
 export default function SetupPage() {
   const [tenantName, setTenantName] = useState("");
@@ -34,7 +35,10 @@ export default function SetupPage() {
       const res = await fetch(`${API_BASE}/onboard/setup`, {
         method: "POST",
         credentials: "include",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(await authHeaders()),
+        },
         body: JSON.stringify({ tenantName: tenantName.trim(), bootstrapSecret: secret }),
       });
 

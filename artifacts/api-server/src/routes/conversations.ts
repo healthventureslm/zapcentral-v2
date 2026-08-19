@@ -148,6 +148,8 @@ router.get(
           conversation: conversationsTable,
           contact: {
             id: contactsTable.id,
+            channel: contactsTable.channel,
+            externalId: contactsTable.externalId,
             phone: contactsTable.phone,
             name: contactsTable.name,
             cpf: contactsTable.cpf,

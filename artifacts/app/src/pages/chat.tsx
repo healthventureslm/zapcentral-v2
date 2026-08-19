@@ -21,6 +21,7 @@ import {
   getMyStatus,
   type Conversation,
   type Message,
+  contactHandle,
 } from "@/lib/api";
 import { useTenantId } from "@/hooks/useTenantId";
 import { useToast } from "@/hooks/use-toast";
@@ -79,7 +80,7 @@ function ConversationItem({
 }) {
   const initials = conv.contact.name
     ? conv.contact.name.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase()
-    : conv.contact.phone.slice(-2);
+    : contactHandle(conv.contact).slice(-2);
 
   return (
     <button
@@ -97,7 +98,7 @@ function ConversationItem({
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between gap-2">
           <span className="font-medium text-white text-sm truncate">
-            {conv.contact.name ?? conv.contact.phone}
+            {conv.contact.name ?? contactHandle(conv.contact)}
           </span>
           <span className="text-xs text-[#8899A6] shrink-0">
             {formatTime(conv.lastMessageAt)}
@@ -112,6 +113,11 @@ function ConversationItem({
           >
             {STATUS_LABELS[conv.status]}
           </Badge>
+          {conv.contact.channel === "telegram" && (
+            <Badge className="text-[10px] px-1.5 py-0 border-none rounded bg-[#229ED9]/20 text-[#5EC5F0]">
+              Telegram
+            </Badge>
+          )}
           {conv.departmentName && (
             <span className="text-xs text-[#8899A6] truncate">
               {conv.departmentName}
@@ -445,7 +451,7 @@ export default function ChatPage() {
               <div className="flex items-center gap-3">
                 <Avatar className="h-9 w-9">
                   <AvatarFallback className="bg-[#1A2B38] text-[#25D366] font-semibold text-xs">
-                    {(selectedConv.contact.name ?? selectedConv.contact.phone)
+                    {(selectedConv.contact.name ?? contactHandle(selectedConv.contact))
                       .split(" ")
                       .map((w) => w[0])
                       .join("")
@@ -455,7 +461,7 @@ export default function ChatPage() {
                 </Avatar>
                 <div>
                   <p className="text-sm font-semibold text-white">
-                    {selectedConv.contact.name ?? selectedConv.contact.phone}
+                    {selectedConv.contact.name ?? contactHandle(selectedConv.contact)}
                   </p>
                   <p className="text-xs text-[#8899A6]">
                     {selectedConv.contact.phone}

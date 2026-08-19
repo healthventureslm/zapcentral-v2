@@ -7,6 +7,8 @@ import usersRouter from "./users";
 import departmentsRouter from "./departments";
 import adminRouter from "./admin";
 import webhooksRouter from "./webhooks";
+import telegramWebhookRouter from "./telegramWebhook";
+import telegramRouter from "./telegram";
 import whatsappRouter from "./whatsapp";
 import conversationsRouter from "./conversations";
 import messagesRouter from "./messages";
@@ -21,8 +23,9 @@ import internalChatRouter from "./internalChat";
 
 const router: IRouter = Router();
 
-// Webhooks must come before auth middleware (public endpoint)
+// Webhooks must come before auth middleware (public endpoints)
 router.use(webhooksRouter);
+router.use(telegramWebhookRouter);
 
 router.use(healthRouter);
 router.use(meRouter);
@@ -32,6 +35,7 @@ router.use(usersRouter);
 router.use(departmentsRouter);
 router.use(adminRouter);
 router.use(whatsappRouter);
+router.use(telegramRouter);
 router.use(conversationsRouter);
 router.use(messagesRouter);
 router.use(agentStatusRouter);

@@ -3,6 +3,7 @@
  * For now returns the first active tenant.
  */
 import { useQuery } from "@tanstack/react-query";
+import { API_BASE, authHeaders } from "@/lib/apiBase";
 
 interface TenantItem {
   tenantId: number;
@@ -16,8 +17,9 @@ export function useTenantId(): number | null {
   const { data } = useQuery({
     queryKey: ["me-tenants"],
     queryFn: async () => {
-      const res = await fetch("/api-server/api/me/tenants", {
+      const res = await fetch(`${API_BASE}/me/tenants`, {
         credentials: "include",
+        headers: await authHeaders(),
       });
       if (!res.ok) return [];
       return res.json() as Promise<TenantItem[]>;
@@ -34,8 +36,9 @@ export function useMyRole(): string | null {
   const { data } = useQuery({
     queryKey: ["me-tenants"],
     queryFn: async () => {
-      const res = await fetch("/api-server/api/me/tenants", {
+      const res = await fetch(`${API_BASE}/me/tenants`, {
         credentials: "include",
+        headers: await authHeaders(),
       });
       if (!res.ok) return [];
       return res.json() as Promise<TenantItem[]>;

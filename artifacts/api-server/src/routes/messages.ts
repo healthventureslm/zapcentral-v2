@@ -15,6 +15,11 @@ import { eq, and, asc, desc, sql } from "drizzle-orm";
 import { z } from "zod";
 import { requireAuth, requireTenantMember } from "../middlewares/auth";
 import { sendText, sendMedia, isEvolutionConfigured } from "../services/evolution";
+import {
+  sendMessage as sendTelegramMessage,
+  sendMediaByUrl as sendTelegramMedia,
+} from "../services/telegram";
+import { getTenantTelegramBot } from "../services/ivr";
 import { emitToTenant, emitToAgent } from "../services/socket";
 
 const router = Router();
@@ -189,9 +194,61 @@ router.post(
       return;
     }
 
-    // Get WhatsApp instance + contact phone
-    const [[instance], [contact]] = await Promise.all([
-      db
+    // Contato define o canal de saida (WhatsApp ou Telegram).
+    const [contact] = await db
+      .select({
+        phone: contactsTable.phone,
+        channel: contactsTable.channel,
+        externalId: contactsTable.externalId,
+      })
+      .from(contactsTable)
+      .where(eq(contactsTable.id, conv.contactId))
+      .limit(1);
+
+    if (!contact) {
+      res.status(500).json({ error: "Contact not found" });
+      return;
+    }
+
+    const msg = parsed.data;
+    let messageId: string | null = null;
+    let fromIdentifier = "";
+
+    if (contact.channel === "telegram") {
+      const bot = await getTenantTelegramBot(tenantId);
+      if (!bot) {
+        res
+          .status(503)
+          .json({ error: "Telegram is not connected for this tenant" });
+        return;
+      }
+      fromIdentifier = bot.botId ?? bot.botUsername ?? "telegram-bot";
+
+      try {
+        if (msg.type === "text") {
+          const sent = await sendTelegramMessage(
+            bot.botToken,
+            contact.externalId,
+            msg.content,
+          );
+          messageId = String(sent.message_id);
+        } else {
+          const sent = await sendTelegramMedia(
+            bot.botToken,
+            contact.externalId,
+            msg.mediaUrl,
+            msg.type,
+            "mediaCaption" in msg ? (msg.mediaCaption ?? null) : null,
+          );
+          messageId = String(sent.message_id);
+        }
+      } catch (err) {
+        req.log.error({ err }, "Failed to send message via Telegram");
+        res.status(502).json({ error: "Failed to send message" });
+        return;
+      }
+    } else {
+      const [instance] = await db
         .select()
         .from(whatsappInstancesTable)
         .where(
@@ -200,50 +257,45 @@ router.post(
             eq(whatsappInstancesTable.status, "connected"),
           ),
         )
-        .limit(1),
-      db
-        .select({ phone: contactsTable.phone })
-        .from(contactsTable)
-        .where(eq(contactsTable.id, conv.contactId))
-        .limit(1),
-    ]);
+        .limit(1);
 
-    if (!contact) {
-      res.status(500).json({ error: "Contact not found" });
-      return;
-    }
-
-    if (!instance) {
-      res.status(503).json({ error: "WhatsApp is not connected for this tenant" });
-      return;
-    }
-
-    if (!isEvolutionConfigured()) {
-      res.status(503).json({ error: "Evolution API is not configured" });
-      return;
-    }
-
-    const msg = parsed.data;
-    let messageId: string | null = null;
-
-    try {
-      if (msg.type === "text") {
-        const result = await sendText(instance.instanceName, contact.phone, msg.content);
-        messageId = result.key.id;
-      } else if (msg.type === "image" || msg.type === "video" || msg.type === "document" || msg.type === "audio") {
-        const result = await sendMedia(
-          instance.instanceName,
-          contact.phone,
-          msg.type as "image" | "video" | "document" | "audio",
-          msg.mediaUrl,
-          "mediaCaption" in msg ? msg.mediaCaption : undefined,
-        );
-        messageId = result.key.id;
+      if (!instance) {
+        res
+          .status(503)
+          .json({ error: "WhatsApp is not connected for this tenant" });
+        return;
       }
-    } catch (err) {
-      req.log.error({ err }, "Failed to send message via Evolution API");
-      res.status(502).json({ error: "Failed to send message" });
-      return;
+
+      if (!isEvolutionConfigured()) {
+        res.status(503).json({ error: "Evolution API is not configured" });
+        return;
+      }
+
+      fromIdentifier = instance.phoneNumber ?? "";
+
+      try {
+        if (msg.type === "text") {
+          const result = await sendText(
+            instance.instanceName,
+            contact.externalId,
+            msg.content,
+          );
+          messageId = result.key.id;
+        } else {
+          const result = await sendMedia(
+            instance.instanceName,
+            contact.externalId,
+            msg.type as "image" | "video" | "document" | "audio",
+            msg.mediaUrl,
+            "mediaCaption" in msg ? msg.mediaCaption : undefined,
+          );
+          messageId = result.key.id;
+        }
+      } catch (err) {
+        req.log.error({ err }, "Failed to send message via Evolution API");
+        res.status(502).json({ error: "Failed to send message" });
+        return;
+      }
     }
 
     // Save to DB
@@ -253,8 +305,8 @@ router.post(
         conversationId,
         tenantId,
         messageId,
-        fromPhone: instance.phoneNumber ?? "",
-        toPhone: contact.phone,
+        fromPhone: fromIdentifier,
+        toPhone: contact.externalId,
         type: msg.type as "text" | "image" | "audio" | "video" | "document",
         content: "content" in msg ? (msg.content ?? null) : null,
         mediaUrl: "mediaUrl" in msg ? msg.mediaUrl : null,

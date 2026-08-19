@@ -4,6 +4,7 @@ export * from "./departments";
 export * from "./departmentAgents";
 export * from "./platformConfig";
 export * from "./whatsappInstances";
+export * from "./telegramBots";
 export * from "./channelSettings";
 export * from "./contacts";
 export * from "./conversations";

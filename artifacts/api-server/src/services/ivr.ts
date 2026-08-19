@@ -17,8 +17,13 @@ import {
   departmentAgentsTable,
 } from "@workspace/db";
 import { eq, and, asc, sql, isNull } from "drizzle-orm";
-import { sendText, type SendTextResult } from "./evolution";
-import { whatsappInstancesTable } from "@workspace/db";
+import { sendText } from "./evolution";
+import { sendMessage as sendTelegramMessage } from "./telegram";
+import {
+  whatsappInstancesTable,
+  telegramBotsTable,
+  contactsTable,
+} from "@workspace/db";
 
 const MAX_ATTEMPTS = 3;
 
@@ -192,7 +197,7 @@ export async function processIvrMessage(
 }
 
 /**
- * Get the instance name for a tenant to send messages.
+ * Nome da instancia WhatsApp conectada do tenant (null se nao houver).
  */
 export async function getTenantInstanceName(
   tenantId: number,
@@ -211,29 +216,89 @@ export async function getTenantInstanceName(
   return instance?.instanceName ?? null;
 }
 
+/** Bot do Telegram conectado do tenant (null se nao houver). */
+export async function getTenantTelegramBot(tenantId: number): Promise<{
+  botToken: string;
+  botId: string | null;
+  botUsername: string | null;
+} | null> {
+  const [bot] = await db
+    .select({
+      botToken: telegramBotsTable.botToken,
+      botId: telegramBotsTable.botId,
+      botUsername: telegramBotsTable.botUsername,
+    })
+    .from(telegramBotsTable)
+    .where(
+      and(
+        eq(telegramBotsTable.tenantId, tenantId),
+        eq(telegramBotsTable.status, "connected"),
+      ),
+    )
+    .limit(1);
+
+  return bot ?? null;
+}
+
+/** Referencia normalizada da mensagem enviada, independente do canal. */
+export interface SentMessageRef {
+  messageId: string;
+}
+
 /**
- * Send a text message via the tenant's WhatsApp instance and record it.
+ * Envia texto para o contato da conversa e registra a mensagem.
+ *
+ * O canal e resolvido a partir do contato da conversa, entao os chamadores
+ * (IVR, fechamento de atendimento, pesquisa de satisfacao) funcionam em
+ * WhatsApp e Telegram sem saber qual esta em uso. Retorna null quando o canal
+ * nao esta conectado ou o envio falha — o chamador trata isso como "nao
+ * entregue".
  */
 export async function sendTenantMessage(
   tenantId: number,
   conversationId: number,
-  toPhone: string,
+  to: string | null,
   text: string,
-  fromPhone: string,
-): Promise<SendTextResult | null> {
-  const instanceName = await getTenantInstanceName(tenantId);
-  if (!instanceName) return null;
+  from: string,
+): Promise<SentMessageRef | null> {
+  const [target] = await db
+    .select({
+      channel: contactsTable.channel,
+      externalId: contactsTable.externalId,
+    })
+    .from(conversationsTable)
+    .innerJoin(contactsTable, eq(conversationsTable.contactId, contactsTable.id))
+    .where(eq(conversationsTable.id, conversationId))
+    .limit(1);
+
+  // Sem contato resolvido caimos no identificador passado pelo chamador.
+  const channel = target?.channel ?? "whatsapp";
+  const destination = target?.externalId ?? to;
+  if (!destination) return null;
 
   try {
-    const result = await sendText(instanceName, toPhone, text);
+    let messageId: string;
+    let fromIdentifier = from;
 
-    // Record the outbound message
+    if (channel === "telegram") {
+      const bot = await getTenantTelegramBot(tenantId);
+      if (!bot) return null;
+      const sent = await sendTelegramMessage(bot.botToken, destination, text);
+      messageId = String(sent.message_id);
+      fromIdentifier = bot.botId ?? bot.botUsername ?? "telegram-bot";
+    } else {
+      const instanceName = await getTenantInstanceName(tenantId);
+      if (!instanceName) return null;
+      const sent = await sendText(instanceName, destination, text);
+      messageId = sent.key.id;
+    }
+
     await db.insert(messagesTable).values({
       conversationId,
       tenantId,
-      messageId: result.key.id,
-      fromPhone,
-      toPhone,
+      messageId,
+      fromPhone: fromIdentifier,
+      toPhone: destination,
       type: "text",
       content: text,
       direction: "outbound",
@@ -241,7 +306,7 @@ export async function sendTenantMessage(
       timestamp: new Date(),
     });
 
-    return result;
+    return { messageId };
   } catch {
     return null;
   }

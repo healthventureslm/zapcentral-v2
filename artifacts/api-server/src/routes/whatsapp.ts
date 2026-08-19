@@ -25,10 +25,15 @@ import {
 const router = Router();
 
 function getWebhookUrl(req: import("express").Request, instanceName: string): string {
+  // PUBLIC_URL tem precedencia: atras de um tunel (ngrok) o esquema e o host
+  // do request nao correspondem ao endereco publico real.
+  const explicit = process.env["PUBLIC_URL"];
   const devDomain = process.env["REPLIT_DEV_DOMAIN"];
-  const base = devDomain
-    ? `https://${devDomain}/api-server`
-    : `${req.protocol}://${req.get("host")}`;
+  const base = explicit
+    ? explicit.replace(new RegExp("/+$"), "")
+    : devDomain
+      ? `https://${devDomain}/api-server`
+      : `${req.protocol}://${req.get("host")}`;
   return `${base}/api/webhooks/evolution/${instanceName}`;
 }
 

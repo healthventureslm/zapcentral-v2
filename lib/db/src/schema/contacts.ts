@@ -5,6 +5,7 @@ import {
   text,
   timestamp,
   jsonb,
+  pgEnum,
   uniqueIndex,
   index,
 } from "drizzle-orm/pg-core";
@@ -13,6 +14,11 @@ import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 import { tenantsTable } from "./tenants";
 
+export const channelTypeEnum = pgEnum("channel_type", [
+  "whatsapp",
+  "telegram",
+]);
+
 export const contactsTable = pgTable(
   "contacts",
   {
@@ -20,8 +26,18 @@ export const contactsTable = pgTable(
     tenantId: integer("tenant_id")
       .notNull()
       .references(() => tenantsTable.id, { onDelete: "cascade" }),
-    /** International phone number without @s.whatsapp.net (e.g. 5511999999999) */
-    phone: text("phone").notNull(),
+    /** Canal de origem do contato. Um tenant pode operar so um ou ambos. */
+    channel: channelTypeEnum("channel").notNull().default("whatsapp"),
+    /**
+     * Identificador nativo do canal: telefone no WhatsApp, chat_id no Telegram.
+     * E a chave de deduplicacao junto com (tenantId, channel).
+     */
+    externalId: text("external_id").notNull(),
+    /**
+     * Telefone internacional sem @s.whatsapp.net (ex: 5511999999999).
+     * Nulo em contatos de Telegram, que nao expoem telefone.
+     */
+    phone: text("phone"),
     name: text("name"),
     avatarUrl: text("avatar_url"),
     email: text("email"),
@@ -51,7 +67,12 @@ export const contactsTable = pgTable(
       .defaultNow(),
   },
   (t) => [
-    uniqueIndex("contacts_tenant_phone_idx").on(t.tenantId, t.phone),
+    uniqueIndex("contacts_tenant_channel_external_idx").on(
+      t.tenantId,
+      t.channel,
+      t.externalId,
+    ),
+    index("contacts_tenant_phone_idx").on(t.tenantId, t.phone),
     uniqueIndex("contacts_tenant_cpf_idx")
       .on(t.tenantId, t.cpf)
       .where(sql`${t.cpf} IS NOT NULL`),

@@ -6,6 +6,7 @@ import { useEffect, type ReactNode } from "react";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/toaster";
 import { getClerkProxyUrl } from "@/lib/clerk";
+import { API_BASE, authHeaders } from "@/lib/apiBase";
 
 import SignInPage from "@/pages/sign-in";
 import SignUpPage from "@/pages/sign-up";
@@ -14,6 +15,7 @@ import SettingsPage from "@/pages/settings";
 import ChatPage from "@/pages/chat";
 import InternalChatPage from "@/pages/internal-chat";
 import WhatsAppConnectPage from "@/pages/whatsapp-connect";
+import TelegramConnectPage from "@/pages/telegram-connect";
 import ChannelSettingsPage from "@/pages/channel-settings";
 import ContactsPage from "@/pages/crm/contacts";
 import ContactDetailPage from "@/pages/crm/contact-detail";
@@ -88,7 +90,7 @@ function stripBase(path: string): string {
     : path;
 }
 
-const API_BASE = "/api-server/api";
+
 
 interface MeResponse {
   isSuperAdmin: boolean;
@@ -112,7 +114,10 @@ function TenantGuard({ children }: { children: ReactNode }) {
     queryKey: ["me"],
     enabled: isLoaded && !!isSignedIn,
     queryFn: async () => {
-      const res = await fetch(`${API_BASE}/me`, { credentials: "include" });
+      const res = await fetch(`${API_BASE}/me`, {
+        credentials: "include",
+        headers: await authHeaders(),
+      });
       if (!res.ok) throw new Error("Failed to fetch /me");
       return res.json() as Promise<MeResponse>;
     },
@@ -195,6 +200,9 @@ function AppRoutes() {
       </Route>
       <Route path="/whatsapp">
         <ProtectedRoute component={WhatsAppConnectPage} />
+      </Route>
+      <Route path="/telegram">
+        <ProtectedRoute component={TelegramConnectPage} />
       </Route>
       <Route path="/configuracoes-canal">
         <ProtectedRoute component={ChannelSettingsPage} />

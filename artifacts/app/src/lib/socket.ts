@@ -6,12 +6,11 @@
  * ensures the connection works even when cookies are restricted.
  */
 import { io, type Socket } from "socket.io-client";
+import { SOCKET_ORIGIN, SOCKET_PATH, transportHeaders } from "./apiBase";
 
 let _socket: Socket | null = null;
 
-function getApiServerOrigin(): string {
-  return window.location.origin;
-}
+
 
 /**
  * Initialize (or reconnect) the socket with a fresh Clerk session token.
@@ -28,11 +27,15 @@ export function initSocket(token: string | null): Socket {
     _socket = null;
   }
 
-  _socket = io(getApiServerOrigin(), {
-    path: "/api-server/socket.io",
+  _socket = io(SOCKET_ORIGIN, {
+    path: SOCKET_PATH,
     withCredentials: true,
     auth: token ? { token } : {},
+    // websocket primeiro: o handshake nao passa pela interstitial do ngrok,
+    // e o navegador nao permite headers customizados nesse transporte.
     transports: ["websocket", "polling"],
+    // Vale so para o fallback de polling, que e HTTP comum.
+    extraHeaders: transportHeaders,
     autoConnect: true,
   });
 
