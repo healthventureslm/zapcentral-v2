@@ -135,7 +135,12 @@ function TenantGuard({ children }: { children: ReactNode }) {
     // Only fetch if user is signed in and has NO real tenant (and me is loaded)
     enabled: isLoaded && !!isSignedIn && meQuery.isSuccess && !hasRealTenant,
     queryFn: async () => {
-      const res = await fetch(`${API_BASE}/onboard/status`);
+      // Rota publica, mas os headers de transporte continuam necessarios:
+      // sem eles um tunel ngrok devolve a propria pagina de aviso, que vem
+      // sem cabecalho de CORS e derruba a requisicao.
+      const res = await fetch(`${API_BASE}/onboard/status`, {
+        headers: await authHeaders(),
+      });
       if (!res.ok) throw new Error("Failed to fetch onboard status");
       return res.json() as Promise<OnboardStatus>;
     },
