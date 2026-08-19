@@ -13,6 +13,23 @@ interface TenantItem {
   status: string;
 }
 
+/**
+ * A central operacional do usuario.
+ *
+ * O tenant `system` e interno — existe so para hospedar o super admin da
+ * plataforma e nunca deve ser o alvo de configuracao (bot, convites,
+ * contatos). O TenantGuard em App.tsx aplica a mesma exclusao ao decidir se
+ * ha acesso; se as duas regras divergirem, a interface opera numa central e
+ * afirma estar em outra.
+ */
+function activeOperationalTenant(
+  tenants: TenantItem[] | undefined,
+): TenantItem | undefined {
+  return tenants?.find(
+    (t) => t.status === "active" && t.tenantSlug !== "system",
+  );
+}
+
 export function useTenantId(): number | null {
   const { data } = useQuery({
     queryKey: ["me-tenants"],
@@ -27,7 +44,7 @@ export function useTenantId(): number | null {
     staleTime: 5 * 60 * 1000,
   });
 
-  const active = data?.find((t) => t.status === "active");
+  const active = activeOperationalTenant(data);
   return active?.tenantId ?? null;
 }
 
@@ -46,6 +63,6 @@ export function useMyRole(): string | null {
     staleTime: 5 * 60 * 1000,
   });
 
-  const active = data?.find((t) => t.status === "active");
+  const active = activeOperationalTenant(data);
   return active?.role ?? null;
 }
