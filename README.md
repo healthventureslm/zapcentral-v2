@@ -43,6 +43,28 @@ pnpm --filter @workspace/app run dev
 
 Ou use o workflow configurado no Replit.
 
+## Banco de dados e migrations
+
+As migrations versionadas ficam em `lib/db/drizzle`. O projeto inclui a
+migration baseline `0000_initial.sql`, que cria o schema completo atual
+(22 tabelas, enums, índices e relacionamentos).
+
+Para criar uma migration depois de alterar os schemas em `lib/db/src/schema`:
+
+```bash
+pnpm --filter @workspace/db run generate
+```
+
+Para aplicar as migrations em um banco PostgreSQL **novo e vazio**:
+
+```bash
+pnpm --filter @workspace/db run migrate
+```
+
+> Não aplique a baseline em um banco que já tenha as tabelas do ZapCentral.
+> No Replit, mudanças de schema em produção são aplicadas pelo fluxo de
+> Publish, que compara o banco de desenvolvimento com o de produção.
+
 ## Verificações
 
 ```bash
