@@ -14,6 +14,7 @@ import {
   PhoneCall,
   Loader2,
   Headset,
+  ListTree,
 } from "lucide-react";
 import { useInternalChatNotifications } from "@/hooks/useInternalChat";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -44,6 +45,7 @@ const navItems = [
   { name: "Equipe", path: "/equipe", icon: Headset },
   { name: "WhatsApp", path: "/whatsapp", icon: Smartphone },
   { name: "Telegram", path: "/telegram", icon: Send },
+  { name: "Atendimento automático", path: "/configuracoes-canal", icon: ListTree },
   { name: "CRM", path: "/crm", icon: Users },
   { name: "Relatórios", path: "/relatorios", icon: BarChart3 },
   { name: "Configurações", path: "/settings", icon: Settings },
