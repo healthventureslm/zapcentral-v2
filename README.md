@@ -19,18 +19,15 @@ pnpm install
 Configure as variáveis de ambiente no Replit Secrets ou em um arquivo local
 que não seja versionado. Nunca publique valores reais de chaves no GitHub.
 
-Variáveis principais:
+Para desenvolvimento local, copie o modelo e preencha os valores:
 
 ```text
-DATABASE_URL=
-SESSION_SECRET=
-CLERK_PUBLISHABLE_KEY=
-CLERK_SECRET_KEY=
-VITE_CLERK_PUBLISHABLE_KEY=
-BOOTSTRAP_SECRET=
-EVOLUTION_API_URL=
-EVOLUTION_API_KEY=
+cp .env.example .env
 ```
+
+O arquivo `.env.example` lista todas as variáveis necessárias. Substitua os
+placeholders apenas no `.env` local ou no gerenciador de secrets do ambiente.
+Nunca publique valores reais de chaves no GitHub.
 
 ## Desenvolvimento
 
