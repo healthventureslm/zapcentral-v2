@@ -20,7 +20,7 @@ import { useInternalChatNotifications } from "@/hooks/useInternalChat";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useTenantId } from "@/hooks/useTenantId";
+import { useTenantId, useMyRole } from "@/hooks/useTenantId";
 import {
   getReportOverview,
   getReportVolume,
@@ -104,17 +104,25 @@ export function Sidebar() {
 
 export default function DashboardPage() {
   const tenantId = useTenantId();
+  const role = useMyRole();
+
+  // Os relatorios exigem admin ou supervisor no servidor. Sem esta guarda o
+  // agente comum dispara 403 a cada intervalo de polling, indefinidamente.
+  const canSeeReports = role === "admin" || role === "supervisor";
+  const roleResolved = role !== null;
 
   const { data: overview, isLoading: loadingOverview, error: overviewErr } = useQuery({
     queryKey: ["reports", "overview", tenantId],
     queryFn: () => getReportOverview(tenantId!),
-    enabled: !!tenantId,
+    enabled: !!tenantId && canSeeReports,
     refetchInterval: 10000,
     retry: (count, err) =>
       (err as { status?: number }).status !== 403 && count < 2,
   });
-  // Regular agents don't have access to analytics (admin/supervisor only)
-  const noReportAccess = (overviewErr as { status?: number } | null)?.status === 403;
+  // Agente comum nao tem acesso a analytics (so admin/supervisor)
+  const noReportAccess =
+    (roleResolved && !canSeeReports) ||
+    (overviewErr as { status?: number } | null)?.status === 403;
 
   const { data: volume, isError: volumeError } = useQuery({
     queryKey: ["reports", "volume", tenantId, "hour", "today"],
@@ -127,7 +135,7 @@ export default function DashboardPage() {
         to: new Date().toISOString(),
       });
     },
-    enabled: !!tenantId,
+    enabled: !!tenantId && canSeeReports,
     refetchInterval: 30000,
   });
 

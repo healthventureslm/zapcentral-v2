@@ -20,7 +20,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useTenantId } from "@/hooks/useTenantId";
+import { useTenantId, useMyRole } from "@/hooks/useTenantId";
 import {
   getReportDepartments,
   getReportConversations,
@@ -45,6 +45,11 @@ import {
 
 export default function ReportsPage() {
   const tenantId = useTenantId();
+  const role = useMyRole();
+
+  // Todos os endpoints desta tela exigem admin ou supervisor. Sem a guarda,
+  // um agente comum dispara 403 em cada uma das consultas ao abrir a pagina.
+  const canSeeReports = role === "admin" || role === "supervisor";
 
   // Filters state
   const [period, setPeriod] = useState("7d");
@@ -84,38 +89,38 @@ export default function ReportsPage() {
   const { data: agents } = useQuery({
     queryKey: ["agents", "status", tenantId],
     queryFn: () => listAgentStatuses(tenantId!),
-    enabled: !!tenantId,
+    enabled: !!tenantId && canSeeReports,
   });
 
   const { data: tags } = useQuery({
     queryKey: ["tags", tenantId],
     queryFn: () => listTags(tenantId!),
-    enabled: !!tenantId,
+    enabled: !!tenantId && canSeeReports,
   });
 
   // Main Report Queries
   const { data: departmentsReport, isLoading: loadingDepts, isError: errorDepts } = useQuery({
     queryKey: ["reports", "departments", tenantId, filters],
     queryFn: () => getReportDepartments(tenantId!, filters),
-    enabled: !!tenantId,
+    enabled: !!tenantId && canSeeReports,
   });
 
   const { data: conversationsReport, isLoading: loadingConvs, isError: errorConvs } = useQuery({
     queryKey: ["reports", "conversations", tenantId, filters],
     queryFn: () => getReportConversations(tenantId!, { ...filters, limit: 100 }), // limit for UI
-    enabled: !!tenantId,
+    enabled: !!tenantId && canSeeReports,
   });
 
   const { data: agentsReport, isLoading: loadingAgents, isError: errorAgents } = useQuery({
     queryKey: ["reports", "agents", tenantId, filters],
     queryFn: () => getReportAgents(tenantId!, filters),
-    enabled: !!tenantId,
+    enabled: !!tenantId && canSeeReports,
   });
 
   const { data: funnelReport, isLoading: loadingFunnel, isError: errorFunnel } = useQuery({
     queryKey: ["reports", "funnel", tenantId, filters],
     queryFn: () => getReportFunnel(tenantId!, filters),
-    enabled: !!tenantId,
+    enabled: !!tenantId && canSeeReports,
   });
 
   const formatDuration = (secs: number | null) => {
@@ -143,6 +148,21 @@ export default function ReportsPage() {
   const handlePrint = () => {
     window.print();
   };
+
+  if (role !== null && !canSeeReports) {
+    return (
+      <div className="flex h-screen bg-[#F4F7F8]">
+        <Sidebar />
+        <main className="flex-1 flex items-center justify-center p-8">
+          <Card className="max-w-md">
+            <CardContent className="pt-6 text-center text-slate-600">
+              Os relatórios são restritos a administradores e supervisores.
+            </CardContent>
+          </Card>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-[100dvh] bg-[#F4F7F8]">
