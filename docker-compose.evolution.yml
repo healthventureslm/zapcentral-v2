@@ -1,0 +1,85 @@
+# Evolution API — gateway de WhatsApp usado pelo canal WhatsApp do ZapCentral.
+#
+# Sobe tres servicos isolados do resto do projeto: a Evolution, um Postgres
+# proprio dela e um Redis. Nada aqui toca o banco do Supabase — a Evolution
+# guarda o estado da sessao do WhatsApp no proprio banco.
+#
+# A porta publicada e 8081 porque a 8080 ja e da API do ZapCentral.
+#
+# Uso:
+#   docker compose -f docker-compose.evolution.yml up -d
+#   docker compose -f docker-compose.evolution.yml logs -f evolution
+#   docker compose -f docker-compose.evolution.yml down
+#
+# As credenciais vem do .env da raiz (EVOLUTION_API_KEY, EVOLUTION_DB_PASSWORD).
+
+name: zapcentral-evolution
+
+services:
+  evolution:
+    # O projeto migrou de `atendai` para `evoapicloud`, que e o repositorio
+    # mantido hoje. Versao fixada de proposito: `latest` aqui aponta para um
+    # release candidate.
+    image: evoapicloud/evolution-api:v2.3.7
+    restart: unless-stopped
+    ports:
+      - "8081:8080"
+    environment:
+      SERVER_URL: http://localhost:8081
+
+      # Chave global da API — o ZapCentral envia no header `apikey`
+      AUTHENTICATION_API_KEY: ${EVOLUTION_API_KEY}
+
+      # Persistencia da sessao. Sem isto, cada restart exigiria novo QR.
+      DATABASE_ENABLED: "true"
+      DATABASE_PROVIDER: postgresql
+      DATABASE_CONNECTION_URI: postgresql://evolution:${EVOLUTION_DB_PASSWORD}@postgres:5432/evolution
+      DATABASE_CONNECTION_CLIENT_NAME: zapcentral
+      DATABASE_SAVE_DATA_INSTANCE: "true"
+      DATABASE_SAVE_DATA_NEW_MESSAGE: "false"
+      DATABASE_SAVE_MESSAGE_UPDATE: "false"
+      DATABASE_SAVE_DATA_CONTACTS: "false"
+      DATABASE_SAVE_DATA_CHATS: "false"
+
+      CACHE_REDIS_ENABLED: "true"
+      CACHE_REDIS_URI: redis://redis:6379/6
+      CACHE_REDIS_PREFIX_KEY: evolution
+      CACHE_REDIS_SAVE_INSTANCES: "false"
+      CACHE_LOCAL_ENABLED: "false"
+
+      LOG_LEVEL: ERROR,WARN,INFO
+      DEL_INSTANCE: "false"
+      QRCODE_LIMIT: "10"
+    volumes:
+      - evolution_instances:/evolution/instances
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: evolution
+      POSTGRES_PASSWORD: ${EVOLUTION_DB_PASSWORD}
+      POSTGRES_DB: evolution
+    volumes:
+      - evolution_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U evolution -d evolution"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    volumes:
+      - evolution_redis:/data
+
+volumes:
+  evolution_instances:
+  evolution_pgdata:
+  evolution_redis:

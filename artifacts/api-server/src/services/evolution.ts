@@ -70,7 +70,12 @@ export async function createInstance(
       integration: "WHATSAPP-BAILEYS",
       webhook: {
         url: webhookUrl,
-        byEvents: true,
+        // Precisa ser false: com `byEvents` a Evolution anexa o nome do evento
+        // ao caminho (…/tenant_4/connection-update), e o receptor daqui e um
+        // endpoint unico que despacha pelo campo `event` do corpo. Com true,
+        // toda entrega cai em 404 — silenciosamente, porque a Evolution nao
+        // reclama de webhook recusado.
+        byEvents: false,
         base64: false,
         headers: { "x-webhook-secret": webhookSecret },
         events: [
