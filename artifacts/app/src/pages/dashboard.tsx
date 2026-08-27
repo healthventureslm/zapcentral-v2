@@ -582,7 +582,12 @@ export default function DashboardPage() {
             <Card className="lg:col-span-2">
               <CardHeader title={<>Volume de Conversas (Hoje)</>} />
               <CardBody>
-                <div className="h-[300px] w-full">
+                {/* Altura minima, nao fixa. A legenda do LineChart renderiza
+                    ABAIXO da area do grafico: um contentor de 300px com um
+                    grafico de 300px deixa a legenda para fora. O minimo mantem
+                    o cartao estavel nos estados de carregando e sem dados, sem
+                    limitar o que o grafico precisa. */}
+                <div className="min-h-[300px] w-full">
                   {volumeError ? (
                     <EmptyState
                       size="sm"
