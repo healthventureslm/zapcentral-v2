@@ -150,7 +150,7 @@ export default function InternalChatPage() {
       <div className="ml-64 flex flex-col w-80 shrink-0 border-r border-white/5 h-full">
         <div className="h-14 flex items-center gap-2 px-4 border-b border-white/5 bg-[var(--surface-sunken)]">
           <Headset className="w-4 h-4 text-primary" />
-          <span className="text-sm font-semibold text-[var(--text-strong)]">Chat interno</span>
+          <span className="text-sm font-semibold text-[var(--text-strong)]">Equipe</span>
         </div>
 
         <div className="flex-1 overflow-y-auto">

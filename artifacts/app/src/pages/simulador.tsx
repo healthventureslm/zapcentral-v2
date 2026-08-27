@@ -18,7 +18,7 @@ import {
   ArrowRight,
   PlayCircle,
 } from "lucide-react";
-import { Button } from "@healthventureslm/design-system";
+import { Badge, Button } from "@healthventureslm/design-system";
 import { PageShell } from "@/components/PageShell";
 import { useTenantId } from "@/hooks/useTenantId";
 import { useToast } from "@/hooks/use-toast";
@@ -32,12 +32,20 @@ import {
 } from "@/lib/api";
 
 /** Rotulo humano do estado da conversa, na linguagem do produto. */
-const ESTADO: Record<string, { texto: string; cor: string }> = {
-  new: { texto: "Chegou agora", cor: "bg-muted text-foreground" },
-  ivr: { texto: "No robô, escolhendo o ramal", cor: "bg-blue-100 text-blue-700" },
-  waiting: { texto: "Na fila do ramal", cor: "bg-amber-100 text-amber-700" },
-  active: { texto: "Em atendimento", cor: "bg-green-100 text-green-700" },
-  closed: { texto: "Encerrada", cor: "bg-muted text-muted-foreground" },
+/*
+ * Mesmos estados que o Atendimento mostra, com as mesmas variantes: a
+ * conversa que o simulador cria e a que aparece la, e duas cores para o
+ * mesmo estado fazem parecer que sao coisas diferentes.
+ */
+const ESTADO: Record<
+  string,
+  { texto: string; variante: "neutral" | "info" | "brand" | "warning" | "positive" }
+> = {
+  new: { texto: "Chegou agora", variante: "info" },
+  ivr: { texto: "No robô, escolhendo o ramal", variante: "brand" },
+  waiting: { texto: "Na fila do ramal", variante: "warning" },
+  active: { texto: "Em atendimento", variante: "positive" },
+  closed: { texto: "Encerrada", variante: "neutral" },
 };
 
 /**
@@ -315,7 +323,7 @@ export default function SimuladorPage() {
                 </div>
               </Passo>
 
-              <div className="bg-[#0F1923] rounded-xl p-5 text-white">
+              <div className="sala-escura bg-background rounded-xl p-5 text-[var(--text-strong)]">
                 <div className="flex items-start gap-3">
                   <MessageCircle className="w-5 h-5 text-primary mt-0.5 shrink-0" />
                   <div>
@@ -341,12 +349,12 @@ export default function SimuladorPage() {
 
             {/* -------------------------------------------------- coluna direita */}
             <div className="bg-card rounded-xl shadow-sm overflow-hidden xl:sticky xl:top-8">
-              <div className="bg-[#0F1923] px-4 py-3 flex items-center gap-3">
+              <div className="sala-escura bg-background px-4 py-3 flex items-center gap-3">
                 <div className="w-9 h-9 rounded-full bg-primary/20 flex items-center justify-center">
                   <Smartphone className="w-4 h-4 text-primary" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-white text-sm font-semibold truncate">
+                  <p className="text-[var(--text-strong)] text-sm font-semibold truncate">
                     {personaAtual?.nome ?? "Selecione uma pessoa"}
                   </p>
                   <p className="text-muted-foreground text-xs truncate">
@@ -356,13 +364,9 @@ export default function SimuladorPage() {
                   </p>
                 </div>
                 {conversa?.status && (
-                  <span
-                    className={`text-[10px] font-semibold px-2 py-1 rounded-full whitespace-nowrap ${
-                      ESTADO[conversa.status]?.cor ?? "bg-muted text-foreground"
-                    }`}
-                  >
+                  <Badge variant={ESTADO[conversa.status]?.variante ?? "neutral"}>
                     {ESTADO[conversa.status]?.texto ?? conversa.status}
-                  </span>
+                  </Badge>
                 )}
               </div>
 

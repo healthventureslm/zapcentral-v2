@@ -481,8 +481,22 @@ export default function ChatPage() {
 
       {/* Conversation list */}
       <div className="ml-64 flex flex-col w-80 shrink-0 border-r border-white/5 h-full">
-        {/* Agent status bar */}
-        <div className="h-14 flex items-center justify-between px-4 border-b border-white/5 bg-[var(--surface-sunken)]">
+        {/*
+          A tela se nomeia, como as outras onze.
+          O PageShell nao serve aqui — o painel ocupa a altura toda e nao cabe
+          um cabecalho de pagina — mas o icone e o nome vindos do menu sao o
+          que faz a tela e o item da barra lerem como o mesmo lugar. Sem isso
+          Atendimento era a unica que nao dizia onde voce estava.
+        */}
+        <div className="h-14 flex items-center gap-2 px-4 border-b border-white/5 bg-[var(--surface-sunken)]">
+          <MessageCircle className="w-4 h-4 text-primary shrink-0" />
+          <span className="text-sm font-semibold text-[var(--text-strong)]">
+            Atendimento
+          </span>
+        </div>
+
+        {/* Situacao do agente */}
+        <div className="h-11 flex items-center justify-between px-4 border-b border-white/5">
           <div className="relative">
             <button
               onClick={() => setShowStatusMenu(!showStatusMenu)}
