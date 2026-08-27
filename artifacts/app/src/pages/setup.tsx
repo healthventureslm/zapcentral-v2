@@ -91,8 +91,8 @@ export default function SetupPage() {
           <div className="inline-flex items-center justify-center w-14 h-14 bg-primary rounded-2xl mb-2">
             <ShieldCheck className="w-7 h-7 text-white" />
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">Configuração inicial</h1>
-          <p className="text-gray-500 text-sm">
+          <h1 className="text-2xl font-bold text-foreground">Configuração inicial</h1>
+          <p className="text-muted-foreground text-sm">
             Bem-vindo ao ZapCentral. Defina o nome da sua central para começar.
           </p>
         </div>
@@ -108,7 +108,7 @@ export default function SetupPage() {
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-1.5">
-                <label className="text-sm font-medium text-gray-700">
+                <label className="text-sm font-medium text-foreground">
                   Nome da central
                 </label>
                 <Input
@@ -122,7 +122,7 @@ export default function SetupPage() {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-sm font-medium text-gray-700">
+                <label className="text-sm font-medium text-foreground">
                   Segredo de ativação
                 </label>
                 <Input
@@ -153,7 +153,7 @@ export default function SetupPage() {
           </CardContent>
         </Card>
 
-        <p className="text-center text-xs text-gray-400">
+        <p className="text-center text-xs text-muted-foreground">
           ZapCentral — Central Operacional Inteligente
         </p>
       </div>

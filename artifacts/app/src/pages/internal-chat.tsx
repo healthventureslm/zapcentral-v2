@@ -172,7 +172,7 @@ export default function InternalChatPage() {
                   key={c.id}
                   onClick={() => setSelectedConvId(c.id)}
                   className={cn(
-                    "w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-white/5 transition-colors border-b border-white/5",
+                    "w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-card/5 transition-colors border-b border-white/5",
                     c.id === selectedConvId && "bg-primary/10",
                   )}
                 >
@@ -221,7 +221,7 @@ export default function InternalChatPage() {
                     key={c.clerkUserId}
                     onClick={() => startMutation.mutate(c.clerkUserId)}
                     disabled={startMutation.isPending}
-                    className="w-full flex items-center gap-3 px-4 py-2.5 text-left hover:bg-white/5 transition-colors"
+                    className="w-full flex items-center gap-3 px-4 py-2.5 text-left hover:bg-card/5 transition-colors"
                   >
                     <div className="relative shrink-0">
                       <Avatar className="h-9 w-9">
@@ -304,7 +304,7 @@ export default function InternalChatPage() {
                           "max-w-[70%] rounded-xl px-4 py-2.5 shadow-sm",
                           mine
                             ? "bg-primary text-white rounded-br-sm"
-                            : "bg-white text-gray-900 rounded-bl-sm",
+                            : "bg-card text-foreground rounded-bl-sm",
                         )}
                       >
                         <p className="text-sm leading-relaxed whitespace-pre-wrap">{m.content}</p>

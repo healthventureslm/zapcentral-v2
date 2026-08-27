@@ -87,7 +87,7 @@ export function Sidebar() {
                 className={`flex items-center px-3 py-2.5 rounded-md cursor-pointer transition-colors ${
                   active
                     ? "bg-primary/10 text-primary border-r-2 border-primary"
-                    : "text-muted-foreground hover:text-white hover:bg-white/5"
+                    : "text-muted-foreground hover:text-white hover:bg-card/5"
                 }`}
               >
                 <Icon className="w-5 h-5 mr-3" />
@@ -148,7 +148,7 @@ const CORES_DO_JULGAMENTO: Record<Julgamento, string> = {
   bom: "text-emerald-600",
   atencao: "text-amber-600",
   ruim: "text-red-600",
-  neutro: "text-gray-400",
+  neutro: "text-muted-foreground",
 };
 
 /**
@@ -177,13 +177,13 @@ function IndicadorComVeredito({
   return (
     <Card>
       <CardContent className="p-5">
-        <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
           {titulo}
         </p>
         <div className="flex items-baseline gap-1 mt-2">
-          <span className="text-3xl font-bold text-gray-900">{valor}</span>
+          <span className="text-3xl font-bold text-foreground">{valor}</span>
           {unidade && (
-            <span className="text-sm font-medium text-gray-500">{unidade}</span>
+            <span className="text-sm font-medium text-muted-foreground">{unidade}</span>
           )}
         </div>
         <p
@@ -191,7 +191,7 @@ function IndicadorComVeredito({
         >
           {veredito}
         </p>
-        <p className="text-[11px] text-gray-400 mt-2 leading-snug">
+        <p className="text-[11px] text-muted-foreground mt-2 leading-snug">
           {explicacao}
         </p>
       </CardContent>
@@ -250,7 +250,7 @@ function OperacaoAgora({
     <Card className="mt-6">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between gap-3">
-          <CardTitle className="text-base text-gray-800">Operação agora</CardTitle>
+          <CardTitle className="text-base text-foreground">Operação agora</CardTitle>
           {!carregando && (
             <span
               className={cn(
@@ -268,10 +268,10 @@ function OperacaoAgora({
       <CardContent>
         {carregando ? (
           <div className="flex justify-center py-8">
-            <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
+            <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
           </div>
         ) : linhas.length === 0 ? (
-          <p className="text-sm text-gray-500 py-4">Nenhum ramal ativo.</p>
+          <p className="text-sm text-muted-foreground py-4">Nenhum ramal ativo.</p>
         ) : (
           <div className="divide-y divide-gray-100">
             {linhas.map(({ ramal, disponiveis, online, fila }) => {
@@ -286,7 +286,7 @@ function OperacaoAgora({
                       className="w-2 h-2 rounded-full shrink-0"
                       style={{ backgroundColor: ramal.color }}
                     />
-                    <span className="text-sm font-medium text-gray-800 truncate">
+                    <span className="text-sm font-medium text-foreground truncate">
                       {ramal.name}
                     </span>
                     {fila > 0 && (
@@ -304,7 +304,7 @@ function OperacaoAgora({
                   </div>
                   <div className="text-right shrink-0">
                     {disponiveis.length > 0 ? (
-                      <p className="text-xs text-gray-600 truncate max-w-[22rem]">
+                      <p className="text-xs text-muted-foreground truncate max-w-[22rem]">
                         {disponiveis.map(nomeDe).join(", ")}
                       </p>
                     ) : descoberto ? (
@@ -312,7 +312,7 @@ function OperacaoAgora({
                         Ninguém disponível
                       </p>
                     ) : (
-                      <p className="text-xs text-gray-400">
+                      <p className="text-xs text-muted-foreground">
                         {online.length > 0 ? "Sem vaga livre" : "Ninguém online"}
                       </p>
                     )}
@@ -471,11 +471,11 @@ export default function DashboardPage() {
       <Sidebar />
 
       <div className="ml-64 flex flex-col print:ml-0">
-        <header className="h-16 bg-white shadow-sm flex items-center justify-between px-8 z-0 print:hidden">
-          <h1 className="text-xl font-semibold text-gray-800">
+        <header className="h-16 bg-card shadow-sm flex items-center justify-between px-8 z-0 print:hidden">
+          <h1 className="text-xl font-semibold text-foreground">
             Painel Principal
           </h1>
-          <Badge variant="outline" className="text-xs font-medium bg-gray-50">
+          <Badge variant="outline" className="text-xs font-medium bg-muted">
             Tenant: {tenantId || "..."}
           </Badge>
         </header>
@@ -491,7 +491,7 @@ export default function DashboardPage() {
               Sem isto, quem abre a tela precisa somar cinco numeros de cabeca
               para saber se a central esta bem ou mal AGORA. */}
           {!noReportAccess && overview && (
-            <p className="text-sm text-gray-600 mb-6 leading-relaxed max-w-3xl">
+            <p className="text-sm text-muted-foreground mb-6 leading-relaxed max-w-3xl">
               {resumoAgora}
             </p>
           )}
@@ -503,10 +503,10 @@ export default function DashboardPage() {
                   <MessageCircle className="w-6 h-6" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-500">
+                  <p className="text-sm font-medium text-muted-foreground">
                     Ativas
                   </p>
-                  <h3 className="text-2xl font-bold text-gray-900">
+                  <h3 className="text-2xl font-bold text-foreground">
                     {loadingOverview ? <Loader2 className="w-5 h-5 animate-spin mt-1" /> : overview?.live.active ?? 0}
                   </h3>
                 </div>
@@ -519,10 +519,10 @@ export default function DashboardPage() {
                   <Clock className="w-6 h-6" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-500">
+                  <p className="text-sm font-medium text-muted-foreground">
                     Aguardando
                   </p>
-                  <h3 className="text-2xl font-bold text-gray-900">
+                  <h3 className="text-2xl font-bold text-foreground">
                     {loadingOverview ? <Loader2 className="w-5 h-5 animate-spin mt-1" /> : overview?.live.waiting ?? 0}
                   </h3>
                 </div>
@@ -535,10 +535,10 @@ export default function DashboardPage() {
                   <PhoneCall className="w-6 h-6" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-500">
+                  <p className="text-sm font-medium text-muted-foreground">
                     No Robô (IVR)
                   </p>
-                  <h3 className="text-2xl font-bold text-gray-900">
+                  <h3 className="text-2xl font-bold text-foreground">
                     {loadingOverview ? <Loader2 className="w-5 h-5 animate-spin mt-1" /> : overview?.live.inIvr ?? 0}
                   </h3>
                 </div>
@@ -551,10 +551,10 @@ export default function DashboardPage() {
                   <Users className="w-6 h-6" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-500">
+                  <p className="text-sm font-medium text-muted-foreground">
                     Agentes Online
                   </p>
-                  <h3 className="text-2xl font-bold text-gray-900">
+                  <h3 className="text-2xl font-bold text-foreground">
                     {agents ? onlineAgents : <Loader2 className="w-5 h-5 animate-spin mt-1" />}
                   </h3>
                 </div>
@@ -567,10 +567,10 @@ export default function DashboardPage() {
                   <CheckCircle2 className="w-6 h-6" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-500">
+                  <p className="text-sm font-medium text-muted-foreground">
                     Resolvidos Hoje
                   </p>
-                  <h3 className="text-2xl font-bold text-gray-900">
+                  <h3 className="text-2xl font-bold text-foreground">
                     {loadingOverview ? <Loader2 className="w-5 h-5 animate-spin mt-1" /> : overview?.live.closedToday ?? 0}
                   </h3>
                 </div>
@@ -581,7 +581,7 @@ export default function DashboardPage() {
           {!noReportAccess && (
             <div className="mb-8">
               <div className="flex items-baseline justify-between mb-3">
-                <h2 className="text-sm font-semibold text-gray-700">
+                <h2 className="text-sm font-semibold text-foreground">
                   Como a central atendeu nos últimos 30 dias
                 </h2>
                 <Link
@@ -637,7 +637,7 @@ export default function DashboardPage() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <Card className="lg:col-span-2">
               <CardHeader>
-                <CardTitle className="text-base text-gray-800">Volume de Conversas (Hoje)</CardTitle>
+                <CardTitle className="text-base text-foreground">Volume de Conversas (Hoje)</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="h-[300px] w-full">
@@ -646,11 +646,11 @@ export default function DashboardPage() {
                       Erro ao carregar o gráfico. Tentando novamente...
                     </div>
                   ) : !volume ? (
-                    <div className="w-full h-full flex items-center justify-center text-gray-400">
+                    <div className="w-full h-full flex items-center justify-center text-muted-foreground">
                       <Loader2 className="w-8 h-8 animate-spin" />
                     </div>
                   ) : volume.length === 0 ? (
-                    <div className="w-full h-full flex items-center justify-center text-gray-500 text-sm">
+                    <div className="w-full h-full flex items-center justify-center text-muted-foreground text-sm">
                       Sem dados para o período.
                     </div>
                   ) : (
@@ -711,15 +711,15 @@ export default function DashboardPage() {
 
             <Card className="flex flex-col">
               <CardHeader className="pb-3">
-                <CardTitle className="text-base text-gray-800">Maior Tempo de Espera</CardTitle>
+                <CardTitle className="text-base text-foreground">Maior Tempo de Espera</CardTitle>
               </CardHeader>
               <CardContent className="flex-1 overflow-auto">
                 {!waitingRes ? (
                   <div className="flex justify-center py-8">
-                    <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
+                    <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
                   </div>
                 ) : waitingConversations.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center h-full text-gray-500 py-8">
+                  <div className="flex flex-col items-center justify-center h-full text-muted-foreground py-8">
                     <CheckCircle2 className="w-10 h-10 text-green-400 mb-2" />
                     <p className="text-sm font-medium">Nenhuma conversa aguardando.</p>
                   </div>
@@ -727,20 +727,20 @@ export default function DashboardPage() {
                   <div className="space-y-4">
                     {waitingConversations.map((conv) => (
                       <Link key={conv.id} href={`/atendimento?c=${conv.id}`} className="block">
-                        <div className="flex items-center justify-between p-3 rounded-lg border border-gray-100 hover:border-green-200 hover:bg-green-50/50 transition-colors cursor-pointer mb-3 last:mb-0 group">
+                        <div className="flex items-center justify-between p-3 rounded-lg border border-border hover:border-green-200 hover:bg-green-50/50 transition-colors cursor-pointer mb-3 last:mb-0 group">
                           <div className="flex items-center gap-3">
-                            <Avatar className="h-9 w-9 border border-gray-100">
+                            <Avatar className="h-9 w-9 border border-border">
                               <AvatarImage src={conv.contact.avatarUrl || undefined} />
-                              <AvatarFallback className="bg-gray-50 text-gray-600 text-xs font-medium">
+                              <AvatarFallback className="bg-muted text-muted-foreground text-xs font-medium">
                                 {conv.contact.name ? conv.contact.name.substring(0, 2).toUpperCase() : "??"}
                               </AvatarFallback>
                             </Avatar>
                             <div>
-                              <p className="text-sm font-medium text-gray-900 group-hover:text-green-700 transition-colors">
+                              <p className="text-sm font-medium text-foreground group-hover:text-green-700 transition-colors">
                                 {conv.contact.name || conv.contact.phone}
                               </p>
                               {conv.departmentName && (
-                                <Badge variant="secondary" className="mt-1 text-[10px] px-1.5 py-0 h-4 border-none bg-gray-100 text-gray-600">
+                                <Badge variant="secondary" className="mt-1 text-[10px] px-1.5 py-0 h-4 border-none bg-muted text-muted-foreground">
                                   {conv.departmentName}
                                 </Badge>
                               )}

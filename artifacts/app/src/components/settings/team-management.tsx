@@ -167,7 +167,7 @@ export function TeamSection({ tenantId, myUserId }: { tenantId: number; myUserId
         {isLoading ? (
           <div className="py-8 flex justify-center"><Loader2 className="w-5 h-5 animate-spin text-primary" /></div>
         ) : !users?.length ? (
-          <p className="text-sm text-gray-500 py-4">Nenhum usuário ainda. Convide o primeiro.</p>
+          <p className="text-sm text-muted-foreground py-4">Nenhum usuário ainda. Convide o primeiro.</p>
         ) : (
           <div className="divide-y">
             {users.map((u) => {
@@ -180,11 +180,11 @@ export function TeamSection({ tenantId, myUserId }: { tenantId: number; myUserId
                     <AvatarFallback>{displayName(u).slice(0, 2).toUpperCase()}</AvatarFallback>
                   </Avatar>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900 truncate">
+                    <p className="text-sm font-medium text-foreground truncate">
                       {displayName(u)}
-                      {isSelf && <span className="text-xs text-gray-400"> (você)</span>}
+                      {isSelf && <span className="text-xs text-muted-foreground"> (você)</span>}
                     </p>
-                    <p className="text-xs text-gray-500 truncate">
+                    <p className="text-xs text-muted-foreground truncate">
                       {u.email}
                       {u.departments.length > 0 && ` · ${u.departments.join(", ")}`}
                     </p>
@@ -194,7 +194,7 @@ export function TeamSection({ tenantId, myUserId }: { tenantId: number; myUserId
                     {STATUS_LABEL[u.status]?.label ?? u.status}
                   </Badge>
                   <span
-                    className={`text-xs flex items-center gap-1 w-36 ${acc.expired ? "text-red-600 font-medium" : "text-gray-500"}`}
+                    className={`text-xs flex items-center gap-1 w-36 ${acc.expired ? "text-red-600 font-medium" : "text-muted-foreground"}`}
                     title="Tipo de acesso"
                   >
                     {u.accessExpiresAt ? <Clock className="w-3 h-3" /> : <InfinityIcon className="w-3 h-3" />}
@@ -435,7 +435,7 @@ export function DepartmentsSection({ tenantId }: { tenantId: number }) {
         {isLoading ? (
           <div className="py-8 flex justify-center"><Loader2 className="w-5 h-5 animate-spin text-primary" /></div>
         ) : !departments?.length ? (
-          <p className="text-sm text-gray-500">Nenhum setor criado ainda.</p>
+          <p className="text-sm text-muted-foreground">Nenhum setor criado ainda.</p>
         ) : (
           <div className="space-y-3">
             {departments.map((d) => (
@@ -501,12 +501,12 @@ function DepartmentCard({ tenantId, dept, onChanged }: { tenantId: number; dept:
       <div className="flex items-center gap-3">
         <span className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: dept.color }} />
         <button className="flex-1 text-left" onClick={() => setExpanded(!expanded)}>
-          <span className="font-medium text-gray-900">{dept.name}</span>
+          <span className="font-medium text-foreground">{dept.name}</span>
           {dept.status === "inactive" && (
             <Badge variant="outline" className="ml-2 text-xs">Inativo</Badge>
           )}
         </button>
-        <Badge className={`border-none text-xs ${full ? "bg-red-100 text-red-700" : "bg-gray-100 text-gray-600"}`}>
+        <Badge className={`border-none text-xs ${full ? "bg-red-100 text-red-700" : "bg-muted text-muted-foreground"}`}>
           {dept.agentCount}{dept.maxAgents !== null ? ` / ${dept.maxAgents}` : ""}
           {dept.maxAgents === null && dept.agentCount === 1 ? " agente" : " agentes"}
           {full && " · lotado"}
@@ -523,7 +523,7 @@ function DepartmentCard({ tenantId, dept, onChanged }: { tenantId: number; dept:
       {expanded && (
         <div className="mt-4 space-y-4 pl-6">
           <div className="flex items-center gap-2">
-            <label className="text-xs text-gray-600">Lotação máxima:</label>
+            <label className="text-xs text-muted-foreground">Lotação máxima:</label>
             <Input
               className="h-8 w-24 text-xs"
               value={maxEdit}
@@ -540,9 +540,9 @@ function DepartmentCard({ tenantId, dept, onChanged }: { tenantId: number; dept:
           </div>
 
           <div>
-            <p className="text-xs font-medium text-gray-600 mb-2">Agentes neste setor</p>
+            <p className="text-xs font-medium text-muted-foreground mb-2">Agentes neste setor</p>
             {!agents?.length ? (
-              <p className="text-xs text-gray-400">Nenhum agente ainda.</p>
+              <p className="text-xs text-muted-foreground">Nenhum agente ainda.</p>
             ) : (
               <div className="space-y-1">
                 {agents.map((a) => (
@@ -567,7 +567,7 @@ function DepartmentCard({ tenantId, dept, onChanged }: { tenantId: number; dept:
 
           {candidates.length > 0 && (
             <div>
-              <p className="text-xs font-medium text-gray-600 mb-2">Adicionar agente</p>
+              <p className="text-xs font-medium text-muted-foreground mb-2">Adicionar agente</p>
               <div className="flex flex-wrap gap-2">
                 {candidates.map((u) => (
                   <Button

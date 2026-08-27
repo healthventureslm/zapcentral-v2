@@ -6,13 +6,13 @@ export function CrmTabs() {
   const isKanban = location === "/crm/funil";
 
   return (
-    <div className="flex border-b border-gray-200 bg-white px-8">
+    <div className="flex border-b border-border bg-card px-8">
       <Link href="/crm">
         <div
           className={`flex items-center gap-2 px-4 py-4 border-b-2 font-medium text-sm cursor-pointer transition-colors ${
             !isKanban
               ? "border-primary text-primary"
-              : "border-transparent text-gray-500 hover:text-gray-900"
+              : "border-transparent text-muted-foreground hover:text-foreground"
           }`}
         >
           <Users className="w-4 h-4" />
@@ -24,7 +24,7 @@ export function CrmTabs() {
           className={`flex items-center gap-2 px-4 py-4 border-b-2 font-medium text-sm cursor-pointer transition-colors ${
             isKanban
               ? "border-primary text-primary"
-              : "border-transparent text-gray-500 hover:text-gray-900"
+              : "border-transparent text-muted-foreground hover:text-foreground"
           }`}
         >
           <KanbanSquare className="w-4 h-4" />

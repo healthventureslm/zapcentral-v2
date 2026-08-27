@@ -161,7 +161,7 @@ export default function ReportsPage() {
         <Sidebar />
         <main className="flex-1 flex items-center justify-center p-8">
           <Card className="max-w-md">
-            <CardContent className="pt-6 text-center text-slate-600">
+            <CardContent className="pt-6 text-center text-muted-foreground">
               Os relatórios são restritos a administradores e supervisores.
             </CardContent>
           </Card>
@@ -175,8 +175,8 @@ export default function ReportsPage() {
       <Sidebar />
 
       <div className="ml-64 flex flex-col print:ml-0">
-        <header className="h-16 bg-white shadow-sm flex items-center justify-between px-8 z-0 print:hidden">
-          <h1 className="text-xl font-semibold text-gray-800">Relatórios</h1>
+        <header className="h-16 bg-card shadow-sm flex items-center justify-between px-8 z-0 print:hidden">
+          <h1 className="text-xl font-semibold text-foreground">Relatórios</h1>
           <button 
             onClick={handlePrint}
             className="flex items-center gap-2 px-4 py-2 bg-gray-900 text-white rounded-md hover:bg-gray-800 transition-colors text-sm font-medium"
@@ -193,11 +193,11 @@ export default function ReportsPage() {
               <div className="flex flex-col md:flex-row gap-4 items-end">
                 <div className="flex-1 grid grid-cols-1 md:grid-cols-4 gap-4 w-full">
                   <div className="space-y-1.5">
-                    <label className="text-xs font-medium text-gray-600">Período</label>
+                    <label className="text-xs font-medium text-muted-foreground">Período</label>
                     <select
                       value={period}
                       onChange={(e) => setPeriod(e.target.value)}
-                      className="w-full h-9 rounded-md border border-gray-200 px-3 text-sm focus:border-green-500 focus:ring-1 focus:ring-green-500 outline-none"
+                      className="w-full h-9 rounded-md border border-border px-3 text-sm focus:border-green-500 focus:ring-1 focus:ring-green-500 outline-none"
                     >
                       <option value="today">Hoje</option>
                       <option value="7d">Últimos 7 dias</option>
@@ -210,32 +210,32 @@ export default function ReportsPage() {
                   {period === "custom" && (
                     <div className="space-y-1.5 md:col-span-2 flex gap-2">
                       <div className="flex-1">
-                        <label className="text-xs font-medium text-gray-600">De</label>
+                        <label className="text-xs font-medium text-muted-foreground">De</label>
                         <input
                           type="date"
                           value={customFrom}
                           onChange={(e) => setCustomFrom(e.target.value)}
-                          className="w-full h-9 rounded-md border border-gray-200 px-3 text-sm focus:border-green-500 outline-none"
+                          className="w-full h-9 rounded-md border border-border px-3 text-sm focus:border-green-500 outline-none"
                         />
                       </div>
                       <div className="flex-1">
-                        <label className="text-xs font-medium text-gray-600">Até</label>
+                        <label className="text-xs font-medium text-muted-foreground">Até</label>
                         <input
                           type="date"
                           value={customTo}
                           onChange={(e) => setCustomTo(e.target.value)}
-                          className="w-full h-9 rounded-md border border-gray-200 px-3 text-sm focus:border-green-500 outline-none"
+                          className="w-full h-9 rounded-md border border-border px-3 text-sm focus:border-green-500 outline-none"
                         />
                       </div>
                     </div>
                   )}
 
                   <div className="space-y-1.5">
-                    <label className="text-xs font-medium text-gray-600">Ramal</label>
+                    <label className="text-xs font-medium text-muted-foreground">Ramal</label>
                     <select
                       value={departmentId}
                       onChange={(e) => setDepartmentId(e.target.value === "all" ? "all" : Number(e.target.value))}
-                      className="w-full h-9 rounded-md border border-gray-200 px-3 text-sm focus:border-green-500 outline-none"
+                      className="w-full h-9 rounded-md border border-border px-3 text-sm focus:border-green-500 outline-none"
                     >
                       <option value="all">Todos os ramais</option>
                       {departmentsReport?.map(d => (
@@ -245,11 +245,11 @@ export default function ReportsPage() {
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-xs font-medium text-gray-600">Atendente</label>
+                    <label className="text-xs font-medium text-muted-foreground">Atendente</label>
                     <select
                       value={agentId}
                       onChange={(e) => setAgentId(e.target.value)}
-                      className="w-full h-9 rounded-md border border-gray-200 px-3 text-sm focus:border-green-500 outline-none"
+                      className="w-full h-9 rounded-md border border-border px-3 text-sm focus:border-green-500 outline-none"
                     >
                       <option value="all">Todos os atendentes</option>
                       {agents?.map(a => (
@@ -261,11 +261,11 @@ export default function ReportsPage() {
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-xs font-medium text-gray-600">Tag (CRM)</label>
+                    <label className="text-xs font-medium text-muted-foreground">Tag (CRM)</label>
                     <select
                       value={tagId}
                       onChange={(e) => setTagId(e.target.value === "all" ? "all" : Number(e.target.value))}
-                      className="w-full h-9 rounded-md border border-gray-200 px-3 text-sm focus:border-green-500 outline-none"
+                      className="w-full h-9 rounded-md border border-border px-3 text-sm focus:border-green-500 outline-none"
                     >
                       <option value="all">Todas as tags</option>
                       {tags?.map(t => (
@@ -279,7 +279,7 @@ export default function ReportsPage() {
           </Card>
 
           <Tabs defaultValue="atendimento" className="w-full">
-            <TabsList className="mb-6 bg-white border border-gray-200 p-1 print:hidden">
+            <TabsList className="mb-6 bg-card border border-border p-1 print:hidden">
               <TabsTrigger value="atendimento" className="data-[state=active]:bg-primary data-[state=active]:text-white">
                 Atendimento
               </TabsTrigger>
@@ -293,17 +293,17 @@ export default function ReportsPage() {
             <TabsContent value="atendimento" className="space-y-6 m-0">
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-base text-gray-800">Desempenho por ramal</CardTitle>
+                  <CardTitle className="text-base text-foreground">Desempenho por ramal</CardTitle>
                 </CardHeader>
                 <CardContent>
                   {errorDepts ? (<p className="text-center text-red-500 py-8 text-sm">Erro ao carregar o relatório. Tente novamente.</p>) :  loadingDepts ? (
-                    <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-gray-400" /></div>
+                    <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-muted-foreground" /></div>
                   ) : !departmentsReport?.length ? (
-                    <p className="text-center text-gray-500 py-8 text-sm">Sem dados no período.</p>
+                    <p className="text-center text-muted-foreground py-8 text-sm">Sem dados no período.</p>
                   ) : (
                     <div className="overflow-x-auto">
                       <table className="w-full text-sm text-left">
-                        <thead className="bg-gray-50 text-gray-500 font-medium border-b border-gray-100">
+                        <thead className="bg-muted text-muted-foreground font-medium border-b border-border">
                           <tr>
                             <th className="px-4 py-3">Ramal</th>
                             <th className="px-4 py-3 text-right">Total</th>
@@ -315,8 +315,8 @@ export default function ReportsPage() {
                         </thead>
                         <tbody className="divide-y divide-gray-100">
                           {departmentsReport.map(dept => (
-                            <tr key={dept.departmentId} className="hover:bg-gray-50/50">
-                              <td className="px-4 py-3 font-medium text-gray-900">
+                            <tr key={dept.departmentId} className="hover:bg-muted/50">
+                              <td className="px-4 py-3 font-medium text-foreground">
                                 <div className="flex items-center gap-2">
                                   <span className="w-3 h-3 rounded-full" style={{ backgroundColor: dept.departmentColor || "#ccc" }} />
                                   {dept.departmentName}
@@ -327,8 +327,8 @@ export default function ReportsPage() {
                               <td className="px-4 py-3 text-right">
                                 {dept.resolutionRate !== null ? `${dept.resolutionRate}%` : "-"}
                               </td>
-                              <td className="px-4 py-3 text-right text-gray-600">{formatDuration(dept.avgFirstResponseSecs)}</td>
-                              <td className="px-4 py-3 text-right text-gray-600">{formatDuration(dept.avgResolutionSecs)}</td>
+                              <td className="px-4 py-3 text-right text-muted-foreground">{formatDuration(dept.avgFirstResponseSecs)}</td>
+                              <td className="px-4 py-3 text-right text-muted-foreground">{formatDuration(dept.avgResolutionSecs)}</td>
                             </tr>
                           ))}
                         </tbody>
@@ -340,7 +340,7 @@ export default function ReportsPage() {
 
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between pb-2">
-                  <CardTitle className="text-base text-gray-800">Últimas Conversas no Período</CardTitle>
+                  <CardTitle className="text-base text-foreground">Últimas Conversas no Período</CardTitle>
                   <a 
                     href={tenantId ? reportConversationsCsvUrl(tenantId, filters) : "#"} 
                     target="_blank"
@@ -353,16 +353,16 @@ export default function ReportsPage() {
                 </CardHeader>
                 <CardContent>
                   {errorConvs ? (<p className="text-center text-red-500 py-8 text-sm">Erro ao carregar o relatório. Tente novamente.</p>) :  loadingConvs ? (
-                    <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-gray-400" /></div>
+                    <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-muted-foreground" /></div>
                   ) : !conversationsReport?.length ? (
-                    <div className="flex flex-col items-center justify-center py-12 text-gray-500">
-                      <Search className="w-8 h-8 mb-2 text-gray-300" />
+                    <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+                      <Search className="w-8 h-8 mb-2 text-muted-foreground" />
                       <p className="text-sm">Sem conversas no período selecionado.</p>
                     </div>
                   ) : (
                     <div className="overflow-x-auto">
                       <table className="w-full text-sm text-left">
-                        <thead className="bg-gray-50 text-gray-500 font-medium border-b border-gray-100">
+                        <thead className="bg-muted text-muted-foreground font-medium border-b border-border">
                           <tr>
                             <th className="px-4 py-3">Contato</th>
                             <th className="px-4 py-3">Status</th>
@@ -375,23 +375,23 @@ export default function ReportsPage() {
                         </thead>
                         <tbody className="divide-y divide-gray-100">
                           {conversationsReport.map(conv => (
-                            <tr key={conv.id} className="hover:bg-gray-50/50">
+                            <tr key={conv.id} className="hover:bg-muted/50">
                               <td className="px-4 py-3">
-                                <div className="font-medium text-gray-900">{conv.contactName || conv.contactPhone}</div>
-                                {conv.contactName && <div className="text-xs text-gray-500">{conv.contactPhone}</div>}
+                                <div className="font-medium text-foreground">{conv.contactName || conv.contactPhone}</div>
+                                {conv.contactName && <div className="text-xs text-muted-foreground">{conv.contactPhone}</div>}
                               </td>
                               <td className="px-4 py-3">
-                                <Badge variant="secondary" className="font-normal text-[10px] bg-gray-100 text-gray-700">
+                                <Badge variant="secondary" className="font-normal text-[10px] bg-muted text-foreground">
                                   {ESTADO_EM_PORTUGUES[conv.status] ?? conv.status}
                                 </Badge>
                               </td>
-                              <td className="px-4 py-3 text-gray-600">{conv.departmentName || "-"}</td>
-                              <td className="px-4 py-3 text-gray-600">
+                              <td className="px-4 py-3 text-muted-foreground">{conv.departmentName || "-"}</td>
+                              <td className="px-4 py-3 text-muted-foreground">
                                 {conv.assignedTo ? (agents?.find(a => a.clerkUserId === conv.assignedTo)?.firstName || "Atribuído") : "-"}
                               </td>
-                              <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{formatDate(conv.createdAt)}</td>
-                              <td className="px-4 py-3 text-right text-gray-600">{formatDuration(conv.firstResponseSecs)}</td>
-                              <td className="px-4 py-3 text-right text-gray-600">{formatDuration(conv.resolutionSecs)}</td>
+                              <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">{formatDate(conv.createdAt)}</td>
+                              <td className="px-4 py-3 text-right text-muted-foreground">{formatDuration(conv.firstResponseSecs)}</td>
+                              <td className="px-4 py-3 text-right text-muted-foreground">{formatDuration(conv.resolutionSecs)}</td>
                             </tr>
                           ))}
                         </tbody>
@@ -406,13 +406,13 @@ export default function ReportsPage() {
             <TabsContent value="agentes" className="m-0">
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-base text-gray-800">Ranking de Produtividade</CardTitle>
+                  <CardTitle className="text-base text-foreground">Ranking de Produtividade</CardTitle>
                 </CardHeader>
                 <CardContent>
                   {errorAgents ? (<p className="text-center text-red-500 py-8 text-sm">Erro ao carregar o relatório. Tente novamente.</p>) :  loadingAgents ? (
-                    <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-gray-400" /></div>
+                    <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-muted-foreground" /></div>
                   ) : !agentsReport?.length ? (
-                    <p className="text-center text-gray-500 py-8 text-sm">Nenhum dado de agente no período.</p>
+                    <p className="text-center text-muted-foreground py-8 text-sm">Nenhum dado de agente no período.</p>
                   ) : (
                     <div className="space-y-4">
                       {agentsReport
@@ -423,40 +423,40 @@ export default function ReportsPage() {
                           const initials = agentInfo?.firstName ? agentInfo.firstName.substring(0, 2).toUpperCase() : "?";
                           
                           return (
-                            <div key={row.agentId} className="flex items-center p-4 border border-gray-100 rounded-lg bg-white shadow-sm hover:border-gray-200 transition-colors">
-                              <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-50 text-gray-400 font-bold text-sm mr-4">
+                            <div key={row.agentId} className="flex items-center p-4 border border-border rounded-lg bg-card shadow-sm hover:border-border transition-colors">
+                              <div className="flex items-center justify-center w-8 h-8 rounded-full bg-muted text-muted-foreground font-bold text-sm mr-4">
                                 {idx + 1}º
                               </div>
-                              <Avatar className="h-10 w-10 mr-4 border border-gray-100">
+                              <Avatar className="h-10 w-10 mr-4 border border-border">
                                 <AvatarImage src={agentInfo?.avatarUrl || undefined} />
                                 <AvatarFallback className="bg-green-50 text-green-700 text-xs font-medium">{initials}</AvatarFallback>
                               </Avatar>
                               <div className="flex-1">
-                                <h4 className="font-semibold text-gray-900">{name}</h4>
-                                <div className="flex items-center gap-4 mt-1 text-xs text-gray-500">
+                                <h4 className="font-semibold text-foreground">{name}</h4>
+                                <div className="flex items-center gap-4 mt-1 text-xs text-muted-foreground">
                                   <span className="flex items-center gap-1"><MessageCircle className="w-3 h-3" /> {row.handled} atendidas</span>
                                   <span className="flex items-center gap-1"><CheckCircle2 className="w-3 h-3 text-green-500" /> {row.closed} resolvidas</span>
                                 </div>
                               </div>
                               <div className="text-right flex gap-6">
                                 <div>
-                                  <p className="text-xs text-gray-500 mb-0.5">T.M. 1ª Resposta</p>
-                                  <p className="font-medium text-gray-900">{formatDuration(row.avgFirstResponseSecs)}</p>
+                                  <p className="text-xs text-muted-foreground mb-0.5">T.M. 1ª Resposta</p>
+                                  <p className="font-medium text-foreground">{formatDuration(row.avgFirstResponseSecs)}</p>
                                 </div>
                                 <div>
-                                  <p className="text-xs text-gray-500 mb-0.5">T.M. Resolução</p>
-                                  <p className="font-medium text-gray-900">{formatDuration(row.avgResolutionSecs)}</p>
+                                  <p className="text-xs text-muted-foreground mb-0.5">T.M. Resolução</p>
+                                  <p className="font-medium text-foreground">{formatDuration(row.avgResolutionSecs)}</p>
                                 </div>
                                 <div>
-                                  <p className="text-xs text-gray-500 mb-0.5">Satisfação</p>
+                                  <p className="text-xs text-muted-foreground mb-0.5">Satisfação</p>
                                   {row.avgRating != null ? (
-                                    <p className="font-medium text-gray-900 flex items-center justify-end gap-1">
+                                    <p className="font-medium text-foreground flex items-center justify-end gap-1">
                                       <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
                                       {row.avgRating.toFixed(1)}
-                                      <span className="text-xs text-gray-400 font-normal">({row.ratingCount})</span>
+                                      <span className="text-xs text-muted-foreground font-normal">({row.ratingCount})</span>
                                     </p>
                                   ) : (
-                                    <p className="font-medium text-gray-400">—</p>
+                                    <p className="font-medium text-muted-foreground">—</p>
                                   )}
                                 </div>
                               </div>

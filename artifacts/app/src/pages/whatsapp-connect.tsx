@@ -38,24 +38,24 @@ function ShareQrCard({ tenantId }: { tenantId: number }) {
   if (!pageUrl) return null;
 
   return (
-    <div className="bg-white rounded-xl shadow-sm p-6 mt-6">
-      <h2 className="font-semibold text-gray-800 mb-1 flex items-center gap-2">
+    <div className="bg-card rounded-xl shadow-sm p-6 mt-6">
+      <h2 className="font-semibold text-foreground mb-1 flex items-center gap-2">
         <QrCode className="w-4 h-4 text-primary" />
         Divulgue sua central
       </h2>
-      <p className="text-sm text-gray-500 mb-4">
+      <p className="text-sm text-muted-foreground mb-4">
         Compartilhe ou imprima a página pública de QR code — quem escanear abre
         uma conversa direto com o WhatsApp da central.
       </p>
 
-      <label className="text-xs font-medium text-gray-600 block mb-1">
+      <label className="text-xs font-medium text-muted-foreground block mb-1">
         Mensagem inicial pré-preenchida (opcional)
       </label>
       <input
         value={msg}
         onChange={(e) => setMsg(e.target.value)}
         maxLength={200}
-        className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mb-4 focus:outline-none focus:ring-2 focus:ring-primary/40"
+        className="w-full border border-border rounded-lg px-3 py-2 text-sm mb-4 focus:outline-none focus:ring-2 focus:ring-primary/40"
         placeholder="Ex: Olá! Gostaria de atendimento."
       />
 
@@ -74,7 +74,7 @@ function ShareQrCard({ tenantId }: { tenantId: number }) {
             void navigator.clipboard.writeText(pageUrl);
             toast({ title: "Link copiado!" });
           }}
-          className="border border-gray-200 hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors"
+          className="border border-border hover:bg-muted text-foreground px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors"
         >
           <Copy className="w-4 h-4" />
           Copiar link
@@ -230,8 +230,8 @@ export default function WhatsAppConnectPage() {
       <Sidebar />
 
       <div className="ml-64 flex flex-col">
-        <header className="h-16 bg-white shadow-sm flex items-center justify-between px-8">
-          <h1 className="text-xl font-semibold text-gray-800 flex items-center gap-2">
+        <header className="h-16 bg-card shadow-sm flex items-center justify-between px-8">
+          <h1 className="text-xl font-semibold text-foreground flex items-center gap-2">
             <Smartphone className="w-5 h-5 text-primary" />
             WhatsApp
           </h1>
@@ -239,12 +239,12 @@ export default function WhatsAppConnectPage() {
 
         <main className="p-8 max-w-2xl">
           {/* Status Card */}
-          <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
+          <div className="bg-card rounded-xl shadow-sm p-6 mb-6">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="font-semibold text-gray-800 mb-1">Status da Conexão</h2>
+                <h2 className="font-semibold text-foreground mb-1">Status da Conexão</h2>
                 {instance?.phoneNumber && (
-                  <p className="text-sm text-gray-500">Número: {instance.phoneNumber}</p>
+                  <p className="text-sm text-muted-foreground">Número: {instance.phoneNumber}</p>
                 )}
               </div>
               <div className={`flex items-center gap-2 font-medium ${statusInfo.color}`}>
@@ -300,7 +300,7 @@ export default function WhatsAppConnectPage() {
               {(status === "connecting" || polling) && !qrCode && (
                 <button
                   onClick={() => void pollQr()}
-                  className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 px-4 py-2 border rounded-lg"
+                  className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground px-4 py-2 border rounded-lg"
                 >
                   <RefreshCw className="w-4 h-4" />
                   Atualizar QR
@@ -311,27 +311,27 @@ export default function WhatsAppConnectPage() {
 
           {/* QR Code */}
           {qrCode && status !== "connected" && (
-            <div className="bg-white rounded-xl shadow-sm p-6">
-              <h2 className="font-semibold text-gray-800 mb-1">
+            <div className="bg-card rounded-xl shadow-sm p-6">
+              <h2 className="font-semibold text-foreground mb-1">
                 Escaneie o QR Code
               </h2>
-              <p className="text-sm text-gray-500 mb-6">
+              <p className="text-sm text-muted-foreground mb-6">
                 Abra o WhatsApp no seu celular → Menu → Aparelhos Conectados → Conectar aparelho
               </p>
 
               <div className="flex justify-center">
-                <div className="p-4 bg-white border-2 border-gray-200 rounded-xl shadow-inner inline-block">
+                <div className="p-4 bg-card border-2 border-border rounded-xl shadow-inner inline-block">
                   {qrCode.startsWith("data:image") ? (
                     <img src={qrCode} alt="QR Code" className="w-64 h-64" />
                   ) : (
-                    <div className="w-64 h-64 flex items-center justify-center text-xs text-gray-400 break-all p-4 font-mono">
+                    <div className="w-64 h-64 flex items-center justify-center text-xs text-muted-foreground break-all p-4 font-mono">
                       {qrCode.slice(0, 100)}...
                     </div>
                   )}
                 </div>
               </div>
 
-              <p className="text-xs text-center text-gray-400 mt-4">
+              <p className="text-xs text-center text-muted-foreground mt-4">
                 O QR code expira em 60 segundos. Atualizando automaticamente...
               </p>
             </div>
@@ -339,15 +339,15 @@ export default function WhatsAppConnectPage() {
 
           {/* Connected state */}
           {status === "connected" && (
-            <div className="bg-white rounded-xl shadow-sm p-6">
+            <div className="bg-card rounded-xl shadow-sm p-6">
               <div className="flex flex-col items-center text-center py-4">
                 <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
                   <CheckCircle2 className="w-8 h-8 text-primary" />
                 </div>
-                <h2 className="font-semibold text-gray-800 mb-2">
+                <h2 className="font-semibold text-foreground mb-2">
                   WhatsApp conectado com sucesso!
                 </h2>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-muted-foreground">
                   Seu número está ativo e pronto para receber mensagens.
                 </p>
                 {instance?.phoneNumber && (
@@ -366,8 +366,8 @@ export default function WhatsAppConnectPage() {
 
           {/* Instructions */}
           {status === "disconnected" && !qrCode && (
-            <div className="bg-white rounded-xl shadow-sm p-6">
-              <h2 className="font-semibold text-gray-800 mb-4">Como conectar</h2>
+            <div className="bg-card rounded-xl shadow-sm p-6">
+              <h2 className="font-semibold text-foreground mb-4">Como conectar</h2>
               <ol className="space-y-3">
                 {[
                   'Clique em "Conectar WhatsApp"',
@@ -376,7 +376,7 @@ export default function WhatsAppConnectPage() {
                   'Toque em "Conectar aparelho"',
                   "Escaneie o QR Code exibido aqui",
                 ].map((step, i) => (
-                  <li key={i} className="flex items-start gap-3 text-sm text-gray-600">
+                  <li key={i} className="flex items-start gap-3 text-sm text-muted-foreground">
                     <span className="w-6 h-6 rounded-full bg-primary/10 text-primary font-semibold flex items-center justify-center text-xs shrink-0">
                       {i + 1}
                     </span>

@@ -33,8 +33,8 @@ export default function QrPublicPage() {
       : null;
 
   return (
-    <div className="min-h-[100dvh] bg-background flex items-center justify-center p-6 print:bg-white">
-      <div className="bg-white rounded-2xl shadow-lg p-10 max-w-md w-full text-center print:shadow-none">
+    <div className="min-h-[100dvh] bg-background flex items-center justify-center p-6 print:bg-card">
+      <div className="bg-card rounded-2xl shadow-lg p-10 max-w-md w-full text-center print:shadow-none">
         <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
           <MessageCircle className="w-7 h-7 text-primary" />
         </div>
@@ -47,11 +47,11 @@ export default function QrPublicPage() {
 
         {(isError || (data && !waLink)) && !isLoading && (
           <div className="py-8">
-            <WifiOff className="w-8 h-8 text-gray-300 mx-auto mb-3" />
-            <p className="text-gray-600 font-medium">
+            <WifiOff className="w-8 h-8 text-muted-foreground mx-auto mb-3" />
+            <p className="text-muted-foreground font-medium">
               Canal de atendimento indisponível
             </p>
-            <p className="text-sm text-gray-400 mt-1">
+            <p className="text-sm text-muted-foreground mt-1">
               {isError
                 ? "Não foi possível carregar as informações."
                 : "O WhatsApp desta central ainda não está conectado."}
@@ -61,15 +61,15 @@ export default function QrPublicPage() {
 
         {waLink && data && (
           <>
-            <h1 className="text-xl font-bold text-gray-900 mb-1">
+            <h1 className="text-xl font-bold text-foreground mb-1">
               {data.tenantName}
             </h1>
-            <p className="text-sm text-gray-500 mb-6">
+            <p className="text-sm text-muted-foreground mb-6">
               Escaneie o QR code para falar conosco pelo WhatsApp
             </p>
 
             <div className="flex justify-center mb-6">
-              <div className="p-4 border-2 border-gray-100 rounded-xl inline-block">
+              <div className="p-4 border-2 border-border rounded-xl inline-block">
                 <QRCodeSVG value={waLink} size={224} level="M" />
               </div>
             </div>
@@ -86,7 +86,7 @@ export default function QrPublicPage() {
 
             <button
               onClick={() => window.print()}
-              className="mt-4 mx-auto flex items-center gap-1.5 text-xs text-gray-400 hover:text-gray-600 print:hidden"
+              className="mt-4 mx-auto flex items-center gap-1.5 text-xs text-muted-foreground hover:text-muted-foreground print:hidden"
             >
               <Printer className="w-3.5 h-3.5" />
               Imprimir esta página

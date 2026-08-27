@@ -31,11 +31,11 @@ import {
 
 /** Rotulo humano do estado da conversa, na linguagem do produto. */
 const ESTADO: Record<string, { texto: string; cor: string }> = {
-  new: { texto: "Chegou agora", cor: "bg-gray-100 text-gray-700" },
+  new: { texto: "Chegou agora", cor: "bg-muted text-foreground" },
   ivr: { texto: "No robô, escolhendo o ramal", cor: "bg-blue-100 text-blue-700" },
   waiting: { texto: "Na fila do ramal", cor: "bg-amber-100 text-amber-700" },
   active: { texto: "Em atendimento", cor: "bg-green-100 text-green-700" },
-  closed: { texto: "Encerrada", cor: "bg-gray-100 text-gray-600" },
+  closed: { texto: "Encerrada", cor: "bg-muted text-muted-foreground" },
 };
 
 /**
@@ -66,12 +66,12 @@ function Passo({
   children: React.ReactNode;
 }) {
   return (
-    <div className="bg-white rounded-xl shadow-sm p-5">
+    <div className="bg-card rounded-xl shadow-sm p-5">
       <div className="flex items-center gap-2 mb-3">
         <span className="w-6 h-6 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center shrink-0">
           {numero}
         </span>
-        <h2 className="font-semibold text-gray-800 text-sm">{titulo}</h2>
+        <h2 className="font-semibold text-foreground text-sm">{titulo}</h2>
       </div>
       {children}
     </div>
@@ -161,12 +161,12 @@ export default function SimuladorPage() {
       <Sidebar />
 
       <div className="ml-64 flex flex-col">
-        <header className="h-16 bg-white shadow-sm flex items-center justify-between px-8">
+        <header className="h-16 bg-card shadow-sm flex items-center justify-between px-8">
           <div>
-            <h1 className="text-xl font-semibold text-gray-800">
+            <h1 className="text-xl font-semibold text-foreground">
               Simulador de atendimento
             </h1>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-muted-foreground">
               Escreva como um paciente e veja a central responder — sem precisar
               de celular pareado.
             </p>
@@ -174,7 +174,7 @@ export default function SimuladorPage() {
           <button
             onClick={() => limpar.mutate()}
             disabled={limpar.isPending}
-            className="border border-gray-200 hover:bg-gray-50 text-gray-700 px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-2 disabled:opacity-50"
+            className="border border-border hover:bg-muted text-foreground px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-2 disabled:opacity-50"
           >
             {limpar.isPending ? (
               <Loader2 className="w-4 h-4 animate-spin" />
@@ -192,7 +192,7 @@ export default function SimuladorPage() {
               <Passo numero={1} titulo="Escolha quem está escrevendo de fora">
                 <div className="grid sm:grid-cols-3 gap-3">
                   {!personas && (
-                    <Loader2 className="w-4 h-4 animate-spin text-gray-400" />
+                    <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
                   )}
                   {personas?.map((p) => {
                     const ativa = p.id === personaId;
@@ -203,7 +203,7 @@ export default function SimuladorPage() {
                         className={`text-left rounded-lg border p-3 transition-colors ${
                           ativa
                             ? "border-primary bg-primary/5 ring-1 ring-primary/30"
-                            : "border-gray-200 hover:border-gray-300 bg-white"
+                            : "border-border hover:border-border bg-card"
                         }`}
                       >
                         <div className="flex items-center gap-1.5 mb-1">
@@ -217,17 +217,17 @@ export default function SimuladorPage() {
                             {p.canal}
                           </span>
                         </div>
-                        <p className="text-sm font-semibold text-gray-900">
+                        <p className="text-sm font-semibold text-foreground">
                           {p.nome}
                         </p>
-                        <p className="text-xs text-gray-500 mt-0.5 leading-snug">
+                        <p className="text-xs text-muted-foreground mt-0.5 leading-snug">
                           {p.descricao}
                         </p>
                       </button>
                     );
                   })}
                 </div>
-                <p className="text-xs text-gray-500 mt-3 leading-relaxed">
+                <p className="text-xs text-muted-foreground mt-3 leading-relaxed">
                   Os três caem na <strong>mesma fila</strong>, com os mesmos
                   ramais e o mesmo relatório. Quem decide por onde a resposta sai
                   é o canal do contato — não a tela de quem atende.
@@ -243,7 +243,7 @@ export default function SimuladorPage() {
                       if (e.key === "Enter") mandar(texto);
                     }}
                     placeholder="Ex: Oi, preciso falar com a Emergência"
-                    className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
+                    className="flex-1 border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
                   />
                   <button
                     onClick={() => mandar(texto)}
@@ -267,7 +267,7 @@ export default function SimuladorPage() {
                     <button
                       key={s}
                       onClick={() => mandar(s)}
-                      className="text-xs border border-gray-200 hover:bg-gray-50 rounded-full px-3 py-1 text-gray-600"
+                      className="text-xs border border-border hover:bg-muted rounded-full px-3 py-1 text-muted-foreground"
                     >
                       {s}
                     </button>
@@ -277,7 +277,7 @@ export default function SimuladorPage() {
 
               <Passo numero={3} titulo="Responda ao robô como o paciente faria">
                 {opcoesDoMenu.length === 0 ? (
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-muted-foreground">
                     Nenhum ramal no menu ainda. Monte o menu em{" "}
                     <Link
                       href="/configuracoes-canal"
@@ -289,7 +289,7 @@ export default function SimuladorPage() {
                   </p>
                 ) : (
                   <>
-                    <p className="text-xs text-gray-500 mb-2">
+                    <p className="text-xs text-muted-foreground mb-2">
                       Estes são os ramais do menu de verdade desta central:
                     </p>
                     <div className="flex flex-wrap gap-2">
@@ -297,7 +297,7 @@ export default function SimuladorPage() {
                         <button
                           key={o.key}
                           onClick={() => mandar(o.key)}
-                          className="text-xs bg-gray-50 border border-gray-200 hover:border-primary hover:bg-primary/5 rounded-lg px-3 py-1.5 text-gray-700 font-medium"
+                          className="text-xs bg-muted border border-border hover:border-primary hover:bg-primary/5 rounded-lg px-3 py-1.5 text-foreground font-medium"
                         >
                           <span className="text-primary font-bold mr-1">
                             {o.key}
@@ -308,8 +308,8 @@ export default function SimuladorPage() {
                     </div>
                   </>
                 )}
-                <div className="mt-4 pt-4 border-t border-gray-100">
-                  <p className="text-xs text-gray-500 mb-2">
+                <div className="mt-4 pt-4 border-t border-border">
+                  <p className="text-xs text-muted-foreground mb-2">
                     Depois do atendimento, a central pede uma nota de 1 a 5:
                   </p>
                   <div className="flex gap-2">
@@ -317,7 +317,7 @@ export default function SimuladorPage() {
                       <button
                         key={n}
                         onClick={() => mandar(n)}
-                        className="w-9 h-9 rounded-lg border border-gray-200 hover:border-primary text-sm font-semibold text-gray-700"
+                        className="w-9 h-9 rounded-lg border border-border hover:border-primary text-sm font-semibold text-foreground"
                       >
                         {n}
                       </button>
@@ -351,7 +351,7 @@ export default function SimuladorPage() {
             </div>
 
             {/* -------------------------------------------------- coluna direita */}
-            <div className="bg-white rounded-xl shadow-sm overflow-hidden xl:sticky xl:top-8">
+            <div className="bg-card rounded-xl shadow-sm overflow-hidden xl:sticky xl:top-8">
               <div className="bg-[#0F1923] px-4 py-3 flex items-center gap-3">
                 <div className="w-9 h-9 rounded-full bg-primary/20 flex items-center justify-center">
                   <Smartphone className="w-4 h-4 text-primary" />
@@ -369,7 +369,7 @@ export default function SimuladorPage() {
                 {conversa?.status && (
                   <span
                     className={`text-[10px] font-semibold px-2 py-1 rounded-full whitespace-nowrap ${
-                      ESTADO[conversa.status]?.cor ?? "bg-gray-100 text-gray-700"
+                      ESTADO[conversa.status]?.cor ?? "bg-muted text-foreground"
                     }`}
                   >
                     {ESTADO[conversa.status]?.texto ?? conversa.status}
@@ -380,11 +380,11 @@ export default function SimuladorPage() {
               <div className="h-[520px] overflow-y-auto p-4 bg-[#ECE5DD] space-y-2">
                 {mensagens.length === 0 && (
                   <div className="h-full flex flex-col items-center justify-center text-center px-6">
-                    <Smartphone className="w-10 h-10 text-gray-400 mb-3" />
-                    <p className="text-sm font-medium text-gray-600">
+                    <Smartphone className="w-10 h-10 text-muted-foreground mb-3" />
+                    <p className="text-sm font-medium text-muted-foreground">
                       A conversa aparece aqui
                     </p>
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-muted-foreground mt-1">
                       Comece pelo passo 2. O que o robô responder é o robô de
                       verdade, não um roteiro.
                     </p>
@@ -400,8 +400,8 @@ export default function SimuladorPage() {
                       <div
                         className={`max-w-[80%] rounded-lg px-3 py-2 shadow-sm ${
                           doPaciente
-                            ? "bg-[#DCF8C6] text-gray-800"
-                            : "bg-white text-gray-800"
+                            ? "bg-[#DCF8C6] text-foreground"
+                            : "bg-card text-foreground"
                         }`}
                       >
                         {!doPaciente && (
@@ -412,7 +412,7 @@ export default function SimuladorPage() {
                         <p className="text-sm whitespace-pre-wrap break-words">
                           {comNegrito(m.content ?? "")}
                         </p>
-                        <p className="text-[10px] text-gray-500 text-right mt-1">
+                        <p className="text-[10px] text-muted-foreground text-right mt-1">
                           {new Date(m.timestamp).toLocaleTimeString("pt-BR", {
                             hour: "2-digit",
                             minute: "2-digit",
@@ -425,7 +425,7 @@ export default function SimuladorPage() {
                 <div ref={fimDaConversa} />
               </div>
 
-              <div className="px-4 py-3 border-t border-gray-100 flex gap-2">
+              <div className="px-4 py-3 border-t border-border flex gap-2">
                 <input
                   value={texto}
                   onChange={(e) => setTexto(e.target.value)}
@@ -433,7 +433,7 @@ export default function SimuladorPage() {
                     if (e.key === "Enter") mandar(texto);
                   }}
                   placeholder="Escrever como esta pessoa…"
-                  className="flex-1 border border-gray-200 rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
+                  className="flex-1 border border-border rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
                 />
                 <button
                   onClick={() => mandar(texto)}

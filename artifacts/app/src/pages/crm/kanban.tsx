@@ -84,9 +84,9 @@ export default function KanbanPage() {
     <div className="min-h-[100dvh] bg-background flex flex-col">
       <Sidebar />
       <div className="ml-64 flex flex-col flex-1 h-screen overflow-hidden">
-        <header className="bg-white shadow-sm z-10 flex-shrink-0">
+        <header className="bg-card shadow-sm z-10 flex-shrink-0">
           <div className="h-16 flex items-center justify-between px-8">
-            <h1 className="text-xl font-semibold text-gray-800 flex items-center gap-2">
+            <h1 className="text-xl font-semibold text-foreground flex items-center gap-2">
               <KanbanSquare className="w-5 h-5 text-primary" />
               Funil de Vendas
             </h1>
@@ -112,21 +112,21 @@ export default function KanbanPage() {
                 return (
                   <div
                     key={stage.id}
-                    className="flex-shrink-0 w-80 max-h-full flex flex-col bg-gray-100/50 rounded-xl border border-gray-200/60"
+                    className="flex-shrink-0 w-80 max-h-full flex flex-col bg-muted/50 rounded-xl border border-border/60"
                     onDragOver={handleDragOver}
                     onDrop={(e) => handleDrop(e, stage.id)}
                   >
-                    <div className="p-3 border-b border-gray-200/60">
+                    <div className="p-3 border-b border-border/60">
                       <div className="flex items-center justify-between mb-1">
-                        <h3 className="font-semibold text-gray-800 flex items-center gap-2">
+                        <h3 className="font-semibold text-foreground flex items-center gap-2">
                           <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: stage.color || "#ccc" }} />
                           {stage.name}
                         </h3>
-                        <span className="text-xs font-medium bg-white px-2 py-0.5 rounded-full text-gray-500 shadow-sm border border-gray-100">
+                        <span className="text-xs font-medium bg-card px-2 py-0.5 rounded-full text-muted-foreground shadow-sm border border-border">
                           {stageDeals.length}
                         </span>
                       </div>
-                      <div className="text-xs font-medium text-gray-500 pl-4.5">
+                      <div className="text-xs font-medium text-muted-foreground pl-4.5">
                         {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(stageTotal)}
                       </div>
                     </div>
@@ -139,34 +139,34 @@ export default function KanbanPage() {
                           draggable
                           onDragStart={(e) => handleDragStart(e, deal.id)}
                           onDragEnd={(e) => handleDragEnd(e, deal.id)}
-                          className="bg-white rounded-lg shadow-sm border border-gray-200 p-3.5 cursor-grab active:cursor-grabbing hover:border-primary/50 transition-colors group relative"
+                          className="bg-card rounded-lg shadow-sm border border-border p-3.5 cursor-grab active:cursor-grabbing hover:border-primary/50 transition-colors group relative"
                         >
                           <div className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity">
                             <DealActionsMenu deal={deal} />
                           </div>
                           
-                          <h4 className="font-medium text-gray-900 text-sm mb-1 pr-6">{deal.title}</h4>
+                          <h4 className="font-medium text-foreground text-sm mb-1 pr-6">{deal.title}</h4>
                           
                           <Link href={`/crm/contatos/${deal.contactId}`}>
                             <p className="text-xs text-blue-600 hover:underline mb-3">{deal.contactName}</p>
                           </Link>
 
-                          <div className="flex items-center justify-between mt-auto pt-2 border-t border-gray-50">
+                          <div className="flex items-center justify-between mt-auto pt-2 border-t border-border">
                             {deal.value ? (
-                              <span className="text-xs font-semibold text-gray-700 flex items-center">
+                              <span className="text-xs font-semibold text-foreground flex items-center">
                                 <DollarSign className="w-3 h-3 text-green-600 mr-0.5" />
                                 {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(deal.value))}
                               </span>
                             ) : <span />}
                             
                             {deal.assignedTo && (
-                              <Avatar className="h-5 w-5 border border-gray-100">
+                              <Avatar className="h-5 w-5 border border-border">
                                 {(() => {
                                   const agent = agents.data?.find(a => a.clerkUserId === deal.assignedTo);
                                   return (
                                     <>
                                       <AvatarImage src={agent?.avatarUrl || undefined} />
-                                      <AvatarFallback className="bg-gray-100 text-[10px] font-medium text-gray-600">
+                                      <AvatarFallback className="bg-muted text-[10px] font-medium text-muted-foreground">
                                         {agent?.firstName?.[0] || agent?.email[0].toUpperCase() || "?"}
                                       </AvatarFallback>
                                     </>
@@ -182,7 +182,7 @@ export default function KanbanPage() {
                 );
               })}
               {dealStages.data?.length === 0 && (
-                <div className="w-full text-center py-20 text-gray-500">
+                <div className="w-full text-center py-20 text-muted-foreground">
                   Nenhuma etapa de funil configurada. Crie as etapas em "Gerenciar Etapas".
                 </div>
               )}
@@ -225,7 +225,7 @@ function ManageStagesDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="bg-white border-gray-200 text-gray-700">
+        <Button variant="outline" className="bg-card border-border text-foreground">
           <Settings2 className="w-4 h-4 mr-2" />
           Gerenciar Etapas
         </Button>
@@ -237,9 +237,9 @@ function ManageStagesDialog() {
         <div className="space-y-4 py-2">
           <ul className="space-y-2 max-h-60 overflow-y-auto pr-2">
             {dealStages.data?.sort((a,b) => a.position - b.position).map(stage => (
-              <li key={stage.id} className="flex items-center justify-between p-2 border rounded-md bg-gray-50">
+              <li key={stage.id} className="flex items-center justify-between p-2 border rounded-md bg-muted">
                 <div className="flex items-center gap-2">
-                  <GripHorizontal className="w-4 h-4 text-gray-400 cursor-move" />
+                  <GripHorizontal className="w-4 h-4 text-muted-foreground cursor-move" />
                   <input type="color" value={stage.color || "#000"} disabled className="w-6 h-6 p-0 border-0 rounded cursor-default" />
                   <span className="text-sm font-medium">{stage.name}</span>
                 </div>
@@ -403,8 +403,8 @@ function DealActionsMenu({ deal }: { deal: any }) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="h-6 w-6 bg-white/80 hover:bg-white shadow-sm border border-gray-100">
-          <MoreVertical className="w-3 h-3 text-gray-500" />
+        <Button variant="ghost" size="icon" className="h-6 w-6 bg-card/80 hover:bg-card shadow-sm border border-border">
+          <MoreVertical className="w-3 h-3 text-muted-foreground" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-40">
@@ -414,7 +414,7 @@ function DealActionsMenu({ deal }: { deal: any }) {
         <DropdownMenuItem onClick={() => handleStatus("lost")} className="text-red-600 font-medium focus:text-red-700">
           Marcar como Perdido
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={handleDelete} className="text-gray-500 mt-2 border-t">
+        <DropdownMenuItem onClick={handleDelete} className="text-muted-foreground mt-2 border-t">
           Excluir negócio
         </DropdownMenuItem>
       </DropdownMenuContent>

@@ -38,8 +38,8 @@ function FormField({
 }) {
   return (
     <div className="space-y-1">
-      <label className="text-sm font-medium text-gray-700">{label}</label>
-      {description && <p className="text-xs text-gray-500">{description}</p>}
+      <label className="text-sm font-medium text-foreground">{label}</label>
+      {description && <p className="text-xs text-muted-foreground">{description}</p>}
       {children}
     </div>
   );
@@ -106,8 +106,8 @@ export default function ChannelSettingsPage() {
       <Sidebar />
 
       <div className="ml-64 flex flex-col">
-        <header className="h-16 bg-white shadow-sm flex items-center justify-between px-8">
-          <h1 className="text-xl font-semibold text-gray-800 flex items-center gap-2">
+        <header className="h-16 bg-card shadow-sm flex items-center justify-between px-8">
+          <h1 className="text-xl font-semibold text-foreground flex items-center gap-2">
             <Settings className="w-5 h-5 text-primary" />
             Configurações do Canal
           </h1>
@@ -129,7 +129,7 @@ export default function ChannelSettingsPage() {
           {/* Messages */}
           <Card>
             <CardContent className="p-6 space-y-4">
-              <h2 className="font-semibold text-gray-800">Mensagens Automáticas</h2>
+              <h2 className="font-semibold text-foreground">Mensagens Automáticas</h2>
 
               <FormField
                 label="Mensagem de boas-vindas"
@@ -138,7 +138,7 @@ export default function ChannelSettingsPage() {
                 <textarea
                   {...field("welcomeMessage")}
                   rows={3}
-                  className="w-full mt-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary resize-none"
+                  className="w-full mt-1 border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary resize-none"
                   placeholder="Olá! Seja bem-vindo ao nosso atendimento. Como podemos ajudá-lo?"
                 />
               </FormField>
@@ -147,7 +147,7 @@ export default function ChannelSettingsPage() {
                 <input
                   type="text"
                   {...field("menuPrompt")}
-                  className="w-full mt-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary"
+                  className="w-full mt-1 border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary"
                   placeholder="Por favor, escolha uma opção:"
                 />
               </FormField>
@@ -159,7 +159,7 @@ export default function ChannelSettingsPage() {
                 <textarea
                   {...field("offHoursMessage")}
                   rows={2}
-                  className="w-full mt-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary resize-none"
+                  className="w-full mt-1 border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary resize-none"
                   placeholder="No momento estamos fora do horário de atendimento. Retornaremos em breve!"
                 />
               </FormField>
@@ -171,7 +171,7 @@ export default function ChannelSettingsPage() {
                 <textarea
                   {...field("closingMessage")}
                   rows={2}
-                  className="w-full mt-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary resize-none"
+                  className="w-full mt-1 border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary resize-none"
                   placeholder="Obrigado pelo contato! Se precisar de mais ajuda, estamos à disposição."
                 />
               </FormField>
@@ -182,7 +182,7 @@ export default function ChannelSettingsPage() {
           <Card>
             <CardContent className="p-6 space-y-4">
               <div className="flex items-center justify-between">
-                <h2 className="font-semibold text-gray-800">Opções do Menu IVR</h2>
+                <h2 className="font-semibold text-foreground">Opções do Menu IVR</h2>
                 <button
                   onClick={() =>
                     setMenuOptions((prev) => [
@@ -198,7 +198,7 @@ export default function ChannelSettingsPage() {
               </div>
 
               {menuOptions.length === 0 ? (
-                <p className="text-sm text-gray-400 text-center py-4">
+                <p className="text-sm text-muted-foreground text-center py-4">
                   Nenhuma opção configurada. Sem IVR, as conversas vão direto para a fila.
                 </p>
               ) : (
@@ -214,7 +214,7 @@ export default function ChannelSettingsPage() {
                           setMenuOptions(next);
                         }}
                         placeholder="1"
-                        className="w-14 border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-center focus:outline-none focus:border-primary"
+                        className="w-14 border border-border rounded-lg px-2 py-1.5 text-sm text-center focus:outline-none focus:border-primary"
                       />
                       <input
                         type="text"
@@ -225,7 +225,7 @@ export default function ChannelSettingsPage() {
                           setMenuOptions(next);
                         }}
                         placeholder="Vendas"
-                        className="flex-1 border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-primary"
+                        className="flex-1 border border-border rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-primary"
                       />
                       <input
                         type="number"
@@ -236,7 +236,7 @@ export default function ChannelSettingsPage() {
                           setMenuOptions(next);
                         }}
                         placeholder="ID Depto"
-                        className="w-24 border border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:border-primary"
+                        className="w-24 border border-border rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:border-primary"
                       />
                       <button
                         onClick={() => setMenuOptions((prev) => prev.filter((_, i) => i !== idx))}
@@ -254,7 +254,7 @@ export default function ChannelSettingsPage() {
           {/* Distribution & Timing */}
           <Card>
             <CardContent className="p-6 space-y-4">
-              <h2 className="font-semibold text-gray-800">Distribuição e Tempo</h2>
+              <h2 className="font-semibold text-foreground">Distribuição e Tempo</h2>
 
               <FormField label="Modo de distribuição">
                 <select
@@ -265,7 +265,7 @@ export default function ChannelSettingsPage() {
                       distributionMode: e.target.value as "manual" | "round_robin" | "least_load",
                     }))
                   }
-                  className="w-full mt-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary"
+                  className="w-full mt-1 border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary"
                 >
                   <option value="manual">Manual — agente escolhe da fila</option>
                   <option value="round_robin">Round Robin — distribuição circular</option>
@@ -289,9 +289,9 @@ export default function ChannelSettingsPage() {
                         inactivityTimeoutMinutes: Number(e.target.value),
                       }))
                     }
-                    className="w-24 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary"
+                    className="w-24 border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary"
                   />
-                  <label className="flex items-center gap-2 text-sm text-gray-600">
+                  <label className="flex items-center gap-2 text-sm text-muted-foreground">
                     <input
                       type="checkbox"
                       checked={form.autoCloseEnabled ?? false}
@@ -311,8 +311,8 @@ export default function ChannelSettingsPage() {
           <Card>
             <CardContent className="p-6 space-y-4">
               <div className="flex items-center justify-between">
-                <h2 className="font-semibold text-gray-800">Horário de Atendimento</h2>
-                <label className="flex items-center gap-2 text-sm text-gray-600">
+                <h2 className="font-semibold text-foreground">Horário de Atendimento</h2>
+                <label className="flex items-center gap-2 text-sm text-muted-foreground">
                   <input
                     type="checkbox"
                     checked={form.workingHoursEnabled ?? false}
@@ -346,7 +346,7 @@ export default function ChannelSettingsPage() {
                             }
                             className="w-4 h-4 accent-primary"
                           />
-                          <span className={dayConfig.active ? "text-gray-800" : "text-gray-400"}>
+                          <span className={dayConfig.active ? "text-foreground" : "text-muted-foreground"}>
                             {day.label}
                           </span>
                         </label>
@@ -364,9 +364,9 @@ export default function ChannelSettingsPage() {
                                   },
                                 }))
                               }
-                              className="border border-gray-200 rounded px-2 py-1 text-sm focus:outline-none focus:border-primary"
+                              className="border border-border rounded px-2 py-1 text-sm focus:outline-none focus:border-primary"
                             />
-                            <span className="text-gray-400 text-sm">até</span>
+                            <span className="text-muted-foreground text-sm">até</span>
                             <input
                               type="time"
                               value={dayConfig.end}
@@ -379,7 +379,7 @@ export default function ChannelSettingsPage() {
                                   },
                                 }))
                               }
-                              className="border border-gray-200 rounded px-2 py-1 text-sm focus:outline-none focus:border-primary"
+                              className="border border-border rounded px-2 py-1 text-sm focus:outline-none focus:border-primary"
                             />
                           </div>
                         )}

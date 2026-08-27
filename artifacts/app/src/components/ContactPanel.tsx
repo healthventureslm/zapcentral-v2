@@ -102,7 +102,7 @@ function TagPicker({
                 onAdd(t.id);
                 setOpen(false);
               }}
-              className="w-full text-left px-2 py-1 rounded hover:bg-white/5 text-xs text-white flex items-center gap-2"
+              className="w-full text-left px-2 py-1 rounded hover:bg-card/5 text-xs text-white flex items-center gap-2"
             >
               <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: t.color }} />
               {t.name}

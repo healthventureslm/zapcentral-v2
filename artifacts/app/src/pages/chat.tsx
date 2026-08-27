@@ -45,7 +45,7 @@ const STATUS_COLORS: Record<string, string> = {
   ivr: "bg-purple-100 text-purple-700",
   waiting: "bg-amber-100 text-amber-700",
   active: "bg-green-100 text-green-700",
-  closed: "bg-gray-100 text-gray-600",
+  closed: "bg-muted text-muted-foreground",
 };
 
 const AGENT_STATUS_COLORS: Record<string, string> = {
@@ -93,7 +93,7 @@ function ConversationItem({
     <button
       onClick={onClick}
       className={cn(
-        "w-full flex items-start gap-3 px-4 py-3 text-left hover:bg-white/5 transition-colors border-b border-white/5",
+        "w-full flex items-start gap-3 px-4 py-3 text-left hover:bg-card/5 transition-colors border-b border-white/5",
         active && "bg-primary/10",
         // A barra na lateral marca a linha sem mexer no layout: pintar o fundo
         // brigaria com o destaque da conversa aberta, e as duas coisas podem
@@ -165,7 +165,7 @@ function MessageBubble({
           "max-w-[70%] rounded-xl px-4 py-2.5 shadow-sm",
           isOut
             ? "bg-primary text-white rounded-br-sm"
-            : "bg-white text-gray-900 rounded-bl-sm",
+            : "bg-card text-foreground rounded-bl-sm",
         )}
       >
         {/* Quem respondeu. No WhatsApp do paciente esta informacao vai como
@@ -506,7 +506,7 @@ export default function ChatPage() {
                       statusMutation.mutate(s);
                       setShowStatusMenu(false);
                     }}
-                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-white hover:bg-white/5"
+                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-white hover:bg-card/5"
                   >
                     <span className={cn("w-2 h-2 rounded-full", AGENT_STATUS_COLORS[s])} />
                     {AGENT_STATUS_LABELS[s]}
@@ -606,7 +606,7 @@ export default function ChatPage() {
 
                 <button
                   onClick={() => setShowContactPanel((v) => !v)}
-                  className="text-muted-foreground hover:text-white p-1.5 rounded-md hover:bg-white/5 transition-colors"
+                  className="text-muted-foreground hover:text-white p-1.5 rounded-md hover:bg-card/5 transition-colors"
                   title={showContactPanel ? "Ocultar dados do contato" : "Mostrar dados do contato"}
                 >
                   {showContactPanel ? (
@@ -638,7 +638,7 @@ export default function ChatPage() {
                   >
                     <button
                       onClick={() => setTransferindo((v) => !v)}
-                      className="text-xs bg-white/5 hover:bg-white/10 text-gray-300 px-3 py-1.5 rounded-md transition-colors flex items-center gap-1.5"
+                      className="text-xs bg-card/5 hover:bg-card/10 text-muted-foreground px-3 py-1.5 rounded-md transition-colors flex items-center gap-1.5"
                     >
                       <ArrowRightLeft className="w-3 h-3" />
                       Transferir
@@ -646,7 +646,7 @@ export default function ChatPage() {
 
                     {transferindo && (
                       <div className="absolute right-0 top-full mt-1 w-56 bg-[#1a2735] border border-white/10 rounded-lg shadow-xl z-20 py-1">
-                        <p className="px-3 py-1.5 text-[11px] text-gray-400 uppercase tracking-wide">
+                        <p className="px-3 py-1.5 text-[11px] text-muted-foreground uppercase tracking-wide">
                           Transferir para o ramal
                         </p>
                         {setores.filter(
@@ -654,7 +654,7 @@ export default function ChatPage() {
                             d.id !== selectedConv.departmentId &&
                             d.status === "active",
                         ).length === 0 && (
-                          <p className="px-3 py-2 text-xs text-gray-500">
+                          <p className="px-3 py-2 text-xs text-muted-foreground">
                             Não há outro ramal cadastrado.
                           </p>
                         )}
@@ -669,7 +669,7 @@ export default function ChatPage() {
                               key={d.id}
                               onClick={() => transferMutation.mutate(d.id)}
                               disabled={transferMutation.isPending}
-                              className="w-full text-left px-3 py-2 text-sm text-gray-200 hover:bg-white/5 transition-colors"
+                              className="w-full text-left px-3 py-2 text-sm text-gray-200 hover:bg-card/5 transition-colors"
                             >
                               {d.name}
                             </button>

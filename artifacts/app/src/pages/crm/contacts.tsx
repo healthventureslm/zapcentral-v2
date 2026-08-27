@@ -66,7 +66,7 @@ function ManageTagsDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="gap-2 bg-white">
+        <Button variant="outline" className="gap-2 bg-card">
           <Tags className="w-4 h-4" />
           Tags
         </Button>
@@ -78,7 +78,7 @@ function ManageTagsDialog() {
         <div className="space-y-4 py-2">
           <ul className="space-y-2 max-h-60 overflow-y-auto">
             {tags.data?.map(tag => (
-              <li key={tag.id} className="flex items-center justify-between p-2 border rounded-md bg-gray-50">
+              <li key={tag.id} className="flex items-center justify-between p-2 border rounded-md bg-muted">
                 <div className="flex items-center gap-2">
                   <span className="w-3 h-3 rounded-full" style={{ backgroundColor: tag.color || "#ccc" }} />
                   <span className="text-sm font-medium">{tag.name}</span>
@@ -140,7 +140,7 @@ function ManageCustomFieldsDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="gap-2 bg-white hidden md:flex">
+        <Button variant="outline" className="gap-2 bg-card hidden md:flex">
           <MoreHorizontal className="w-4 h-4" />
           Campos Customizados
         </Button>
@@ -152,10 +152,10 @@ function ManageCustomFieldsDialog() {
         <div className="space-y-4 py-2">
           <ul className="space-y-2 max-h-60 overflow-y-auto">
             {customFields.data?.map(field => (
-              <li key={field.id} className="flex items-center justify-between p-2 border rounded-md bg-gray-50">
+              <li key={field.id} className="flex items-center justify-between p-2 border rounded-md bg-muted">
                 <div>
                   <span className="text-sm font-medium">{field.name}</span>
-                  <span className="text-xs text-gray-500 ml-2">({field.type})</span>
+                  <span className="text-xs text-muted-foreground ml-2">({field.type})</span>
                 </div>
                 <Button variant="ghost" size="icon" className="h-6 w-6 text-red-500 hover:bg-red-50" onClick={() => {
                   if(confirm("Excluir campo?")) {
@@ -266,9 +266,9 @@ export default function ContactsPage() {
       <Sidebar />
 
       <div className="ml-64 flex flex-col">
-        <header className="bg-white shadow-sm z-0">
+        <header className="bg-card shadow-sm z-0">
           <div className="h-16 flex items-center justify-between px-8">
-            <h1 className="text-xl font-semibold text-gray-800 flex items-center gap-2">
+            <h1 className="text-xl font-semibold text-foreground flex items-center gap-2">
               <UsersIcon className="w-5 h-5 text-primary" />
               CRM
             </h1>
@@ -282,7 +282,7 @@ export default function ContactsPage() {
                   href={contactsExportUrl(tenantId)}
                   target="_blank"
                   rel="noreferrer"
-                  className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-600 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors"
+                  className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-muted-foreground bg-muted border border-border rounded-lg hover:bg-muted transition-colors"
                 >
                   <Download className="w-4 h-4" />
                   Exportar
@@ -297,7 +297,7 @@ export default function ContactsPage() {
           {/* Filters */}
           <div className="flex flex-col md:flex-row gap-4 mb-6">
             <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4" />
               <Input
                 placeholder="Buscar por nome, telefone ou email..."
                 className="pl-9"
@@ -318,7 +318,7 @@ export default function ContactsPage() {
             >
               <SelectTrigger className="w-[200px]">
                 <div className="flex items-center gap-2">
-                  <Tags className="w-4 h-4 text-gray-400" />
+                  <Tags className="w-4 h-4 text-muted-foreground" />
                   <SelectValue placeholder="Filtrar por Tag" />
                 </div>
               </SelectTrigger>
@@ -347,7 +347,7 @@ export default function ContactsPage() {
             >
               <SelectTrigger className="w-[200px]">
                 <div className="flex items-center gap-2">
-                  <Filter className="w-4 h-4 text-gray-400" />
+                  <Filter className="w-4 h-4 text-muted-foreground" />
                   <SelectValue placeholder="Responsável" />
                 </div>
               </SelectTrigger>
@@ -374,7 +374,7 @@ export default function ContactsPage() {
                   <Button 
                     variant="outline" 
                     size="sm" 
-                    className="bg-white border-primary/30 text-primary hover:bg-primary/10 hover:text-primary"
+                    className="bg-card border-primary/30 text-primary hover:bg-primary/10 hover:text-primary"
                     onClick={() => {
                       const ids = Array.from(selectedIds);
                       if (confirm("Deseja mesclar estes dois contatos? O primeiro selecionado será mantido como primário.")) {
@@ -396,7 +396,7 @@ export default function ContactsPage() {
                 )}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="sm" className="bg-white border-primary/30 text-primary hover:bg-primary/10 hover:text-primary">
+                    <Button variant="outline" size="sm" className="bg-card border-primary/30 text-primary hover:bg-primary/10 hover:text-primary">
                       <Tags className="w-4 h-4 mr-2" />
                       Adicionar Tag
                     </Button>
@@ -419,7 +419,7 @@ export default function ContactsPage() {
 
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="sm" className="bg-white border-primary/30 text-primary hover:bg-primary/10 hover:text-primary">
+                    <Button variant="outline" size="sm" className="bg-card border-primary/30 text-primary hover:bg-primary/10 hover:text-primary">
                       <UsersIcon className="w-4 h-4 mr-2" />
                       Atribuir Responsável
                     </Button>
@@ -442,15 +442,15 @@ export default function ContactsPage() {
             </div>
           )}
 
-          <Card className="shadow-sm border-gray-200">
+          <Card className="shadow-sm border-border">
             <div className="overflow-x-auto">
               <table className="w-full text-sm text-left">
-                <thead className="bg-gray-50 border-b border-gray-200 text-gray-600 font-medium">
+                <thead className="bg-muted border-b border-border text-muted-foreground font-medium">
                   <tr>
                     <th className="px-6 py-4 w-12">
                       <input
                         type="checkbox"
-                        className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary"
+                        className="w-4 h-4 rounded border-border text-primary focus:ring-primary"
                         checked={
                           query.data?.contacts.length! > 0 &&
                           selectedIds.size === query.data?.contacts.length
@@ -470,29 +470,29 @@ export default function ContactsPage() {
                     <tr>
                       <td colSpan={6} className="px-6 py-12 text-center">
                         <Loader2 className="w-6 h-6 animate-spin text-primary mx-auto mb-2" />
-                        <span className="text-gray-500">Carregando contatos...</span>
+                        <span className="text-muted-foreground">Carregando contatos...</span>
                       </td>
                     </tr>
                   ) : query.data?.contacts.length === 0 ? (
                     <tr>
                       <td colSpan={6} className="px-6 py-12 text-center">
-                        <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-3">
-                          <UsersIcon className="w-6 h-6 text-gray-400" />
+                        <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center mx-auto mb-3">
+                          <UsersIcon className="w-6 h-6 text-muted-foreground" />
                         </div>
-                        <p className="text-gray-900 font-medium">Nenhum contato encontrado</p>
-                        <p className="text-gray-500 mt-1">Tente ajustar seus filtros ou adicione um novo.</p>
+                        <p className="text-foreground font-medium">Nenhum contato encontrado</p>
+                        <p className="text-muted-foreground mt-1">Tente ajustar seus filtros ou adicione um novo.</p>
                       </td>
                     </tr>
                   ) : (
                     query.data?.contacts.map((contact) => (
                       <tr
                         key={contact.id}
-                        className="hover:bg-gray-50/50 transition-colors group"
+                        className="hover:bg-muted/50 transition-colors group"
                       >
                         <td className="px-6 py-4">
                           <input
                             type="checkbox"
-                            className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary"
+                            className="w-4 h-4 rounded border-border text-primary focus:ring-primary"
                             checked={selectedIds.has(contact.id)}
                             onChange={() => toggleSelect(contact.id)}
                           />
@@ -500,18 +500,18 @@ export default function ContactsPage() {
                         <td className="px-6 py-4">
                           <Link href={`/crm/contatos/${contact.id}`}>
                             <div className="flex items-center gap-3 cursor-pointer">
-                              <Avatar className="h-10 w-10 border border-gray-100">
+                              <Avatar className="h-10 w-10 border border-border">
                                 <AvatarImage src={contact.avatarUrl || undefined} />
-                                <AvatarFallback className="bg-gray-100 text-gray-600 font-medium">
+                                <AvatarFallback className="bg-muted text-muted-foreground font-medium">
                                   {contact.name?.substring(0, 2).toUpperCase() || "??"}
                                 </AvatarFallback>
                               </Avatar>
                               <div>
-                                <p className="font-medium text-gray-900 group-hover:text-primary transition-colors">
+                                <p className="font-medium text-foreground group-hover:text-primary transition-colors">
                                   {contact.name || "Sem nome"}
                                 </p>
                                 {contact.company && (
-                                  <p className="text-xs text-gray-500 flex items-center gap-1 mt-0.5">
+                                  <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
                                     <Building2 className="w-3 h-3" />
                                     {contact.company}
                                   </p>
@@ -522,13 +522,13 @@ export default function ContactsPage() {
                         </td>
                         <td className="px-6 py-4">
                           <div className="space-y-1">
-                            <p className="text-gray-700 flex items-center gap-1.5 text-xs">
-                              <Phone className="w-3.5 h-3.5 text-gray-400" />
+                            <p className="text-foreground flex items-center gap-1.5 text-xs">
+                              <Phone className="w-3.5 h-3.5 text-muted-foreground" />
                               {contact.phone}
                             </p>
                             {contact.email && (
-                              <p className="text-gray-500 flex items-center gap-1.5 text-xs">
-                                <Mail className="w-3.5 h-3.5 text-gray-400" />
+                              <p className="text-muted-foreground flex items-center gap-1.5 text-xs">
+                                <Mail className="w-3.5 h-3.5 text-muted-foreground" />
                                 {contact.email}
                               </p>
                             )}
@@ -563,24 +563,24 @@ export default function ContactsPage() {
                               <div className="flex items-center gap-2">
                                 <Avatar className="h-6 w-6">
                                   <AvatarImage src={agent.avatarUrl || undefined} />
-                                  <AvatarFallback className="bg-gray-100 text-xs text-gray-600">
+                                  <AvatarFallback className="bg-muted text-xs text-muted-foreground">
                                     {agent.firstName?.[0] || agent.email[0].toUpperCase()}
                                   </AvatarFallback>
                                 </Avatar>
-                                <span className="text-xs text-gray-600">
+                                <span className="text-xs text-muted-foreground">
                                   {agent.firstName ? `${agent.firstName} ${agent.lastName || ""}` : agent.email}
                                 </span>
                               </div>
                             ) : (
-                              <span className="text-xs text-gray-400">Desconhecido</span>
+                              <span className="text-xs text-muted-foreground">Desconhecido</span>
                             );
                           })() : (
-                            <span className="text-xs text-gray-400 italic">Não atribuído</span>
+                            <span className="text-xs text-muted-foreground italic">Não atribuído</span>
                           )}
                         </td>
                         <td className="px-6 py-4 text-right">
                           <Link href={`/crm/contatos/${contact.id}`}>
-                            <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:text-gray-700">
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground">
                               <MoreHorizontal className="w-4 h-4" />
                             </Button>
                           </Link>
@@ -594,8 +594,8 @@ export default function ContactsPage() {
             
             {/* Pagination */}
             {query.data && query.data.total > limit && (
-              <div className="border-t border-gray-100 p-4 flex items-center justify-between">
-                <span className="text-sm text-gray-500">
+              <div className="border-t border-border p-4 flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">
                   Mostrando {(page - 1) * limit + 1} a {Math.min(page * limit, query.data.total)} de {query.data.total} contatos
                 </span>
                 <div className="flex items-center gap-2">
@@ -737,7 +737,7 @@ function ImportCsvDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="gap-2 bg-white">
+        <Button variant="outline" className="gap-2 bg-card">
           <Upload className="w-4 h-4" />
           Importar
         </Button>
@@ -747,7 +747,7 @@ function ImportCsvDialog() {
           <DialogTitle>Importar Contatos</DialogTitle>
         </DialogHeader>
         <div className="space-y-4 py-2">
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-muted-foreground">
             Envie um arquivo .csv com cabeçalhos como: <code>phone, name, cpf, email, company</code>. O telefone é obrigatório.
           </p>
           
@@ -756,7 +756,7 @@ function ImportCsvDialog() {
             <Input type="file" accept=".csv" onChange={handleFileUpload} />
           </div>
 
-          <div className="text-center text-sm font-medium text-gray-400">ou cole o conteúdo abaixo</div>
+          <div className="text-center text-sm font-medium text-muted-foreground">ou cole o conteúdo abaixo</div>
 
           <textarea
             value={csvText}
