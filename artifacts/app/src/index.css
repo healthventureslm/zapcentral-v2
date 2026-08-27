@@ -1,7 +1,37 @@
-@layer theme, base, clerk, components, utilities;
+/*
+ * Ordem das camadas — quem vem depois vence.
+ *
+ * `hv` entra depois do `base` do Tailwind de proposito: o design system tem
+ * seus proprios resets (*, html, body, h1-h4, a, button) e eles precisam
+ * vencer o preflight. Mas fica antes de `utilities`, entao qualquer classe
+ * utilitaria do Tailwind ainda sobrepoe o design system quando preciso.
+ */
+@layer theme, base, hv, hv-components, clerk, components, utilities;
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "@clerk/themes/shadcn.css";
+
+/*
+ * Design system da Health Ventures.
+ *
+ * Os tokens sao importados um a um, na ordem do styles.css do pacote, em vez
+ * de importar o proprio styles.css. Ele e so um manifesto de
+ * `@import url("tokens/x.css")` — caminho relativo sem "./", forma que o
+ * Vite nao reescreve. O import ficava literal no bundle e o navegador tentava
+ * resolve-lo a partir de /src/, onde nao existe: nenhum token carregava.
+ *
+ * theme-dark por ultimo, como no manifesto: ele redefine as rampas por papel.
+ */
+@import "@healthventureslm/design-system/tokens/fonts.css" layer(hv);
+@import "@healthventureslm/design-system/tokens/colors.css" layer(hv);
+@import "@healthventureslm/design-system/tokens/typography.css" layer(hv);
+@import "@healthventureslm/design-system/tokens/spacing.css" layer(hv);
+@import "@healthventureslm/design-system/tokens/elevation.css" layer(hv);
+@import "@healthventureslm/design-system/tokens/motion.css" layer(hv);
+@import "@healthventureslm/design-system/tokens/mobile.css" layer(hv);
+@import "@healthventureslm/design-system/tokens/base.css" layer(hv);
+@import "@healthventureslm/design-system/tokens/theme-dark.css" layer(hv);
+@import "@healthventureslm/design-system/components.css" layer(hv-components);
 
 @custom-variant dark (&:is(.dark *));
 
