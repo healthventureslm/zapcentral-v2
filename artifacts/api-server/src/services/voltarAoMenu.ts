@@ -159,7 +159,7 @@ async function seguirComoEstava(ctx: Contexto): Promise<void> {
  * SIM: solta o ramal e o atendente, e manda o menu de novo.
  *
  * A conversa continua sendo A MESMA — nao e encerrada e recriada. O invariante
- * 3 do PROJETO.md manda uma conversa aberta por contato, e fechar esta para
+ * 3 do ENTREGA.md manda uma conversa aberta por contato, e fechar esta para
  * abrir outra abriria a janela em que o contato tem duas.
  */
 async function devolverAoMenu(ctx: Contexto): Promise<void> {

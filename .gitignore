@@ -53,5 +53,16 @@ Thumbs.db
 .env.*
 !.env.example
 
-# Repasse de contexto, so local
+# Notas de trabalho — ficam so na maquina de quem esta mexendo.
+#
+# Sao o diario da reforma: o que estava quebrado, o que a revisao adversarial
+# derrubou, o que ficou pendente e como o produto se compara ao de outra equipe.
+# Servem a quem escreve o codigo e nao a quem clona o repositorio, e o
+# vocabulario delas nao e o que se quer num repositorio que o cliente le.
+#
+# O que precisa sobreviver a um clone esta no CLAUDE.md e no ENTREGA.md.
 HANDOFF.md
+PROGRESSO.md
+PROJETO.md
+COMECAR-AQUI.md
+PARA-O-LUIS.md

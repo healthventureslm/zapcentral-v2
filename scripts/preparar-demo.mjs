@@ -22,7 +22,7 @@ console.log(`
   Evolution quando ela esta em laco de reinicio, e sobe UM processo que serve
   tudo em http://localhost:8080.
 
-  O roteiro completo esta em PARA-O-LUIS.md.
+  O roteiro completo esta em ENTREGA.md.
 `);
 
 process.exit(1);

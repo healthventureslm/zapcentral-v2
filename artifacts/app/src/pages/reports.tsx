@@ -43,7 +43,7 @@ import {
  * O estado da conversa em português.
  *
  * A coluna mostrava o valor cru do banco em caixa alta — "WAITING", "CLOSED".
- * Nenhuma string em inglês pode chegar à tela (ver PROJETO.md §1), e num
+ * Nenhuma string em inglês pode chegar à tela (ver ENTREGA.md §1), e num
  * relatório que vai para a diretoria do hospital isso é o primeiro detalhe que
  * denuncia software inacabado.
  */

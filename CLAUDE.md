@@ -1,8 +1,12 @@
 # CLAUDE.md
 
-> **Antes de codar neste repositório, ler também [PROJETO.md](PROJETO.md)** — o
-> que o produto é, os invariantes que não podem quebrar, onde as coisas moram e
-> as armadilhas conhecidas do ambiente.
+> **Antes de codar neste repositório, ler [ENTREGA.md](ENTREGA.md).** É o guia
+> único do projeto: o que o produto é, como subir numa máquina nova, como parear
+> o WhatsApp e o Telegram, como publicar em produção, o que mudou na última
+> entrega, os invariantes que não podem quebrar, onde as coisas moram e as
+> armadilhas conhecidas do ambiente.
+>
+> Quem só precisa **colocar no ar** pode ler as seções 2 a 5 e parar.
 
 Behavioral guidelines to reduce common LLM coding mistakes. Merge with project-specific instructions as needed.
 
