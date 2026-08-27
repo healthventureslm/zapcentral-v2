@@ -6,6 +6,8 @@ import {
   Button,
   Card,
   CardBody,
+  Dialog,
+  Menu,
   Input,
   Select,
 } from "@healthventureslm/design-system";
@@ -28,20 +30,6 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { isValidCpf } from "@/lib/cpf";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogFooter,
-} from "@/components/ui/dialog";
 import { contactsExportUrl } from "@/lib/api";
 
 function ManageTagsDialog() {
@@ -61,53 +49,78 @@ function ManageTagsDialog() {
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button variant="secondary" className="gap-2 bg-card">
-          <Tags className="w-4 h-4" />
-          Tags
-        </Button>
-      </DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Gerenciar Tags</DialogTitle>
-        </DialogHeader>
-        <div className="space-y-4 py-2">
+    /* O Dialog do design system nao tem gatilho embutido: e controlado por
+       `open` e `onClose`, entao o botao que abre vive fora dele. */
+    <>
+      <Button
+        variant="secondary"
+        iconLeft={<Tags className="w-4 h-4" />}
+        onClick={() => setOpen(true)}
+      >
+        Etiquetas
+      </Button>
+
+      <Dialog
+        open={open}
+        onClose={() => setOpen(false)}
+        title="Gerenciar etiquetas"
+      >
+        <div className="space-y-4">
           <ul className="space-y-2 max-h-60 overflow-y-auto">
-            {tags.data?.map(tag => (
-              <li key={tag.id} className="flex items-center justify-between p-2 border rounded-md bg-muted">
+            {tags.data?.map((tag) => (
+              <li
+                key={tag.id}
+                className="flex items-center justify-between p-2 border border-[var(--border-subtle)] rounded-md"
+              >
                 <div className="flex items-center gap-2">
-                  <span className="w-3 h-3 rounded-full" style={{ backgroundColor: tag.color || "#ccc" }} />
+                  <span
+                    className="w-3 h-3 rounded-full"
+                    style={{ backgroundColor: tag.color || "var(--border-strong)" }}
+                  />
                   <span className="text-sm font-medium">{tag.name}</span>
                 </div>
-                <Button variant="ghost" size="sm" className="h-6 w-6 text-red-500 hover:bg-red-50" onClick={() => {
-                  if(confirm("Excluir tag?")) {
-                    deleteTag.mutate(tag.id, { onSuccess: () => toast({ title: "Tag excluída" }) });
-                  }
-                }}>
-                  &times;
+                <Button
+                  variant="quiet"
+                  size="sm"
+                  onClick={() => {
+                    if (confirm("Excluir etiqueta?")) {
+                      deleteTag.mutate(tag.id, {
+                        onSuccess: () => toast({ title: "Etiqueta excluída" }),
+                      });
+                    }
+                  }}
+                >
+                  Excluir
                 </Button>
               </li>
             ))}
           </ul>
-          <div className="flex gap-2 items-center pt-4 border-t">
-            <input 
-              type="color" 
-              value={newTag.color} 
-              onChange={e => setNewTag({...newTag, color: e.target.value})}
-              className="w-8 h-8 p-0 border-0 rounded cursor-pointer shrink-0" 
+          <div className="flex gap-2 items-end pt-4 border-t border-[var(--border-subtle)]">
+            <input
+              type="color"
+              aria-label="Cor da etiqueta"
+              value={newTag.color}
+              onChange={(e) => setNewTag({ ...newTag, color: e.target.value })}
+              className="w-9 h-9 p-0 border-0 rounded cursor-pointer shrink-0"
             />
-            <Input 
-              placeholder="Nova tag..." 
-              value={newTag.name} 
-              onChange={e => setNewTag({...newTag, name: e.target.value})} 
-              onKeyDown={e => e.key === 'Enter' && handleAdd()}
+            <Input
+              placeholder="Nova etiqueta…"
+              value={newTag.name}
+              onChange={(e) => setNewTag({ ...newTag, name: e.target.value })}
+              onKeyDown={(e) => e.key === "Enter" && handleAdd()}
             />
-            <Button onClick={handleAdd} disabled={createTag.isPending || !newTag.name}>Adicionar</Button>
+            <Button
+              variant="primary"
+              loading={createTag.isPending}
+              disabled={!newTag.name}
+              onClick={handleAdd}
+            >
+              Adicionar
+            </Button>
           </div>
         </div>
-      </DialogContent>
-    </Dialog>
+      </Dialog>
+    </>
   );
 }
 
@@ -135,31 +148,46 @@ function ManageCustomFieldsDialog() {
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button variant="secondary" className="gap-2 bg-card hidden md:flex">
-          <MoreHorizontal className="w-4 h-4" />
-          Campos Customizados
-        </Button>
-      </DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Campos Customizados</DialogTitle>
-        </DialogHeader>
-        <div className="space-y-4 py-2">
+    <>
+      <Button
+        variant="secondary"
+        className="hidden md:inline-flex"
+        iconLeft={<MoreHorizontal className="w-4 h-4" />}
+        onClick={() => setOpen(true)}
+      >
+        Campos personalizados
+      </Button>
+
+      <Dialog
+        open={open}
+        onClose={() => setOpen(false)}
+        title="Campos personalizados"
+      >
+        <div className="space-y-4">
           <ul className="space-y-2 max-h-60 overflow-y-auto">
-            {customFields.data?.map(field => (
-              <li key={field.id} className="flex items-center justify-between p-2 border rounded-md bg-muted">
+            {customFields.data?.map((field) => (
+              <li
+                key={field.id}
+                className="flex items-center justify-between p-2 border border-[var(--border-subtle)] rounded-md"
+              >
                 <div>
                   <span className="text-sm font-medium">{field.name}</span>
-                  <span className="text-xs text-muted-foreground ml-2">({field.type})</span>
+                  <span className="text-xs text-[var(--text-muted)] ml-2">
+                    ({field.type})
+                  </span>
                 </div>
-                <Button variant="ghost" size="sm" className="h-6 w-6 text-red-500 hover:bg-red-50" onClick={() => {
-                  if(confirm("Excluir campo?")) {
-                    deleteCustomField.mutate(field.id, { onSuccess: () => toast({ title: "Campo excluído" }) });
-                  }
-                }}>
-                  &times;
+                <Button
+                  variant="quiet"
+                  size="sm"
+                  onClick={() => {
+                    if (confirm("Excluir campo?")) {
+                      deleteCustomField.mutate(field.id, {
+                        onSuccess: () => toast({ title: "Campo excluído" }),
+                      });
+                    }
+                  }}
+                >
+                  Excluir
                 </Button>
               </li>
             ))}
@@ -191,11 +219,19 @@ function ManageCustomFieldsDialog() {
                 />
               )}
             </div>
-            <Button onClick={handleAdd} className="w-full" disabled={createCustomField.isPending || !newField.name}>Adicionar Campo</Button>
+            <Button
+              variant="primary"
+              block
+              loading={createCustomField.isPending}
+              disabled={!newField.name}
+              onClick={handleAdd}
+            >
+              Adicionar campo
+            </Button>
           </div>
         </div>
-      </DialogContent>
-    </Dialog>
+      </Dialog>
+    </>
   );
 }
 
@@ -368,50 +404,42 @@ export default function ContactsPage() {
                     Mesclar
                   </Button>
                 )}
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="secondary" size="sm" className="bg-card border-primary/30 text-primary hover:bg-primary/10 hover:text-primary">
-                      <Tags className="w-4 h-4 mr-2" />
-                      Adicionar Tag
+                <Menu
+                  align="end"
+                  trigger={
+                    <Button variant="secondary" size="sm" iconLeft={<Tags className="w-4 h-4" />}>
+                      Adicionar etiqueta
                     </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    {tags.data?.map((t) => (
-                      <DropdownMenuItem
-                        key={t.id}
-                        onClick={() => handleBulkTag(t.id)}
-                      >
-                        <span
-                          className="w-2 h-2 rounded-full mr-2"
-                          style={{ backgroundColor: t.color || "#ccc" }}
-                        />
-                        {t.name}
-                      </DropdownMenuItem>
-                    ))}
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                  }
+                  items={(tags.data ?? []).map((et) => ({
+                    id: String(et.id),
+                    label: et.name,
+                    onSelect: () => handleBulkTag(et.id),
+                  }))}
+                />
 
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="secondary" size="sm" className="bg-card border-primary/30 text-primary hover:bg-primary/10 hover:text-primary">
-                      <UsersIcon className="w-4 h-4 mr-2" />
-                      Atribuir Responsável
+                <Menu
+                  align="end"
+                  trigger={
+                    <Button variant="secondary" size="sm" iconLeft={<UsersIcon className="w-4 h-4" />}>
+                      Atribuir responsável
                     </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => handleBulkAssign("unassigned")}>
-                      Sem responsável
-                    </DropdownMenuItem>
-                    {agents.data?.map((a) => (
-                      <DropdownMenuItem
-                        key={a.clerkUserId}
-                        onClick={() => handleBulkAssign(a.clerkUserId)}
-                      >
-                        {a.firstName ? `${a.firstName} ${a.lastName || ""}` : a.email}
-                      </DropdownMenuItem>
-                    ))}
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                  }
+                  items={[
+                    {
+                      id: "unassigned",
+                      label: "Sem responsável",
+                      onSelect: () => handleBulkAssign("unassigned"),
+                    },
+                    ...(agents.data ?? []).map((a) => ({
+                      id: a.clerkUserId,
+                      label: a.firstName
+                        ? `${a.firstName} ${a.lastName || ""}`.trim()
+                        : a.email,
+                      onSelect: () => handleBulkAssign(a.clerkUserId),
+                    })),
+                  ]}
+                />
               </div>
             </div>
           )}
@@ -626,18 +654,17 @@ function CreateContactDialog() {
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button className="bg-primary hover:bg-primary/90 text-white gap-2 shadow-sm">
-          <Plus className="w-4 h-4" />
-          Novo Contato
-        </Button>
-      </DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Novo Contato</DialogTitle>
-        </DialogHeader>
-        <form onSubmit={onSubmit} className="space-y-4 py-2">
+    <>
+      <Button
+        variant="primary"
+        iconLeft={<Plus className="w-4 h-4" />}
+        onClick={() => setOpen(true)}
+      >
+        Novo contato
+      </Button>
+
+      <Dialog open={open} onClose={() => setOpen(false)} title="Novo contato">
+        <form onSubmit={onSubmit} className="space-y-4">
           <div className="space-y-2">
             <label className="text-sm font-medium">Nome</label>
             <Input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="Ex: Maria Silva" />
@@ -658,16 +685,17 @@ function CreateContactDialog() {
             <label className="text-sm font-medium">Empresa</label>
             <Input value={form.company} onChange={e => setForm({ ...form, company: e.target.value })} placeholder="Ex: Empresa S/A" />
           </div>
-          <DialogFooter>
-            <Button type="button" variant="secondary" onClick={() => setOpen(false)}>Cancelar</Button>
-            <Button type="submit" className="bg-primary hover:bg-primary/90 text-white" disabled={createContact.isPending}>
-              {createContact.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
+          <div className="flex justify-end gap-2 pt-2">
+            <Button type="button" variant="secondary" onClick={() => setOpen(false)}>
+              Cancelar
+            </Button>
+            <Button type="submit" variant="primary" loading={createContact.isPending}>
               Salvar
             </Button>
-          </DialogFooter>
+          </div>
         </form>
-      </DialogContent>
-    </Dialog>
+      </Dialog>
+    </>
   );
 }
 
@@ -705,44 +733,61 @@ function ImportCsvDialog() {
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button variant="secondary" className="gap-2 bg-card">
-          <Upload className="w-4 h-4" />
-          Importar
-        </Button>
-      </DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Importar Contatos</DialogTitle>
-        </DialogHeader>
-        <div className="space-y-4 py-2">
-          <p className="text-sm text-muted-foreground">
-            Envie um arquivo .csv com cabeçalhos como: <code>phone, name, cpf, email, company</code>. O telefone é obrigatório.
-          </p>
-          
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Arquivo CSV</label>
-            <Input type="file" accept=".csv" onChange={handleFileUpload} />
-          </div>
+    <>
+      <Button
+        variant="secondary"
+        iconLeft={<Upload className="w-4 h-4" />}
+        onClick={() => setOpen(true)}
+      >
+        Importar
+      </Button>
 
-          <div className="text-center text-sm font-medium text-muted-foreground">ou cole o conteúdo abaixo</div>
+      <Dialog
+        open={open}
+        onClose={() => setOpen(false)}
+        title="Importar contatos"
+        footer={
+          <>
+            <Button variant="secondary" onClick={() => setOpen(false)}>
+              Cancelar
+            </Button>
+            <Button
+              variant="primary"
+              loading={importCsv.isPending}
+              disabled={!csvText.trim()}
+              onClick={onSubmit}
+            >
+              Importar
+            </Button>
+          </>
+        }
+      >
+        <div className="space-y-4">
+          <p className="text-sm text-[var(--text-muted)]">
+            Envie um arquivo .csv com cabeçalhos como{" "}
+            <code className="font-mono">phone, name, cpf, email, company</code>.
+            O telefone é obrigatório.
+          </p>
+
+          <Input
+            label="Arquivo CSV"
+            type="file"
+            accept=".csv"
+            onChange={handleFileUpload}
+          />
+
+          <div className="text-center text-sm text-[var(--text-muted)]">
+            ou cole o conteúdo abaixo
+          </div>
 
           <textarea
             value={csvText}
-            onChange={e => setCsvText(e.target.value)}
-            className="w-full h-32 p-3 border rounded-md text-sm font-mono focus:outline-none focus:border-primary"
-            placeholder="phone,name\n5511999999999,João Silva"
+            onChange={(e) => setCsvText(e.target.value)}
+            className="w-full h-32 p-3 rounded-md text-sm font-mono border border-[var(--border-default)] focus:outline-none focus:border-[var(--border-brand)]"
+            placeholder="phone,name&#10;5511999999999,João Silva"
           />
         </div>
-        <DialogFooter>
-          <Button variant="secondary" onClick={() => setOpen(false)}>Cancelar</Button>
-          <Button onClick={onSubmit} className="bg-primary hover:bg-primary/90 text-white" disabled={importCsv.isPending || !csvText.trim()}>
-            {importCsv.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
-            Importar
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+      </Dialog>
+    </>
   );
 }
