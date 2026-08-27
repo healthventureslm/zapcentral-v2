@@ -4,7 +4,13 @@
 import { Router } from "express";
 import { getAuth } from "../lib/devAuth";
 import { db } from "@workspace/db";
-import { agentStatusesTable, tenantUsersTable, conversationsTable } from "@workspace/db";
+import {
+  agentStatusesTable,
+  tenantUsersTable,
+  conversationsTable,
+  departmentAgentsTable,
+  departmentsTable,
+} from "@workspace/db";
 import { eq, and, sql } from "drizzle-orm";
 import { z } from "zod";
 import { requireAuth, requireTenantMember } from "../middlewares/auth";
@@ -55,11 +61,38 @@ router.get(
         ),
       );
 
+    // Em quais ramais cada pessoa atende.
+    //
+    // Vem numa consulta so, e nao num join com a de cima: o join multiplicaria
+    // a linha do atendente por ramal, e quem atende em tres ramais apareceria
+    // tres vezes na lista da equipe.
+    const vinculos = await db
+      .select({
+        clerkUserId: departmentAgentsTable.clerkUserId,
+        departmentId: departmentAgentsTable.departmentId,
+      })
+      .from(departmentAgentsTable)
+      .innerJoin(
+        departmentsTable,
+        and(
+          eq(departmentsTable.id, departmentAgentsTable.departmentId),
+          eq(departmentsTable.tenantId, tenantId),
+        ),
+      );
+
+    const ramaisPorPessoa = new Map<string, number[]>();
+    for (const v of vinculos) {
+      const lista = ramaisPorPessoa.get(v.clerkUserId) ?? [];
+      lista.push(v.departmentId);
+      ramaisPorPessoa.set(v.clerkUserId, lista);
+    }
+
     const result = agents.map((a) => ({
       ...a,
       status: a.status ?? "offline",
       maxConversations: a.maxConversations ?? 5,
       activeConversations: a.activeConversations ?? 0,
+      departmentIds: ramaisPorPessoa.get(a.clerkUserId) ?? [],
     }));
 
     res.json(result);

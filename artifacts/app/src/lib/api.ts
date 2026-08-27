@@ -107,6 +107,8 @@ export interface AgentStatus {
   status: "available" | "busy" | "away" | "offline";
   maxConversations: number;
   activeConversations: number;
+  /** Ramais em que esta pessoa atende. */
+  departmentIds: number[];
 }
 
 export interface WhatsAppStatus {

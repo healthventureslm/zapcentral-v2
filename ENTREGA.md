@@ -250,6 +250,19 @@ pnpm --filter @workspace/app run build
   alguém estiver livre, respondemos por aqui" mesmo com o ramal inteiro offline.
   Agora olha a equipe antes de prometer, e oferece o MENU como saída.
 
+- **O painel avisa quando chega chamado.** Havia só um toast silencioso: quem
+  estava com a aba atrás do navegador não ficava sabendo de nada. Agora toca um
+  bipe, o título da aba mostra quantos chamados esperam (`(2) ZapCentral`) e a
+  conversa nova fica marcada na lista até alguém abrir. A conversa que já está
+  aberta na tela não avisa — bipar a cada mensagem dela treinaria todo mundo a
+  ignorar o aviso.
+- **Operação agora**, no painel: ramal por ramal, quantos esperando e **quem
+  está disponível naquele ramal neste instante**. O ramal com fila e sem ninguém
+  disponível aparece primeiro e em vermelho — é o único estado que exige ação
+  imediata. Antes o painel só dizia quantas pessoas estavam online, num número
+  só, que não responde a pergunta que o gestor faz de verdade: dez atendentes
+  online não ajudam se os dois da Emergência foram almoçar.
+
 ### Robô e menu
 
 - **Apagar um ramal deixava o robô travado no menu.** A renumeração podia mandar

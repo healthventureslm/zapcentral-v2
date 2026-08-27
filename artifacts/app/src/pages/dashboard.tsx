@@ -22,11 +22,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useTenantId, useMyRole } from "@/hooks/useTenantId";
+import { cn } from "@/lib/utils";
 import {
   getReportOverview,
   getReportVolume,
   listConversations,
   listAgentStatuses,
+  listDepartments,
+  type AgentStatus,
+  type DepartmentRow,
+  type Conversation,
 } from "@/lib/api";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -193,6 +198,134 @@ function IndicadorComVeredito({
   );
 }
 
+/**
+ * Operacao agora — quem esta atendendo, ramal por ramal.
+ *
+ * O painel ja dizia quantas pessoas estavam online, num numero so. Um numero so
+ * nao responde a pergunta que o gestor faz de verdade, que e por ramal: dez
+ * atendentes online nao ajudam se os dois da Emergencia foram almocar.
+ *
+ * O ramal com fila e sem ninguem disponivel aparece primeiro e em vermelho. E o
+ * unico estado aqui que exige acao imediata de alguem.
+ */
+function OperacaoAgora({
+  ramais,
+  equipe,
+  naFila,
+  carregando,
+}: {
+  ramais: DepartmentRow[];
+  equipe: AgentStatus[];
+  naFila: Conversation[];
+  carregando: boolean;
+}) {
+  const nomeDe = (a: AgentStatus) =>
+    [a.firstName, a.lastName].filter(Boolean).join(" ") || a.email;
+
+  const linhas = ramais
+    .filter((r) => r.status === "active")
+    .map((ramal) => {
+      const doRamal = equipe.filter((a) => a.departmentIds.includes(ramal.id));
+      return {
+        ramal,
+        // "Disponivel" e o mesmo criterio que a distribuicao automatica usa:
+        // presente E com vaga. Contar quem esta no teto mostraria equipe de
+        // sobra num ramal que, para a fila, esta fechado.
+        disponiveis: doRamal.filter(
+          (a) => a.status === "available" && a.activeConversations < a.maxConversations,
+        ),
+        online: doRamal.filter((a) => a.status !== "offline"),
+        fila: naFila.filter((c) => c.departmentId === ramal.id).length,
+      };
+    })
+    .sort((a, b) => {
+      const critico = (l: typeof a) => (l.fila > 0 && l.disponiveis.length === 0 ? 0 : 1);
+      return critico(a) - critico(b) || b.fila - a.fila || a.ramal.name.localeCompare(b.ramal.name);
+    });
+
+  const descobertos = linhas.filter((l) => l.fila > 0 && l.disponiveis.length === 0).length;
+
+  return (
+    <Card className="mt-6">
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between gap-3">
+          <CardTitle className="text-base text-gray-800">Operação agora</CardTitle>
+          {!carregando && (
+            <span
+              className={cn(
+                "text-xs font-medium",
+                descobertos > 0 ? "text-red-600" : "text-green-600",
+              )}
+            >
+              {descobertos > 0
+                ? `${descobertos} ${plural(descobertos, "ramal com fila e sem ninguém disponível", "ramais com fila e sem ninguém disponível")}`
+                : "Todo ramal com fila tem alguém para atender"}
+            </span>
+          )}
+        </div>
+      </CardHeader>
+      <CardContent>
+        {carregando ? (
+          <div className="flex justify-center py-8">
+            <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
+          </div>
+        ) : linhas.length === 0 ? (
+          <p className="text-sm text-gray-500 py-4">Nenhum ramal ativo.</p>
+        ) : (
+          <div className="divide-y divide-gray-100">
+            {linhas.map(({ ramal, disponiveis, online, fila }) => {
+              const descoberto = fila > 0 && disponiveis.length === 0;
+              return (
+                <div
+                  key={ramal.id}
+                  className="flex items-center justify-between gap-4 py-2.5"
+                >
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <span
+                      className="w-2 h-2 rounded-full shrink-0"
+                      style={{ backgroundColor: ramal.color }}
+                    />
+                    <span className="text-sm font-medium text-gray-800 truncate">
+                      {ramal.name}
+                    </span>
+                    {fila > 0 && (
+                      <Badge
+                        className={cn(
+                          "text-[10px] px-1.5 py-0 h-4 border-none",
+                          descoberto
+                            ? "bg-red-100 text-red-700"
+                            : "bg-amber-100 text-amber-700",
+                        )}
+                      >
+                        {fila} na fila
+                      </Badge>
+                    )}
+                  </div>
+                  <div className="text-right shrink-0">
+                    {disponiveis.length > 0 ? (
+                      <p className="text-xs text-gray-600 truncate max-w-[22rem]">
+                        {disponiveis.map(nomeDe).join(", ")}
+                      </p>
+                    ) : descoberto ? (
+                      <p className="text-xs font-medium text-red-600">
+                        Ninguém disponível
+                      </p>
+                    ) : (
+                      <p className="text-xs text-gray-400">
+                        {online.length > 0 ? "Sem vaga livre" : "Ninguém online"}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
 export default function DashboardPage() {
   const tenantId = useTenantId();
   const role = useMyRole();
@@ -242,6 +375,13 @@ export default function DashboardPage() {
     queryFn: () => listConversations(tenantId!, { status: "waiting", limit: 20 }),
     enabled: !!tenantId,
     refetchInterval: 10000,
+  });
+
+  const { data: ramais } = useQuery({
+    queryKey: ["departments", tenantId],
+    queryFn: () => listDepartments(tenantId!),
+    enabled: !!tenantId,
+    refetchInterval: 30000,
   });
 
   const onlineAgents =
@@ -616,6 +756,13 @@ export default function DashboardPage() {
               </CardContent>
             </Card>
           </div>
+
+          <OperacaoAgora
+            ramais={ramais ?? []}
+            equipe={agents ?? []}
+            naFila={waitingRes?.conversations ?? []}
+            carregando={!ramais || !agents}
+          />
         </main>
       </div>
     </div>
