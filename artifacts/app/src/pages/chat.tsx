@@ -95,10 +95,6 @@ function ConversationItem({
   naoVista: boolean;
   onClick: () => void;
 }) {
-  const initials = conv.contact.name
-    ? conv.contact.name.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase()
-    : contactHandle(conv.contact).slice(-2);
-
   return (
     <button
       onClick={onClick}
@@ -111,7 +107,17 @@ function ConversationItem({
         naoVista && !active && "bg-primary/[0.06] border-l-2 border-l-primary",
       )}
     >
-      <Avatar size="md" className="shrink-0 mt-0.5">{initials}</Avatar>
+      {/*
+        O Avatar do design system descarta filhos: as iniciais saem de
+        `fromName`, e o gradiente de fundo tambem — mesmo nome, mesma cor,
+        sempre. Passar as iniciais prontas dava "?" em todo mundo.
+      */}
+      <Avatar
+        size="md"
+        className="shrink-0 mt-0.5"
+        src={conv.contact.avatarUrl ?? undefined}
+        fromName={conv.contact.name ?? contactHandle(conv.contact)}
+      />
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between gap-2">
           <span className="font-medium text-[var(--text-strong)] text-sm truncate">
@@ -559,14 +565,11 @@ export default function ChatPage() {
             {/* Chat header */}
             <div className="h-14 bg-[var(--surface-sunken)] border-b border-white/5 flex items-center justify-between px-6">
               <div className="flex items-center gap-3">
-                <Avatar size="sm">
-                  {(selectedConv.contact.name ?? contactHandle(selectedConv.contact))
-                    .split(" ")
-                    .map((w) => w[0])
-                    .join("")
-                    .slice(0, 2)
-                    .toUpperCase()}
-                </Avatar>
+                <Avatar
+                  size="sm"
+                  src={selectedConv.contact.avatarUrl ?? undefined}
+                  fromName={selectedConv.contact.name ?? contactHandle(selectedConv.contact)}
+                />
                 <div>
                   <p className="text-sm font-semibold text-[var(--text-strong)]">
                     {selectedConv.contact.name ?? contactHandle(selectedConv.contact)}

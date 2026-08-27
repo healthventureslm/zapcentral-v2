@@ -39,10 +39,6 @@ function nameOf(p: { firstName: string | null; lastName: string | null; email: s
   return p.firstName ? `${p.firstName} ${p.lastName ?? ""}`.trim() : p.email;
 }
 
-function initialsOf(p: { firstName: string | null; lastName: string | null; email: string }) {
-  return nameOf(p).slice(0, 2).toUpperCase();
-}
-
 export default function InternalChatPage() {
   const tenantId = useTenantId();
   const { user } = useUser();
@@ -176,9 +172,7 @@ export default function InternalChatPage() {
                   )}
                 >
                   <div className="relative shrink-0">
-                    <Avatar size="md" src={c.peer.avatarUrl ?? undefined}>
-                      {initialsOf(c.peer)}
-                    </Avatar>
+                    <Avatar size="md" src={c.peer.avatarUrl ?? undefined} fromName={nameOf(c.peer)} />
                     <span
                       className={cn(
                         "absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-[var(--surface-canvas)]",
@@ -220,9 +214,7 @@ export default function InternalChatPage() {
                     className="w-full flex items-center gap-3 px-4 py-2.5 text-left hover:bg-card/5 transition-colors"
                   >
                     <div className="relative shrink-0">
-                      <Avatar size="sm" src={c.avatarUrl ?? undefined}>
-                        {initialsOf(c)}
-                      </Avatar>
+                      <Avatar size="sm" src={c.avatarUrl ?? undefined} fromName={nameOf(c)} />
                       <span
                         className={cn(
                           "absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2 border-[var(--surface-canvas)]",
@@ -261,9 +253,7 @@ export default function InternalChatPage() {
           <>
             <div className="h-14 bg-[var(--surface-sunken)] border-b border-white/5 flex items-center gap-3 px-6">
               <div className="relative">
-                <Avatar size="sm" src={selectedConv.peer.avatarUrl ?? undefined}>
-                  {initialsOf(selectedConv.peer)}
-                </Avatar>
+                <Avatar size="sm" src={selectedConv.peer.avatarUrl ?? undefined} fromName={nameOf(selectedConv.peer)} />
                 <span
                   className={cn(
                     "absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2 border-[var(--surface-sunken)]",

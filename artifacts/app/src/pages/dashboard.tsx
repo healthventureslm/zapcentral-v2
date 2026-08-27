@@ -45,6 +45,7 @@ import {
   type AgentStatus,
   type DepartmentRow,
   type Conversation,
+  contactHandle,
 } from "@/lib/api";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -566,7 +567,7 @@ export default function DashboardPage() {
                             <Avatar
                               size="md"
                               src={conv.contact.avatarUrl ?? undefined}
-                              fromName={conv.contact.name ?? undefined}
+                              fromName={conv.contact.name ?? contactHandle(conv.contact)}
                             />
                             <div>
                               <p className="text-sm font-medium text-foreground group-hover:text-green-700 transition-colors">

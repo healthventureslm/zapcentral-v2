@@ -32,7 +32,7 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { isValidCpf } from "@/lib/cpf";
-import { contactsExportUrl } from "@/lib/api";
+import { contactsExportUrl, contactHandle } from "@/lib/api";
 
 function ManageTagsDialog() {
   const [open, setOpen] = useState(false);
@@ -494,7 +494,7 @@ export default function ContactsPage() {
                           <Avatar
                             size="md"
                             src={contact.avatarUrl ?? undefined}
-                            fromName={contact.name ?? undefined}
+                            fromName={contact.name ?? contactHandle(contact)}
                           />
                           <span>
                             <span className="font-medium block">
