@@ -212,6 +212,7 @@ router.post("/webhooks/telegram/:botId", async (req, res): Promise<void> => {
         toIdentifier: bot.botId ?? bot.botUsername ?? "telegram-bot",
         type: "text",
         content: toque.data,
+        origemBotao: true,
       });
     } catch (err) {
       req.log.error({ err }, "Telegram callback processing error");

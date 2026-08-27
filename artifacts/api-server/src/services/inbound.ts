@@ -56,6 +56,16 @@ export interface InboundMessage {
    * Hoje so o WhatsApp tem pagina publica de QR.
    */
   attributeQrMarker?: boolean;
+  /**
+   * True quando veio de um toque em botao do menu, nao de digitacao.
+   *
+   * Importa por causa da pesquisa de satisfacao: o valor do botao e "1".
+   * Sem esta marca, tocar num menu antigo do historico depois de a conversa
+   * ter sido encerrada registraria **nota 1** e responderia "Obrigado pela
+   * sua avaliacao!" — envenenando a metrica de satisfacao com um toque que
+   * nao era avaliacao nenhuma.
+   */
+  origemBotao?: boolean;
 }
 
 /**
@@ -160,7 +170,7 @@ export async function handleInboundMessage(msg: InboundMessage): Promise<void> {
   // 1-5, registra a nota (o resto do texto vira comentario) e encerra aqui.
   // Qualquer outra resposta segue o fluxo normal.
   // -------------------------------------------------------------------------
-  if (!conversation && msg.type === "text" && msg.content) {
+  if (!conversation && !msg.origemBotao && msg.type === "text" && msg.content) {
     const ratingMatch = /^\s*([1-5])\b[\s.,;:-]*([\s\S]*)$/.exec(msg.content);
     if (ratingMatch) {
       const [pendingSurvey] = await db

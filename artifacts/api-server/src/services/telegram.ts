@@ -74,7 +74,11 @@ export async function setWebhook(
   return tgFetch<boolean>(token, "setWebhook", {
     url,
     secret_token: secretToken,
-    allowed_updates: ["message", "edited_message"],
+    // `callback_query` e obrigatorio: sem ele o Telegram NAO entrega o toque
+    // no botao do menu, e o botao fica girando sem nada acontecer.
+    // Bot ja conectado antes desta linha precisa reapontar o webhook para
+    // passar a receber — ver POST /telegram/refresh-webhook.
+    allowed_updates: ["message", "edited_message", "callback_query"],
     drop_pending_updates: true,
   });
 }

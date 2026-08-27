@@ -290,6 +290,7 @@ export async function processIvrMessage(
   return {
     action: "invalid_option",
     replyText: `Opção inválida. Por favor, escolha uma das opções:\n${optionList}`,
+    botoes: vivas.map((o) => ({ rotulo: o.label, valor: o.key })),
   };
 }
 
