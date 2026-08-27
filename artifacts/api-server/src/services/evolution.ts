@@ -119,6 +119,33 @@ export async function getConnectionState(
   );
 }
 
+/**
+ * A instancia existe do lado da Evolution?
+ *
+ * Existe porque o nosso banco e a Evolution podem discordar. A linha em
+ * `whatsapp_instances` e registro local; quem guarda a sessao do WhatsApp e a
+ * Evolution, no volume dela. Se esse volume for recriado — troca de senha do
+ * Postgres dela, `docker compose down -v`, container reinstalado —, a nossa
+ * linha sobrevive apontando para uma instancia que nao existe mais.
+ *
+ * O sintoma disso era cruel: o pareamento respondia 200, nenhum QR aparecia, e a
+ * tela ficava em "Conectando" para sempre, porque a falha de `getQrCode` era
+ * engolida por um `catch` vazio.
+ *
+ * Devolve false tambem quando a Evolution esta fora do ar. Isso e deliberado: o
+ * chamador trata os dois casos igual — tentar criar a instancia. Se a Evolution
+ * estiver mesmo fora, a criacao falha com erro visivel, que e melhor que uma
+ * tela girando.
+ */
+export async function instanciaExiste(instanceName: string): Promise<boolean> {
+  try {
+    await getConnectionState(instanceName);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export async function logoutInstance(instanceName: string): Promise<void> {
   await evoFetch(`/instance/logout/${instanceName}`, { method: "DELETE" });
 }

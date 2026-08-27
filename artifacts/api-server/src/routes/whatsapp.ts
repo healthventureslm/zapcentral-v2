@@ -9,6 +9,7 @@ import { eq, and } from "drizzle-orm";
 import { randomBytes } from "crypto";
 import {
   createInstance,
+  instanciaExiste,
   deleteInstance,
   getQrCode,
   getConnectionState,
@@ -187,6 +188,14 @@ router.post(
     const webhookSecret = existing?.webhookSecret ?? randomBytes(24).toString("hex");
     const webhookUrl = getWebhookUrl(req, instanceName);
 
+    // Ter a linha no nosso banco NAO garante que a instancia exista na
+    // Evolution: a sessao mora no volume dela, e recriar esse volume deixa a
+    // nossa linha apontando para o vazio. Antes desta checagem, esse caso
+    // respondia 200 sem QR nenhum e a tela ficava em "Conectando" para sempre.
+    const existeNaEvolution = existing
+      ? await instanciaExiste(instanceName)
+      : false;
+
     if (!existing) {
       // Create new instance in Evolution API
       await createInstance(instanceName, webhookUrl, webhookSecret);
@@ -197,6 +206,25 @@ router.post(
         webhookSecret,
         status: "connecting",
       });
+    } else if (!existeNaEvolution) {
+      // A linha e nossa, a instancia sumiu do outro lado: recria com o MESMO
+      // nome e o MESMO segredo de webhook. Trocar o nome orfanaria as conversas
+      // antigas, que referenciam a instancia pelo nome.
+      req.log.warn(
+        { instanceName },
+        "Instancia ausente na Evolution — recriando",
+      );
+      await createInstance(instanceName, webhookUrl, webhookSecret);
+
+      await db
+        .update(whatsappInstancesTable)
+        .set({
+          status: "connecting",
+          qrCode: null,
+          phoneNumber: null,
+          updatedAt: new Date(),
+        })
+        .where(eq(whatsappInstancesTable.id, existing.id));
     } else {
       // Reconnect existing instance — just request a new QR
       await db
@@ -219,8 +247,15 @@ router.post(
         .where(eq(whatsappInstancesTable.instanceName, instanceName));
 
       emitToTenant(tenantId, "whatsapp_qr_updated", { tenantId, qrCode });
-    } catch {
-      // QR not available immediately — will arrive via webhook
+    } catch (err) {
+      // O QR pode nao estar pronto no mesmo instante: ele chega depois pelo
+      // webhook. Mas engolir a falha sem registro foi o que fez o caso da
+      // instancia ausente demorar para ser diagnosticado — a tela girava e o
+      // log nao dizia nada.
+      req.log.warn(
+        { err, instanceName },
+        "QR nao disponivel agora — aguardando o webhook",
+      );
     }
 
     const [updated] = await db
