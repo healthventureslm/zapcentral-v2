@@ -7,13 +7,12 @@
  *   3. Adds the user as admin of that tenant
  */
 import { useState } from "react";
-import { useLocation } from "wouter";
-import { useQueryClient } from "@tanstack/react-query";
 import { Loader2, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { API_BASE, authHeaders } from "@/lib/apiBase";
+import { basePath } from "@/App";
 
 
 
@@ -22,8 +21,6 @@ export default function SetupPage() {
   const [secret, setSecret] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [, setLocation] = useLocation();
-  const qc = useQueryClient();
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -48,9 +45,17 @@ export default function SetupPage() {
         return;
       }
 
-      // Invalidate all user/tenant caches so the dashboard sees the new tenant
-      await qc.invalidateQueries();
-      setLocation("/");
+      // Recarrega a pagina inteira em vez de navegar.
+      //
+      // Esta tela fica FORA do TenantGuard, entao as consultas dele (`me` e
+      // `onboard/status`) estao inativas aqui — e `invalidateQueries` so marca
+      // consulta inativa como obsoleta, sem recarregar. Ao navegar para "/", o
+      // guard montava lendo o cache antigo, via "plataforma nao configurada" e
+      // devolvia para /setup: a central era criada e a tela nao saia do lugar.
+      //
+      // Configuracao inicial acontece uma vez na vida da central; um recarregamento
+      // custa nada e elimina a corrida inteira.
+      window.location.assign(basePath || "/");
     } catch {
       setError("Erro de conexão. Tente novamente.");
     } finally {
