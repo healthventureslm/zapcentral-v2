@@ -1,4 +1,12 @@
 import { useState } from "react";
+import {
+  Avatar,
+  Button,
+  Dialog,
+  Input,
+  Menu,
+  Select,
+} from "@healthventureslm/design-system";
 import { Sidebar } from "@/components/Sidebar";
 import { CrmTabs } from "@/components/crm/crm-tabs";
 import { useCrmHooks, useDeals, useContacts } from "@/hooks/use-crm";
@@ -12,30 +20,6 @@ import {
   GripHorizontal,
   Settings2
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { Link } from "wouter";
@@ -159,21 +143,19 @@ export default function KanbanPage() {
                               </span>
                             ) : <span />}
                             
-                            {deal.assignedTo && (
-                              <Avatar className="h-5 w-5 border border-border">
-                                {(() => {
-                                  const agent = agents.data?.find(a => a.clerkUserId === deal.assignedTo);
-                                  return (
-                                    <>
-                                      <AvatarImage src={agent?.avatarUrl || undefined} />
-                                      <AvatarFallback className="bg-muted text-[10px] font-medium text-muted-foreground">
-                                        {agent?.firstName?.[0] || agent?.email[0].toUpperCase() || "?"}
-                                      </AvatarFallback>
-                                    </>
-                                  );
-                                })()}
-                              </Avatar>
-                            )}
+                            {deal.assignedTo &&
+                              (() => {
+                                const agent = agents.data?.find(
+                                  (a) => a.clerkUserId === deal.assignedTo,
+                                );
+                                return (
+                                  <Avatar
+                                    size="xs"
+                                    src={agent?.avatarUrl ?? undefined}
+                                    fromName={agent?.firstName ?? agent?.email}
+                                  />
+                                );
+                              })()}
                           </div>
                         </div>
                       ))}
@@ -223,18 +205,17 @@ function ManageStagesDialog() {
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button variant="outline" className="bg-card border-border text-foreground">
-          <Settings2 className="w-4 h-4 mr-2" />
-          Gerenciar Etapas
-        </Button>
-      </DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Etapas do Funil</DialogTitle>
-        </DialogHeader>
-        <div className="space-y-4 py-2">
+    <>
+      <Button
+        variant="secondary"
+        iconLeft={<Settings2 className="w-4 h-4" />}
+        onClick={() => setOpen(true)}
+      >
+        Gerenciar etapas
+      </Button>
+
+      <Dialog open={open} onClose={() => setOpen(false)} title="Etapas do funil">
+        <div className="space-y-4">
           <ul className="space-y-2 max-h-60 overflow-y-auto pr-2">
             {dealStages.data?.sort((a,b) => a.position - b.position).map(stage => (
               <li key={stage.id} className="flex items-center justify-between p-2 border rounded-md bg-muted">
@@ -243,8 +224,8 @@ function ManageStagesDialog() {
                   <input type="color" value={stage.color || "#000"} disabled className="w-6 h-6 p-0 border-0 rounded cursor-default" />
                   <span className="text-sm font-medium">{stage.name}</span>
                 </div>
-                <Button variant="ghost" size="icon" className="h-6 w-6 text-red-500 hover:bg-red-50" onClick={() => handleDelete(stage.id)}>
-                  &times;
+                <Button variant="quiet" size="sm" onClick={() => handleDelete(stage.id)}>
+                  Excluir
                 </Button>
               </li>
             ))}
@@ -263,11 +244,18 @@ function ManageStagesDialog() {
               onChange={e => setNewStage({...newStage, name: e.target.value})} 
               onKeyDown={e => e.key === 'Enter' && handleAdd()}
             />
-            <Button onClick={handleAdd} disabled={createDealStage.isPending || !newStage.name}>Adicionar</Button>
+            <Button
+              variant="primary"
+              loading={createDealStage.isPending}
+              disabled={!newStage.name}
+              onClick={handleAdd}
+            >
+              Adicionar
+            </Button>
           </div>
         </div>
-      </DialogContent>
-    </Dialog>
+      </Dialog>
+    </>
   );
 }
 
@@ -309,18 +297,17 @@ function CreateDealDialog() {
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button className="bg-primary hover:bg-primary/90 text-white">
-          <Plus className="w-4 h-4 mr-2" />
-          Novo Negócio
-        </Button>
-      </DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Criar Negócio</DialogTitle>
-        </DialogHeader>
-        <form onSubmit={onSubmit} className="space-y-4 py-2">
+    <>
+      <Button
+        variant="primary"
+        iconLeft={<Plus className="w-4 h-4" />}
+        onClick={() => setOpen(true)}
+      >
+        Novo negócio
+      </Button>
+
+      <Dialog open={open} onClose={() => setOpen(false)} title="Criar negócio">
+        <form onSubmit={onSubmit} className="space-y-4">
           <div className="space-y-2">
             <label className="text-sm font-medium">Título (Obrigatório)</label>
             <Input value={form.title} onChange={e => setForm({...form, title: e.target.value})} placeholder="Ex: Projeto XPTO" />
@@ -328,25 +315,27 @@ function CreateDealDialog() {
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className="text-sm font-medium">Contato (Obrigatório)</label>
-              <Select value={form.contactId} onValueChange={v => setForm({...form, contactId: v})}>
-                <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
-                <SelectContent>
-                  {contactsQuery.data?.contacts.map(c => (
-                    <SelectItem key={c.id} value={String(c.id)}>{c.name || c.phone}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Select
+                placeholder="Selecione…"
+                value={form.contactId}
+                onChange={(v) => setForm({ ...form, contactId: v })}
+                options={(contactsQuery.data?.contacts ?? []).map((c) => ({
+                  value: String(c.id),
+                  label: c.name || c.phone,
+                }))}
+              />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium">Etapa (Obrigatório)</label>
-              <Select value={form.stageId} onValueChange={v => setForm({...form, stageId: v})}>
-                <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
-                <SelectContent>
-                  {dealStages.data?.map(s => (
-                    <SelectItem key={s.id} value={String(s.id)}>{s.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Select
+                placeholder="Selecione…"
+                value={form.stageId}
+                onChange={(v) => setForm({ ...form, stageId: v })}
+                options={(dealStages.data ?? []).map((s) => ({
+                  value: String(s.id),
+                  label: s.name,
+                }))}
+              />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
@@ -356,29 +345,33 @@ function CreateDealDialog() {
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium">Responsável</label>
-              <Select value={form.assignedTo} onValueChange={v => setForm({...form, assignedTo: v})}>
-                <SelectTrigger><SelectValue placeholder="Responsável..." /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="unassigned">Sem responsável</SelectItem>
-                  {agents.data?.map(a => (
-                    <SelectItem key={a.clerkUserId} value={a.clerkUserId}>
-                      {a.firstName ? `${a.firstName} ${a.lastName || ""}` : a.email}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Select
+                placeholder="Responsável…"
+                value={form.assignedTo}
+                onChange={(v) => setForm({ ...form, assignedTo: v })}
+                options={[
+                  { value: "unassigned", label: "Sem responsável" },
+                  ...(agents.data ?? []).map((a) => ({
+                    value: a.clerkUserId,
+                    label: a.firstName
+                      ? `${a.firstName} ${a.lastName || ""}`.trim()
+                      : a.email,
+                  })),
+                ]}
+              />
             </div>
           </div>
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
-            <Button type="submit" className="bg-primary hover:bg-primary/90 text-white" disabled={createDeal.isPending}>
-              {createDeal.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
+          <div className="flex justify-end gap-2 pt-2">
+            <Button type="button" variant="secondary" onClick={() => setOpen(false)}>
+              Cancelar
+            </Button>
+            <Button type="submit" variant="primary" loading={createDeal.isPending}>
               Salvar
             </Button>
-          </DialogFooter>
+          </div>
         </form>
-      </DialogContent>
-    </Dialog>
+      </Dialog>
+    </>
   );
 }
 
@@ -401,23 +394,19 @@ function DealActionsMenu({ deal }: { deal: any }) {
   };
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="h-6 w-6 bg-card/80 hover:bg-card shadow-sm border border-border">
-          <MoreVertical className="w-3 h-3 text-muted-foreground" />
+    <Menu
+      align="end"
+      trigger={
+        <Button variant="quiet" size="sm">
+          <MoreVertical className="w-3 h-3" />
         </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-40">
-        <DropdownMenuItem onClick={() => handleStatus("won")} className="text-green-600 font-medium focus:text-green-700">
-          Marcar como Ganho
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => handleStatus("lost")} className="text-red-600 font-medium focus:text-red-700">
-          Marcar como Perdido
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={handleDelete} className="text-muted-foreground mt-2 border-t">
-          Excluir negócio
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+      }
+      items={[
+        { id: "won", label: "Marcar como ganho", onSelect: () => handleStatus("won") },
+        { id: "lost", label: "Marcar como perdido", onSelect: () => handleStatus("lost") },
+        { type: "separator" },
+        { id: "delete", label: "Excluir negócio", danger: true, onSelect: handleDelete },
+      ]}
+    />
   );
 }

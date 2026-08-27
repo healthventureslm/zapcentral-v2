@@ -7,8 +7,10 @@ import {
   Card,
   CardBody,
   Dialog,
+  EmptyState,
   Menu,
   Input,
+  Table,
   Select,
 } from "@healthventureslm/design-system";
 import { PageShell } from "@/components/PageShell";
@@ -445,152 +447,155 @@ export default function ContactsPage() {
           )}
 
           <Card className="shadow-sm border-border">
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm text-left">
-                <thead className="bg-muted border-b border-border text-muted-foreground font-medium">
-                  <tr>
-                    <th className="px-6 py-4 w-12">
+            {query.isLoading ? (
+              <EmptyState loading loadingLabel="Carregando contatos…" />
+            ) : (
+              /* A selecao vira uma coluna com `render`: o Table do design
+                 system nao traz caixa de selecao pronta, e modelar como
+                 coluna mantem o cabecalho de "selecionar todos" alinhado
+                 com as linhas. */
+              <Table
+                rowKey="id"
+                data={query.data?.contacts ?? []}
+                emptyText="Nenhum contato encontrado. Tente ajustar os filtros ou adicione um novo."
+                columns={[
+                  {
+                    key: "selecao",
+                    width: "3rem",
+                    sortable: false,
+                    header: (
                       <input
                         type="checkbox"
-                        className="w-4 h-4 rounded border-border text-primary focus:ring-primary"
+                        aria-label="Selecionar todos"
+                        className="w-4 h-4"
                         checked={
-                          query.data?.contacts.length! > 0 &&
+                          (query.data?.contacts.length ?? 0) > 0 &&
                           selectedIds.size === query.data?.contacts.length
                         }
                         onChange={toggleSelectAll}
                       />
-                    </th>
-                    <th className="px-6 py-4">Nome / Empresa</th>
-                    <th className="px-6 py-4">Contato</th>
-                    <th className="px-6 py-4">Tags</th>
-                    <th className="px-6 py-4">Responsável</th>
-                    <th className="px-6 py-4 w-16"></th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {query.isLoading ? (
-                    <tr>
-                      <td colSpan={6} className="px-6 py-12 text-center">
-                        <Loader2 className="w-6 h-6 animate-spin text-primary mx-auto mb-2" />
-                        <span className="text-muted-foreground">Carregando contatos...</span>
-                      </td>
-                    </tr>
-                  ) : query.data?.contacts.length === 0 ? (
-                    <tr>
-                      <td colSpan={6} className="px-6 py-12 text-center">
-                        <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center mx-auto mb-3">
-                          <UsersIcon className="w-6 h-6 text-muted-foreground" />
-                        </div>
-                        <p className="text-foreground font-medium">Nenhum contato encontrado</p>
-                        <p className="text-muted-foreground mt-1">Tente ajustar seus filtros ou adicione um novo.</p>
-                      </td>
-                    </tr>
-                  ) : (
-                    query.data?.contacts.map((contact) => (
-                      <tr
-                        key={contact.id}
-                        className="hover:bg-muted/50 transition-colors group"
-                      >
-                        <td className="px-6 py-4">
-                          <input
-                            type="checkbox"
-                            className="w-4 h-4 rounded border-border text-primary focus:ring-primary"
-                            checked={selectedIds.has(contact.id)}
-                            onChange={() => toggleSelect(contact.id)}
+                    ),
+                    render: (contact) => (
+                      <input
+                        type="checkbox"
+                        aria-label={`Selecionar ${contact.name || contact.phone}`}
+                        className="w-4 h-4"
+                        checked={selectedIds.has(contact.id)}
+                        onChange={() => toggleSelect(contact.id)}
+                      />
+                    ),
+                  },
+                  {
+                    key: "name",
+                    header: "Nome / empresa",
+                    render: (contact) => (
+                      <Link href={`/crm/contatos/${contact.id}`}>
+                        <span className="flex items-center gap-3 cursor-pointer">
+                          <Avatar
+                            size="md"
+                            src={contact.avatarUrl ?? undefined}
+                            fromName={contact.name ?? undefined}
                           />
-                        </td>
-                        <td className="px-6 py-4">
-                          <Link href={`/crm/contatos/${contact.id}`}>
-                            <div className="flex items-center gap-3 cursor-pointer">
-                              <Avatar
-                                size="md"
-                                src={contact.avatarUrl ?? undefined}
-                                fromName={contact.name ?? undefined}
-                              />
-                              <div>
-                                <p className="font-medium text-foreground group-hover:text-primary transition-colors">
-                                  {contact.name || "Sem nome"}
-                                </p>
-                                {contact.company && (
-                                  <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
-                                    <Building2 className="w-3 h-3" />
-                                    {contact.company}
-                                  </p>
-                                )}
-                              </div>
-                            </div>
-                          </Link>
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="space-y-1">
-                            <p className="text-foreground flex items-center gap-1.5 text-xs">
-                              <Phone className="w-3.5 h-3.5 text-muted-foreground" />
-                              {contact.phone}
-                            </p>
-                            {contact.email && (
-                              <p className="text-muted-foreground flex items-center gap-1.5 text-xs">
-                                <Mail className="w-3.5 h-3.5 text-muted-foreground" />
-                                {contact.email}
-                              </p>
+                          <span>
+                            <span className="font-medium block">
+                              {contact.name || "Sem nome"}
+                            </span>
+                            {contact.company && (
+                              <span className="text-xs text-[var(--text-muted)] flex items-center gap-1 mt-0.5">
+                                <Building2 className="w-3 h-3" />
+                                {contact.company}
+                              </span>
                             )}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="flex flex-wrap gap-1.5">
-                            {contact.tags.slice(0, 3).map((t) => (
-                              <Badge
-                                key={t.id}
-                                variant="neutral"
-                                className="border-none text-xs font-normal"
-                                style={{
-                                  backgroundColor: `${t.color}20`,
-                                  color: t.color,
-                                }}
-                              >
-                                {t.name}
-                              </Badge>
-                            ))}
-                            {contact.tags.length > 3 && (
-                              <Badge variant="neutral" className="text-xs font-normal">
-                                +{contact.tags.length - 3}
-                              </Badge>
-                            )}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          {contact.assignedTo ? (() => {
-                            const agent = agents.data?.find((a) => a.clerkUserId === contact.assignedTo);
-                            return agent ? (
-                              <div className="flex items-center gap-2">
-                                <Avatar
-                                  size="xs"
-                                  src={agent.avatarUrl ?? undefined}
-                                  fromName={agent.firstName ?? agent.email}
-                                />
-                                <span className="text-xs text-muted-foreground">
-                                  {agent.firstName ? `${agent.firstName} ${agent.lastName || ""}` : agent.email}
-                                </span>
-                              </div>
-                            ) : (
-                              <span className="text-xs text-muted-foreground">Desconhecido</span>
-                            );
-                          })() : (
-                            <span className="text-xs text-muted-foreground italic">Não atribuído</span>
-                          )}
-                        </td>
-                        <td className="px-6 py-4 text-right">
-                          <Link href={`/crm/contatos/${contact.id}`}>
-                            <Button variant="ghost" size="sm" className="h-8 w-8 text-muted-foreground hover:text-foreground">
-                              <MoreHorizontal className="w-4 h-4" />
-                            </Button>
-                          </Link>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
+                          </span>
+                        </span>
+                      </Link>
+                    ),
+                  },
+                  {
+                    key: "phone",
+                    header: "Contato",
+                    render: (contact) => (
+                      <span className="block space-y-1">
+                        <span className="flex items-center gap-1.5 text-xs font-mono">
+                          <Phone className="w-3.5 h-3.5 text-[var(--text-muted)]" />
+                          {contact.phone}
+                        </span>
+                        {contact.email && (
+                          <span className="flex items-center gap-1.5 text-xs text-[var(--text-muted)]">
+                            <Mail className="w-3.5 h-3.5" />
+                            {contact.email}
+                          </span>
+                        )}
+                      </span>
+                    ),
+                  },
+                  {
+                    key: "tags",
+                    header: "Etiquetas",
+                    sortable: false,
+                    render: (contact) => (
+                      <span className="flex flex-wrap gap-1.5">
+                        {contact.tags.slice(0, 3).map((et) => (
+                          <Badge
+                            key={et.id}
+                            variant="neutral"
+                            className="border-none text-xs font-normal"
+                            style={{
+                              backgroundColor: `${et.color}20`,
+                              color: et.color,
+                            }}
+                          >
+                            {et.name}
+                          </Badge>
+                        ))}
+                        {contact.tags.length > 3 && (
+                          <Badge variant="neutral" className="text-xs font-normal">
+                            +{contact.tags.length - 3}
+                          </Badge>
+                        )}
+                      </span>
+                    ),
+                  },
+                  {
+                    key: "assignedTo",
+                    header: "Responsável",
+                    render: (contact) => {
+                      if (!contact.assignedTo) {
+                        return (
+                          <span className="text-xs text-[var(--text-subtle)]">
+                            Não atribuído
+                          </span>
+                        );
+                      }
+                      const agent = agents.data?.find(
+                        (a) => a.clerkUserId === contact.assignedTo,
+                      );
+                      if (!agent) {
+                        return (
+                          <span className="text-xs text-[var(--text-muted)]">
+                            Desconhecido
+                          </span>
+                        );
+                      }
+                      return (
+                        <span className="flex items-center gap-2">
+                          <Avatar
+                            size="xs"
+                            src={agent.avatarUrl ?? undefined}
+                            fromName={agent.firstName ?? agent.email}
+                          />
+                          <span className="text-xs">
+                            {agent.firstName
+                              ? `${agent.firstName} ${agent.lastName || ""}`.trim()
+                              : agent.email}
+                          </span>
+                        </span>
+                      );
+                    },
+                  },
+                ]}
+              />
+            )}
             
             {/* Pagination */}
             {query.data && query.data.total > limit && (
