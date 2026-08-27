@@ -4,7 +4,8 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Settings, Plus, Trash2, Loader2, Save } from "lucide-react";
-import { Sidebar } from "./dashboard";
+import { Button, EmptyState } from "@healthventureslm/design-system";
+import { PageShell } from "@/components/PageShell";
 import { getChannelSettings, updateChannelSettings, type ChannelSettings } from "@/lib/api";
 import { useTenantId } from "@/hooks/useTenantId";
 import { useToast } from "@/hooks/use-toast";
@@ -92,40 +93,27 @@ export default function ChannelSettingsPage() {
 
   if (isLoading || !tenantId) {
     return (
-      <div className="min-h-[100dvh] bg-background">
-        <Sidebar />
-        <div className="ml-64 flex items-center justify-center h-screen">
-          <Loader2 className="w-6 h-6 text-primary animate-spin" />
-        </div>
-      </div>
+      <PageShell title="Configurações do canal">
+        <EmptyState loading />
+      </PageShell>
     );
   }
 
   return (
-    <div className="min-h-[100dvh] bg-background">
-      <Sidebar />
-
-      <div className="ml-64 flex flex-col">
-        <header className="h-16 bg-card shadow-sm flex items-center justify-between px-8">
-          <h1 className="text-xl font-semibold text-foreground flex items-center gap-2">
-            <Settings className="w-5 h-5 text-primary" />
-            Configurações do Canal
-          </h1>
-          <button
-            onClick={() => saveMutation.mutate()}
-            disabled={saveMutation.isPending}
-            className="bg-primary hover:bg-primary/90 disabled:opacity-60 text-white px-5 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors"
-          >
-            {saveMutation.isPending ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <Save className="w-4 h-4" />
-            )}
-            Salvar
-          </button>
-        </header>
-
-        <main className="p-8 max-w-3xl space-y-6">
+    <PageShell
+      title="Configurações do canal"
+      icon={<Settings className="w-5 h-5" />}
+      actions={
+        <Button
+          variant="primary"
+          loading={saveMutation.isPending}
+          iconLeft={<Save className="w-4 h-4" />}
+          onClick={() => saveMutation.mutate()}
+        >
+          Salvar
+        </Button>
+      }
+    >
           {/* Messages */}
           <Card>
             <CardContent className="p-6 space-y-4">
@@ -390,8 +378,6 @@ export default function ChannelSettingsPage() {
               )}
             </CardContent>
           </Card>
-        </main>
-      </div>
-    </div>
+    </PageShell>
   );
 }

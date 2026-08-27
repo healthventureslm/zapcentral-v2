@@ -12,7 +12,7 @@ import {
   PageHeader,
   Spinner,
 } from "@healthventureslm/design-system";
-import { Sidebar } from "@/pages/dashboard";
+import { Sidebar } from "@/components/Sidebar";
 import { useToast } from "@/hooks/use-toast";
 import { useTenantId, useMyRole } from "@/hooks/useTenantId";
 import {

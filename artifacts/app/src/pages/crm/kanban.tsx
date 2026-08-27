@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Sidebar } from "../dashboard";
+import { Sidebar } from "@/components/Sidebar";
 import { CrmTabs } from "@/components/crm/crm-tabs";
 import { useCrmHooks, useDeals, useContacts } from "@/hooks/use-crm";
 import {

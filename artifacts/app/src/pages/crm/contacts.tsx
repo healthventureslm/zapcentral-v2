@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "wouter";
-import { Sidebar } from "../dashboard";
+import { PageShell } from "@/components/PageShell";
 import { CrmTabs } from "@/components/crm/crm-tabs";
 import { useCrmHooks, useContacts } from "@/hooks/use-crm";
 import {
@@ -262,17 +262,12 @@ export default function ContactsPage() {
   };
 
   return (
-    <div className="min-h-[100dvh] bg-background">
-      <Sidebar />
-
-      <div className="ml-64 flex flex-col">
-        <header className="bg-card shadow-sm z-0">
-          <div className="h-16 flex items-center justify-between px-8">
-            <h1 className="text-xl font-semibold text-foreground flex items-center gap-2">
-              <UsersIcon className="w-5 h-5 text-primary" />
-              CRM
-            </h1>
-            <div className="flex items-center gap-3">
+    <PageShell
+        width="wide"
+        title="CRM"
+        icon={<UsersIcon className="w-5 h-5" />}
+        actions={
+          <div className="flex items-center gap-3">
               <ManageTagsDialog />
               <ManageCustomFieldsDialog />
               <CreateContactDialog />
@@ -288,12 +283,10 @@ export default function ContactsPage() {
                   Exportar
                 </a>
               )}
-            </div>
           </div>
-          <CrmTabs />
-        </header>
-
-        <main className="flex-1 p-8">
+        }
+      >
+        <CrmTabs />
           {/* Filters */}
           <div className="flex flex-col md:flex-row gap-4 mb-6">
             <div className="relative flex-1 max-w-md">
@@ -619,9 +612,7 @@ export default function ContactsPage() {
               </div>
             )}
           </Card>
-        </main>
-      </div>
-    </div>
+      </PageShell>
   );
 }
 

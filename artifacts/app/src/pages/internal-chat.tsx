@@ -6,7 +6,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useUser, useAuth } from "@/lib/devAuth";
 import { Send, Loader2, MessageCircle, Headset } from "lucide-react";
-import { Sidebar } from "./dashboard";
+import { Sidebar } from "@/components/Sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { initSocket, getSocket, joinTenant } from "@/lib/socket";

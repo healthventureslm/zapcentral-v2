@@ -15,9 +15,10 @@ import {
   MessageCircle,
   Star
 } from "lucide-react";
-import { Sidebar } from "@/pages/dashboard";
+import { PageShell } from "@/components/PageShell";
 import {
   Avatar,
+  Button,
   Badge,
   Card,
   CardBody,
@@ -155,36 +156,29 @@ export default function ReportsPage() {
 
   if (role !== null && !canSeeReports) {
     return (
-      <div className="flex h-screen bg-background">
-        <Sidebar />
-        <main className="flex-1 flex items-center justify-center p-8">
-          <Card className="max-w-md">
-            <CardBody className="pt-6 text-center text-muted-foreground">
-              Os relatórios são restritos a administradores e supervisores.
-            </CardBody>
-          </Card>
-        </main>
-      </div>
+      <PageShell title="Relatórios">
+        <EmptyState
+          title="Acesso restrito"
+          description="Os relatórios são restritos a administradores e supervisores."
+        />
+      </PageShell>
     );
   }
 
   return (
-    <div className="min-h-[100dvh] bg-background">
-      <Sidebar />
-
-      <div className="ml-64 flex flex-col print:ml-0">
-        <header className="h-16 bg-card shadow-sm flex items-center justify-between px-8 z-0 print:hidden">
-          <h1 className="text-xl font-semibold text-foreground">Relatórios</h1>
-          <button 
-            onClick={handlePrint}
-            className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors text-sm font-medium"
-          >
-            <Printer className="w-4 h-4" />
-            Exportar PDF
-          </button>
-        </header>
-
-        <main className="flex-1 p-8">
+    <PageShell
+      width="wide"
+      title="Relatórios"
+      actions={
+        <Button
+          variant="primary"
+          iconLeft={<Printer className="w-4 h-4" />}
+          onClick={handlePrint}
+        >
+          Exportar PDF
+        </Button>
+      }
+    >
           {/* Filters Bar */}
           <Card className="mb-8 print:hidden">
             <CardBody className="p-4">
@@ -537,8 +531,6 @@ export default function ReportsPage() {
             </div>
           )}
 
-        </main>
-      </div>
-    </div>
+    </PageShell>
   );
 }

@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useRoute, Link, useLocation } from "wouter";
-import { Sidebar } from "../dashboard";
+import { Sidebar } from "@/components/Sidebar";
 import { useCrmHooks, useContactDetail } from "@/hooks/use-crm";
 import {
   ArrowLeft,

@@ -15,7 +15,7 @@ import {
   Copy,
 } from "lucide-react";
 import { useAuth } from "@/lib/devAuth";
-import { Sidebar } from "./dashboard";
+import { PageShell } from "@/components/PageShell";
 import { getWhatsAppStatus, connectWhatsApp, getWhatsAppQr, disconnectWhatsApp, getQrShareToken } from "@/lib/api";
 import { useTenantId } from "@/hooks/useTenantId";
 import { useToast } from "@/hooks/use-toast";
@@ -226,18 +226,7 @@ export default function WhatsAppConnectPage() {
   const statusInfo = STATUS_INFO[status] ?? STATUS_INFO["disconnected"]!;
 
   return (
-    <div className="min-h-[100dvh] bg-background">
-      <Sidebar />
-
-      <div className="ml-64 flex flex-col">
-        <header className="h-16 bg-card shadow-sm flex items-center justify-between px-8">
-          <h1 className="text-xl font-semibold text-foreground flex items-center gap-2">
-            <Smartphone className="w-5 h-5 text-primary" />
-            WhatsApp
-          </h1>
-        </header>
-
-        <main className="p-8 max-w-2xl">
+    <PageShell title="WhatsApp" icon={<Smartphone className="w-5 h-5" />}>
           {/* Status Card */}
           <div className="bg-card rounded-xl shadow-sm p-6 mb-6">
             <div className="flex items-center justify-between">
@@ -386,8 +375,6 @@ export default function WhatsAppConnectPage() {
               </ol>
             </div>
           )}
-        </main>
-      </div>
-    </div>
+    </PageShell>
   );
 }

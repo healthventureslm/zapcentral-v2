@@ -3,7 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Sidebar } from "@/pages/dashboard";
+import { PageShell } from "@/components/PageShell";
 import { useTenantId, useMyRole } from "@/hooks/useTenantId";
 import { TeamSection, DepartmentsSection } from "@/components/settings/team-management";
 
@@ -14,16 +14,7 @@ export default function SettingsPage() {
   const isAdmin = role === "admin" || role === "supervisor";
 
   return (
-    <div className="min-h-[100dvh] bg-background">
-      <Sidebar />
-      
-      <div className="ml-64 flex flex-col min-h-screen">
-        <header className="h-16 bg-card shadow-sm flex items-center px-8 z-0">
-          <h1 className="text-xl font-semibold text-foreground">Configurações</h1>
-        </header>
-
-        <main className="flex-1 p-8 max-w-4xl">
-          <div className="space-y-6">
+    <PageShell title="Configurações">
             
             <Card>
               <CardHeader>
@@ -104,9 +95,6 @@ export default function SettingsPage() {
               </CardContent>
             </Card>
 
-          </div>
-        </main>
-      </div>
-    </div>
+    </PageShell>
   );
 }

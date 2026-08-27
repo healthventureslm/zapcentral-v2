@@ -17,7 +17,8 @@ import {
   Smartphone,
   ArrowRight,
 } from "lucide-react";
-import { Sidebar } from "./dashboard";
+import { Button } from "@healthventureslm/design-system";
+import { PageShell } from "@/components/PageShell";
 import { useTenantId } from "@/hooks/useTenantId";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -157,35 +158,22 @@ export default function SimuladorPage() {
   }
 
   return (
-    <div className="min-h-[100dvh] bg-background">
-      <Sidebar />
-
-      <div className="ml-64 flex flex-col">
-        <header className="h-16 bg-card shadow-sm flex items-center justify-between px-8">
-          <div>
-            <h1 className="text-xl font-semibold text-foreground">
-              Simulador de atendimento
-            </h1>
-            <p className="text-xs text-muted-foreground">
-              Escreva como um paciente e veja a central responder — sem precisar
-              de celular pareado.
-            </p>
-          </div>
-          <button
-            onClick={() => limpar.mutate()}
-            disabled={limpar.isPending}
-            className="border border-border hover:bg-muted text-foreground px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-2 disabled:opacity-50"
-          >
-            {limpar.isPending ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <RotateCcw className="w-4 h-4" />
-            )}
-            Zerar demonstração
-          </button>
-        </header>
-
-        <main className="flex-1 p-8">
+    <PageShell
+      width="wide"
+      title="Simulador de atendimento"
+      subtitle="Escreva como um paciente e veja a central responder — sem precisar de celular pareado."
+      actions={
+        <Button
+          variant="secondary"
+          size="sm"
+          loading={limpar.isPending}
+          iconLeft={<RotateCcw className="w-4 h-4" />}
+          onClick={() => limpar.mutate()}
+        >
+          Zerar demonstração
+        </Button>
+      }
+    >
           <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_420px] gap-6 items-start">
             {/* ------------------------------------------------- coluna esquerda */}
             <div className="space-y-4">
@@ -449,8 +437,6 @@ export default function SimuladorPage() {
               </div>
             </div>
           </div>
-        </main>
-      </div>
-    </div>
+    </PageShell>
   );
 }

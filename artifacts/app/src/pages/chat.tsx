@@ -8,7 +8,7 @@ import { useAuth } from "@/lib/devAuth";
 import { initSocket, getSocket, joinTenant } from "@/lib/socket";
 import { avisarChamadoNovo, limparAvisos } from "@/lib/aviso";
 import { Send, Phone, X, ArrowRightLeft, Loader2, Wifi, WifiOff, ChevronDown, MessageCircle, PanelRightOpen, PanelRightClose } from "lucide-react";
-import { Sidebar } from "./dashboard";
+import { Sidebar } from "@/components/Sidebar";
 import { ContactPanel } from "@/components/ContactPanel";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
