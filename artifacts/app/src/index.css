@@ -61,6 +61,46 @@ body:has(.hv-sidebar--collapsed) .ml-64 {
   margin-left: var(--sidebar-width-collapsed);
 }
 
+/*
+ * A sala de atendimento e escura por decisao de produto: o agente passa o dia
+ * nela e o painel claro cansa. So que a tela vinha pintada com dez hex soltos
+ * e continuava herdando os tokens de texto do tema CLARO — `text-muted` e o
+ * ink-500 claro (#65726C), que sobre esses fundos da de 3.26:1 a 4.13:1.
+ * Horario, telefone, nome do setor e o rodape de status ficavam abaixo dos
+ * 4.5:1 de texto normal. Nao era gosto: era ilegivel.
+ *
+ * Em vez de trocar classe por classe, os tokens semanticos sao reapontados
+ * aqui e todo o resto — utilities do Tailwind, componentes do design system,
+ * o painel de contato — escurece junto. As superficies mantem o azul-marinho
+ * que a tela ja tinha; o texto passa a usar a rampa escura publicada pelo
+ * design system, medida contra estes fundos:
+ *
+ *   fundo             strong    body   muted  subtle
+ *   #0A1520 barras     16.2    11.6    6.26    4.32
+ *   #0F1923 canvas     15.6    11.2    6.04    4.17
+ *   #111E28 mensagens  14.9    10.7    5.76    3.98
+ *   #1A2B38 campo      12.8     9.2    4.94    3.41
+ *
+ * `--surface-card` NAO entra: `bg-card/5` e usado como veu branco de hover
+ * sobre o escuro, e o balao de mensagem recebida e um cartao claro de
+ * proposito. Escurecer o cartao apagaria os dois.
+ */
+.sala-escura {
+  --surface-canvas: #0F1923;
+  --surface-raised: #1A2B38;
+  --surface-sunken: #0A1520;
+  --surface-conversa: #111E28;
+
+  --text-strong: #ECF2EF;
+  --text-body: #C4D0CB;
+  --text-muted: #8B9A94;
+  --text-subtle: #6F7E78;
+
+  --border-strong: #3C4A45;
+  --border-default: #2B3833;
+  --border-subtle: #212D29;
+}
+
 @custom-variant dark (&:is(.dark *));
 
 /*

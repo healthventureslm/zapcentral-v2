@@ -89,12 +89,12 @@ function TagPicker({
     <div className="relative inline-block">
       <button
         onClick={() => setOpen(!open)}
-        className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full border border-dashed border-white/20 text-muted-foreground hover:text-white hover:border-white/40 transition-colors"
+        className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full border border-dashed border-white/20 text-muted-foreground hover:text-[var(--text-strong)] hover:border-white/40 transition-colors"
       >
         <Plus className="w-3 h-3" /> tag
       </button>
       {open && (
-        <div className="absolute z-50 top-6 left-0 bg-[#1A2B38] border border-white/10 rounded-lg shadow-xl p-2 w-48 space-y-1">
+        <div className="absolute z-50 top-6 left-0 bg-[var(--surface-raised)] border border-white/10 rounded-lg shadow-xl p-2 w-48 space-y-1">
           {available.map((t) => (
             <button
               key={t.id}
@@ -102,7 +102,7 @@ function TagPicker({
                 onAdd(t.id);
                 setOpen(false);
               }}
-              className="w-full text-left px-2 py-1 rounded hover:bg-card/5 text-xs text-white flex items-center gap-2"
+              className="w-full text-left px-2 py-1 rounded hover:bg-card/5 text-xs text-[var(--text-strong)] flex items-center gap-2"
             >
               <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: t.color }} />
               {t.name}
@@ -120,7 +120,7 @@ function TagPicker({
                   createMutation.mutate(newName.trim());
               }}
               placeholder="Nova tag..."
-              className="flex-1 bg-[#0F1923] border border-white/10 rounded px-2 py-1 text-xs text-white placeholder-muted-foreground focus:outline-none"
+              className="flex-1 bg-[var(--surface-canvas)] border border-white/10 rounded px-2 py-1 text-xs text-[var(--text-strong)] placeholder-muted-foreground focus:outline-none"
             />
             <button
               onClick={() => newName.trim() && createMutation.mutate(newName.trim())}
@@ -234,7 +234,7 @@ export function ContactPanel({
 
   if (isLoading || !contact) {
     return (
-      <div className="w-72 shrink-0 border-l border-white/5 bg-[#0A1520] flex items-center justify-center">
+      <div className="w-72 shrink-0 border-l border-white/5 bg-[var(--surface-sunken)] flex items-center justify-center">
         <Loader2 className="w-5 h-5 text-primary animate-spin" />
       </div>
     );
@@ -243,11 +243,11 @@ export function ContactPanel({
   const openDeals = contact.deals.filter((d) => d.status === "open");
 
   return (
-    <div className="w-72 shrink-0 border-l border-white/5 bg-[#0A1520] overflow-y-auto">
+    <div className="w-72 shrink-0 border-l border-white/5 bg-[var(--surface-sunken)] overflow-y-auto">
       {/* Profile */}
       <div className="p-4 border-b border-white/5">
         <div className="flex items-center justify-between mb-1">
-          <p className="text-sm font-semibold text-white truncate">
+          <p className="text-sm font-semibold text-[var(--text-strong)] truncate">
             {contact.name ?? contact.phone}
           </p>
           <div className="flex items-center gap-2">
@@ -274,13 +274,13 @@ export function ContactPanel({
               value={editName}
               onChange={(e) => setEditName(e.target.value)}
               placeholder="Nome completo"
-              className="w-full bg-[#1A2B38] border border-white/10 rounded px-2 py-1.5 text-xs text-white placeholder:text-muted-foreground focus:outline-none focus:border-primary/50"
+              className="w-full bg-[var(--surface-raised)] border border-white/10 rounded px-2 py-1.5 text-xs text-[var(--text-strong)] placeholder:text-muted-foreground focus:outline-none focus:border-primary/50"
             />
             <input
               value={editCpf}
               onChange={(e) => setEditCpf(e.target.value)}
               placeholder="CPF (000.000.000-00)"
-              className="w-full bg-[#1A2B38] border border-white/10 rounded px-2 py-1.5 text-xs text-white placeholder:text-muted-foreground focus:outline-none focus:border-primary/50"
+              className="w-full bg-[var(--surface-raised)] border border-white/10 rounded px-2 py-1.5 text-xs text-[var(--text-strong)] placeholder:text-muted-foreground focus:outline-none focus:border-primary/50"
             />
             <div className="flex gap-2">
               <button
@@ -292,7 +292,7 @@ export function ContactPanel({
               </button>
               <button
                 onClick={() => setEditing(false)}
-                className="px-3 text-xs text-muted-foreground hover:text-white"
+                className="px-3 text-xs text-muted-foreground hover:text-[var(--text-strong)]"
               >
                 Cancelar
               </button>
@@ -368,8 +368,8 @@ export function ContactPanel({
           </p>
           <div className="space-y-2">
             {openDeals.map((d) => (
-              <div key={d.id} className="bg-[#111E28] rounded-lg p-2.5">
-                <p className="text-xs font-medium text-white truncate">{d.title}</p>
+              <div key={d.id} className="bg-[var(--surface-conversa)] rounded-lg p-2.5">
+                <p className="text-xs font-medium text-[var(--text-strong)] truncate">{d.title}</p>
                 <div className="flex items-center justify-between mt-1">
                   <Badge
                     className="text-[10px] border-none px-1.5 py-0 text-white"
@@ -402,7 +402,7 @@ export function ContactPanel({
               if (e.key === "Enter" && noteText.trim()) addNoteM.mutate();
             }}
             placeholder="Adicionar nota..."
-            className="flex-1 bg-[#1A2B38] border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white placeholder-muted-foreground focus:outline-none focus:border-primary/50"
+            className="flex-1 bg-[var(--surface-raised)] border border-white/10 rounded-lg px-3 py-1.5 text-xs text-[var(--text-strong)] placeholder-muted-foreground focus:outline-none focus:border-primary/50"
           />
           <button
             onClick={() => noteText.trim() && addNoteM.mutate()}
@@ -423,8 +423,8 @@ export function ContactPanel({
             <p className="text-xs text-muted-foreground">Nenhuma nota ainda</p>
           )}
           {contact.notes.map((n) => (
-            <div key={n.id} className="bg-[#111E28] rounded-lg p-2.5 group">
-              <p className="text-xs text-white whitespace-pre-wrap">{n.content}</p>
+            <div key={n.id} className="bg-[var(--surface-conversa)] rounded-lg p-2.5 group">
+              <p className="text-xs text-foreground whitespace-pre-wrap">{n.content}</p>
               <div className="flex items-center justify-between mt-1.5">
                 <span className="text-[10px] text-muted-foreground">
                   {new Date(n.createdAt).toLocaleString("pt-BR", {

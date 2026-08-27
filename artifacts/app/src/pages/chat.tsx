@@ -2,7 +2,15 @@
  * Chat page — main agent interface.
  * Left panel: conversation list. Right panel: message thread + input.
  */
-import { Avatar, Badge } from "@healthventureslm/design-system";
+import {
+  Avatar,
+  Badge,
+  Button,
+  IconButton,
+  StatusDot,
+  Tabs,
+  Textarea,
+} from "@healthventureslm/design-system";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/lib/devAuth";
@@ -39,19 +47,22 @@ const STATUS_LABELS: Record<string, string> = {
   closed: "Fechado",
 };
 
-const STATUS_COLORS: Record<string, string> = {
-  new: "bg-blue-100 text-blue-700",
-  ivr: "bg-purple-100 text-purple-700",
-  waiting: "bg-amber-100 text-amber-700",
-  active: "bg-green-100 text-green-700",
-  closed: "bg-muted text-muted-foreground",
+type Variante = "neutral" | "positive" | "warning" | "danger" | "info" | "brand";
+
+const STATUS_VARIANTS: Record<string, Variante> = {
+  new: "info",
+  ivr: "brand",
+  waiting: "warning",
+  active: "positive",
+  closed: "neutral",
 };
 
-const AGENT_STATUS_COLORS: Record<string, string> = {
-  available: "bg-green-500",
-  busy: "bg-amber-500",
-  away: "bg-yellow-400",
-  offline: "bg-gray-400",
+/** O ponto ao lado do proprio status do agente. */
+const AGENT_STATUS_DOT: Record<string, "positive" | "warning" | "neutral"> = {
+  available: "positive",
+  busy: "warning",
+  away: "warning",
+  offline: "neutral",
 };
 
 const AGENT_STATUS_LABELS: Record<string, string> = {
@@ -103,7 +114,7 @@ function ConversationItem({
       <Avatar size="md" className="shrink-0 mt-0.5">{initials}</Avatar>
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between gap-2">
-          <span className="font-medium text-white text-sm truncate">
+          <span className="font-medium text-[var(--text-strong)] text-sm truncate">
             {conv.contact.name ?? contactHandle(conv.contact)}
           </span>
           <span className="text-xs text-muted-foreground shrink-0">
@@ -111,12 +122,7 @@ function ConversationItem({
           </span>
         </div>
         <div className="flex items-center gap-2 mt-0.5">
-          <Badge
-            className={cn(
-              "text-[10px] px-1.5 py-0 border-none rounded",
-              STATUS_COLORS[conv.status],
-            )}
-          >
+          <Badge variant={STATUS_VARIANTS[conv.status] ?? "neutral"}>
             {STATUS_LABELS[conv.status]}
           </Badge>
           {/* O canal aparece nos DOIS casos, e nao so no Telegram.
@@ -124,14 +130,7 @@ function ConversationItem({
               produto. Marcar so um dos dois deixava a lista parecendo
               exclusivamente de WhatsApp com um intruso, em vez de um balcao
               unico atendendo dois canais. */}
-          <Badge
-            className={cn(
-              "text-[10px] px-1.5 py-0 border-none rounded",
-              conv.contact.channel === "telegram"
-                ? "bg-[#229ED9]/20 text-[#5EC5F0]"
-                : "bg-primary/20 text-[#4ade80]",
-            )}
-          >
+          <Badge outline variant={conv.contact.channel === "telegram" ? "info" : "positive"}>
             {conv.contact.channel === "telegram" ? "Telegram" : "WhatsApp"}
           </Badge>
           {conv.departmentName && (
@@ -471,29 +470,24 @@ export default function ChatPage() {
   };
 
   return (
-    <div className="flex h-[100dvh] bg-[#0F1923]">
+    <div className="sala-escura flex h-[100dvh] bg-background">
       <Sidebar />
 
       {/* Conversation list */}
       <div className="ml-64 flex flex-col w-80 shrink-0 border-r border-white/5 h-full">
         {/* Agent status bar */}
-        <div className="h-14 flex items-center justify-between px-4 border-b border-white/5 bg-[#0A1520]">
+        <div className="h-14 flex items-center justify-between px-4 border-b border-white/5 bg-[var(--surface-sunken)]">
           <div className="relative">
             <button
               onClick={() => setShowStatusMenu(!showStatusMenu)}
-              className="flex items-center gap-2 text-sm text-white/80 hover:text-white"
+              className="flex items-center gap-2 text-sm text-foreground hover:text-[var(--text-strong)]"
             >
-              <span
-                className={cn(
-                  "w-2.5 h-2.5 rounded-full",
-                  AGENT_STATUS_COLORS[agentStatus],
-                )}
-              />
+              <StatusDot status={AGENT_STATUS_DOT[agentStatus] ?? "neutral"} />
               {AGENT_STATUS_LABELS[agentStatus]}
               <ChevronDown className="w-3.5 h-3.5 opacity-60" />
             </button>
             {showStatusMenu && (
-              <div className="absolute top-8 left-0 bg-[#1A2B38] border border-white/10 rounded-lg shadow-xl z-50 py-1 w-40">
+              <div className="absolute top-8 left-0 bg-[var(--surface-raised)] border border-white/10 rounded-lg shadow-xl z-50 py-1 w-40">
                 {(["available", "busy", "away", "offline"] as const).map((s) => (
                   <button
                     key={s}
@@ -501,9 +495,9 @@ export default function ChatPage() {
                       statusMutation.mutate(s);
                       setShowStatusMenu(false);
                     }}
-                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-white hover:bg-card/5"
+                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--text-strong)] hover:bg-card/5"
                   >
-                    <span className={cn("w-2 h-2 rounded-full", AGENT_STATUS_COLORS[s])} />
+                    <StatusDot status={AGENT_STATUS_DOT[s] ?? "neutral"} />
                     {AGENT_STATUS_LABELS[s]}
                   </button>
                 ))}
@@ -518,22 +512,15 @@ export default function ChatPage() {
         </div>
 
         {/* Tabs */}
-        <div className="flex border-b border-white/5">
-          {(["all", "mine", "queue"] as FilterTab[]).map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={cn(
-                "flex-1 py-2.5 text-xs font-medium transition-colors",
-                activeTab === tab
-                  ? "text-primary border-b-2 border-primary"
-                  : "text-muted-foreground hover:text-white",
-              )}
-            >
-              {tab === "all" ? "Todos" : tab === "mine" ? "Minhas" : "Fila"}
-            </button>
-          ))}
-        </div>
+        <Tabs
+          value={activeTab}
+          onChange={(v) => setActiveTab(v as FilterTab)}
+          items={[
+            { value: "all", label: "Todos" },
+            { value: "mine", label: "Minhas" },
+            { value: "queue", label: "Fila" },
+          ]}
+        />
 
         {/* Conversation list */}
         <div className="flex-1 overflow-y-auto">
@@ -570,7 +557,7 @@ export default function ChatPage() {
         ) : (
           <>
             {/* Chat header */}
-            <div className="h-14 bg-[#0A1520] border-b border-white/5 flex items-center justify-between px-6">
+            <div className="h-14 bg-[var(--surface-sunken)] border-b border-white/5 flex items-center justify-between px-6">
               <div className="flex items-center gap-3">
                 <Avatar size="sm">
                   {(selectedConv.contact.name ?? contactHandle(selectedConv.contact))
@@ -581,7 +568,7 @@ export default function ChatPage() {
                     .toUpperCase()}
                 </Avatar>
                 <div>
-                  <p className="text-sm font-semibold text-white">
+                  <p className="text-sm font-semibold text-[var(--text-strong)]">
                     {selectedConv.contact.name ?? contactHandle(selectedConv.contact)}
                   </p>
                   <p className="text-xs text-muted-foreground">
@@ -593,35 +580,31 @@ export default function ChatPage() {
               </div>
 
               <div className="flex items-center gap-2">
-                <Badge className={cn("text-xs border-none", STATUS_COLORS[selectedConv.status])}>
+                <Badge variant={STATUS_VARIANTS[selectedConv.status] ?? "neutral"}>
                   {STATUS_LABELS[selectedConv.status]}
                 </Badge>
 
-                <button
+                <IconButton
+                  size="sm"
+                  label={showContactPanel ? "Ocultar dados do contato" : "Mostrar dados do contato"}
                   onClick={() => setShowContactPanel((v) => !v)}
-                  className="text-muted-foreground hover:text-white p-1.5 rounded-md hover:bg-card/5 transition-colors"
-                  title={showContactPanel ? "Ocultar dados do contato" : "Mostrar dados do contato"}
                 >
                   {showContactPanel ? (
                     <PanelRightClose className="w-4 h-4" />
                   ) : (
                     <PanelRightOpen className="w-4 h-4" />
                   )}
-                </button>
+                </IconButton>
 
                 {selectedConv.status === "waiting" && (
-                  <button
+                  <Button
+                    size="sm"
+                    iconLeft={<Phone className="w-3.5 h-3.5" />}
+                    loading={pickMutation.isPending}
                     onClick={() => pickMutation.mutate(selectedConv.id)}
-                    disabled={pickMutation.isPending}
-                    className="text-xs bg-primary hover:bg-primary/90 text-white px-3 py-1.5 rounded-md transition-colors flex items-center gap-1.5"
                   >
-                    {pickMutation.isPending ? (
-                      <Loader2 className="w-3 h-3 animate-spin" />
-                    ) : (
-                      <Phone className="w-3 h-3" />
-                    )}
                     Pegar
-                  </button>
+                  </Button>
                 )}
 
                 {["active", "waiting"].includes(selectedConv.status) && (
@@ -629,16 +612,17 @@ export default function ChatPage() {
                     className="relative"
                     onMouseDown={(e) => e.stopPropagation()}
                   >
-                    <button
+                    <Button
+                      variant="quiet"
+                      size="sm"
+                      iconLeft={<ArrowRightLeft className="w-3.5 h-3.5" />}
                       onClick={() => setTransferindo((v) => !v)}
-                      className="text-xs bg-card/5 hover:bg-card/10 text-muted-foreground px-3 py-1.5 rounded-md transition-colors flex items-center gap-1.5"
                     >
-                      <ArrowRightLeft className="w-3 h-3" />
                       Transferir
-                    </button>
+                    </Button>
 
                     {transferindo && (
-                      <div className="absolute right-0 top-full mt-1 w-56 bg-[#1a2735] border border-white/10 rounded-lg shadow-xl z-20 py-1">
+                      <div className="absolute right-0 top-full mt-1 w-56 bg-[var(--surface-raised)] border border-white/10 rounded-lg shadow-xl z-20 py-1">
                         <p className="px-3 py-1.5 text-[11px] text-muted-foreground uppercase tracking-wide">
                           Transferir para o ramal
                         </p>
@@ -662,7 +646,7 @@ export default function ChatPage() {
                               key={d.id}
                               onClick={() => transferMutation.mutate(d.id)}
                               disabled={transferMutation.isPending}
-                              className="w-full text-left px-3 py-2 text-sm text-gray-200 hover:bg-card/5 transition-colors"
+                              className="w-full text-left px-3 py-2 text-sm text-foreground hover:bg-card/5 transition-colors"
                             >
                               {d.name}
                             </button>
@@ -673,20 +657,21 @@ export default function ChatPage() {
                 )}
 
                 {["active", "waiting"].includes(selectedConv.status) && (
-                  <button
+                  <Button
+                    variant="danger"
+                    size="sm"
+                    iconLeft={<X className="w-3.5 h-3.5" />}
+                    loading={closeMutation.isPending}
                     onClick={() => closeMutation.mutate()}
-                    disabled={closeMutation.isPending}
-                    className="text-xs bg-red-500/10 hover:bg-red-500/20 text-red-400 px-3 py-1.5 rounded-md transition-colors flex items-center gap-1.5"
                   >
-                    <X className="w-3 h-3" />
                     Fechar
-                  </button>
+                  </Button>
                 )}
               </div>
             </div>
 
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto px-6 py-4 bg-[#111E28]">
+            <div className="flex-1 overflow-y-auto px-6 py-4 bg-[var(--surface-conversa)]">
               {msgsLoading ? (
                 <div className="flex justify-center py-8">
                   <Loader2 className="w-5 h-5 text-primary animate-spin" />
@@ -710,32 +695,32 @@ export default function ChatPage() {
 
             {/* Input */}
             {selectedConv.status === "active" && (
-              <div className="bg-[#0A1520] border-t border-white/5 px-4 py-3 flex items-end gap-3">
-                <textarea
+              <div className="bg-[var(--surface-sunken)] border-t border-white/5 px-4 py-3 flex items-end gap-3">
+                <Textarea
                   value={inputText}
                   onChange={(e) => setInputText(e.target.value)}
                   onKeyDown={handleKeyDown}
                   placeholder="Digite uma mensagem... (Enter para enviar)"
                   rows={1}
-                  className="flex-1 bg-[#1A2B38] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-muted-foreground resize-none focus:outline-none focus:border-primary/50 transition-colors min-h-[40px] max-h-32"
-                  style={{ resize: "none" }}
+                  className="flex-1 max-h-32"
                 />
-                <button
-                  onClick={handleSend}
+                <IconButton
+                  variant="solid"
+                  label="Enviar mensagem"
                   disabled={!inputText.trim() || sendMutation.isPending}
-                  className="bg-primary hover:bg-primary/90 disabled:opacity-40 text-white p-2.5 rounded-xl transition-colors shrink-0"
+                  onClick={handleSend}
                 >
                   {sendMutation.isPending ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
                   ) : (
                     <Send className="w-4 h-4" />
                   )}
-                </button>
+                </IconButton>
               </div>
             )}
 
             {selectedConv.status !== "active" && (
-              <div className="bg-[#0A1520] border-t border-white/5 px-6 py-3 text-xs text-muted-foreground text-center">
+              <div className="bg-[var(--surface-sunken)] border-t border-white/5 px-6 py-3 text-xs text-muted-foreground text-center">
                 {selectedConv.status === "waiting"
                   ? "Pegue a conversa para começar a atender"
                   : selectedConv.status === "closed"
