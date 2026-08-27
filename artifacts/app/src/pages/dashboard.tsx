@@ -30,6 +30,7 @@ import {
   CardBody,
   CardHeader,
   Table,
+  SidebarNav,
 } from "@healthventureslm/design-system";
 import { useTenantId, useMyRole } from "@/hooks/useTenantId";
 import { useRamalDescoberto } from "@/hooks/useRamalDescoberto";
@@ -60,59 +61,61 @@ const navItems = [
   { name: "Configurações", path: "/settings", icon: Settings },
 ];
 
+/** Iniciais para o bloco de usuario do rodape. */
+function iniciaisDe(nome: string | null | undefined): string {
+  if (!nome) return "?";
+  const partes = nome.trim().split(/\s+/);
+  const primeira = partes[0]?.[0] ?? "";
+  const ultima = partes.length > 1 ? (partes[partes.length - 1]?.[0] ?? "") : "";
+  return (primeira + ultima).toUpperCase() || "?";
+}
+
 export function Sidebar() {
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
   const tenantId = useTenantId();
   const internalUnread = useInternalChatNotifications(tenantId);
   const { user } = useUser();
 
+  // O item ativo: prefixo conta, menos para "/", que so casa exato — senao a
+  // raiz ficaria ativa em todas as telas.
+  const ativo =
+    navItems.find((i) =>
+      i.path === "/" ? location === "/" : location.startsWith(i.path),
+    )?.path ?? "/";
+
   return (
-    <div className="fixed inset-y-0 left-0 w-64 bg-[#0F1923] flex flex-col z-10 sidebar-transition print:hidden">
-      <div className="h-16 flex items-center px-6 border-b border-white/5">
-        <MessageCircle className="w-6 h-6 text-primary mr-2" />
-        <span className="text-white font-semibold text-lg tracking-wide">
-          ZapCentral
-        </span>
-      </div>
-
-      <div className="flex-1 py-6 px-3 space-y-1">
-        {navItems.map((item) => {
-          const isActive = location === item.path || location.startsWith(item.path + "/");
-          const isExact = location === item.path;
-          const active = isActive && (item.path !== "/" || isExact);
+    // O SidebarNav nao se posiciona: e `width: var(--sidebar-width); height:
+    // 100%`, feito para viver num flex row. As paginas aqui assumem uma barra
+    // fixa e compensam com `ml-64`, entao o invólucro fixo continua, e a
+    // largura do token esta igualada a 16rem no index.css.
+    <div className="fixed inset-y-0 left-0 z-10 print:hidden">
+      <SidebarNav
+        brand={{ title: "ZapCentral" }}
+        activeId={ativo}
+        // Sem `href` de proposito: com ele o componente nao chama
+        // preventDefault e o navegador recarrega a pagina inteira, matando a
+        // navegacao do SPA. O roteamento fica com o wouter.
+        onSelect={(id) => setLocation(id)}
+        items={navItems.map((item) => {
           const Icon = item.icon;
-
-          return (
-            <Link key={item.path} href={item.path}>
-              <div
-                className={`flex items-center px-3 py-2.5 rounded-md cursor-pointer transition-colors ${
-                  active
-                    ? "bg-primary/10 text-primary border-r-2 border-primary"
-                    : "text-muted-foreground hover:text-white hover:bg-card/5"
-                }`}
-              >
-                <Icon className="w-5 h-5 mr-3" />
-                <span className="font-medium text-sm">{item.name}</span>
-                {item.path === "/equipe" && internalUnread > 0 && (
-                  <span className="ml-auto bg-primary text-white text-[10px] font-semibold rounded-full px-1.5 py-0.5 min-w-[18px] text-center">
-                    {internalUnread > 99 ? "99+" : internalUnread}
-                  </span>
-                )}
-              </div>
-            </Link>
-          );
+          return {
+            id: item.path,
+            label: item.name,
+            icon: <Icon className="w-5 h-5" />,
+            ...(item.path === "/equipe" && internalUnread > 0
+              ? { count: internalUnread }
+              : {}),
+          };
         })}
-      </div>
-
-      <div className="p-4 border-t border-white/5 flex items-center gap-3">
-        <UserButton />
-        {/* O nome de quem esta logado, e nao "Minha Conta": numa demonstracao
-            com duas telas lado a lado, saber quem e cada janela e o que faz a
-            transferencia entre atendentes ficar legivel. */}
-        <span className="text-sm text-muted-foreground font-medium truncate">
-          {user?.fullName ?? "Minha conta"}
-        </span>
-      </div>
+        // O nome de quem esta logado, e nao "Minha conta": numa demonstracao
+        // com duas telas lado a lado, saber quem e cada janela e o que faz a
+        // transferencia entre atendentes ficar legivel.
+        user={{
+          name: user?.fullName ?? "Minha conta",
+          initials: iniciaisDe(user?.fullName),
+        }}
+        footerAction={<UserButton />}
+      />
     </div>
   );
 }

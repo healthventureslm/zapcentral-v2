@@ -33,6 +33,15 @@
 @import "@healthventureslm/design-system/tokens/theme-dark.css" layer(hv);
 @import "@healthventureslm/design-system/components.css" layer(hv-components);
 
+/*
+ * As paginas compensam a barra fixa com `ml-64` (16rem). O design system
+ * usa 264px, o que deixaria 8px de sobra em todas as telas. Igualar aqui
+ * evita editar as onze paginas.
+ */
+:root {
+  --sidebar-width: 16rem;
+}
+
 @custom-variant dark (&:is(.dark *));
 
 /*
