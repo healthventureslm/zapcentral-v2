@@ -401,7 +401,6 @@ export default function DashboardPage() {
 
   return (
     <PageShell
-      width="wide"
       title="Painel principal"
       actions={<Badge variant="neutral">Central {tenantId ?? "…"}</Badge>}
     >

@@ -263,7 +263,6 @@ export default function ContactsPage() {
 
   return (
     <PageShell
-        width="wide"
         title="CRM"
         actions={
           <div className="flex items-center gap-3">

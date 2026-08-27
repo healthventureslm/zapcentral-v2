@@ -167,7 +167,6 @@ export default function ReportsPage() {
 
   return (
     <PageShell
-      width="wide"
       title="Relatórios"
       actions={
         <Button

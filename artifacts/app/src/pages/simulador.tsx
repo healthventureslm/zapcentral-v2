@@ -159,7 +159,6 @@ export default function SimuladorPage() {
 
   return (
     <PageShell
-      width="wide"
       title="Simulador de atendimento"
       subtitle="Escreva como um paciente e veja a central responder — sem precisar de celular pareado."
       actions={

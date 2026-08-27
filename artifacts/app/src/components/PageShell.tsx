@@ -21,7 +21,6 @@ export function PageShell({
   icon,
   actions,
   onBack,
-  width = "regular",
   children,
 }: {
   title: ReactNode;
@@ -35,11 +34,6 @@ export function PageShell({
    * e mata o roteamento do SPA.
    */
   onBack?: () => void;
-  /**
-   * `regular` cobre a maioria das telas. `wide` e para tabelas largas e
-   * quadros, que precisam da tela inteira.
-   */
-  width?: "regular" | "wide";
   children: ReactNode;
 }) {
   return (
@@ -47,19 +41,18 @@ export function PageShell({
       <Sidebar />
       <main className="ml-64 p-8 print:ml-0">
         {/*
-         * Centralizado, e nao encostado a esquerda. Com a barra ocupando 16rem
-         * e um limite de largura no conteudo, o alinhamento a esquerda deixava
-         * uma faixa morta a direita que crescia com o monitor.
+         * Uma largura para todas as telas, centralizada.
          *
-         * `wide` tambem tem teto: sem ele, uma tabela de sete colunas se estica
-         * de ponta a ponta numa tela ultrawide e a linha fica impossivel de
-         * seguir com os olhos.
+         * Havia duas — uma para formularios e outra para tabelas — e isso
+         * recriava o problema que este componente existe para resolver: ir do
+         * painel para o WhatsApp mudava a largura do conteudo, e as telas
+         * deixavam de casar entre si.
+         *
+         * O teto tambem evita que uma tabela de sete colunas se estique de
+         * ponta a ponta numa tela ultrawide, onde o olho perde a altura da
+         * linha no meio do caminho.
          */}
-        <div
-          className={
-            width === "wide" ? "max-w-7xl mx-auto" : "max-w-5xl mx-auto"
-          }
-        >
+        <div className="max-w-7xl mx-auto">
           <PageHeader
             title={title}
             {...(subtitle ? { subtitle } : {})}
