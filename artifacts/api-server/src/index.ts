@@ -2,6 +2,7 @@ import { createServer } from "http";
 import app from "./app";
 import { initSocket, reconciliarPresenca } from "./services/socket";
 import { iniciarVarreduraDeInatividade } from "./services/inatividade";
+import { iniciarVarreduraDeRamalDescoberto } from "./services/ramalDescoberto";
 import { logger } from "./lib/logger";
 
 const rawPort = process.env["PORT"];
@@ -30,4 +31,5 @@ httpServer.listen(port, (err?: Error) => {
   // Ninguem esta conectado agora: zera a presenca herdada da execucao anterior.
   void reconciliarPresenca();
   iniciarVarreduraDeInatividade();
+  iniciarVarreduraDeRamalDescoberto();
 });

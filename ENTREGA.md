@@ -256,6 +256,12 @@ pnpm --filter @workspace/app run build
   conversa nova fica marcada na lista até alguém abrir. A conversa que já está
   aberta na tela não avisa — bipar a cada mensagem dela treinaria todo mundo a
   ignorar o aviso.
+- **Alerta de ramal descoberto.** Quando um ramal fica com fila e sem ninguém
+  disponível, o sistema avisa admins e supervisores — bipe e aviso vermelho —
+  em vez de esperar que alguém esteja olhando a tela. De madrugada não há
+  ninguém olhando, que é exatamente quando o problema acontece. Não é
+  escalonamento: não sobe chamado individual por degrau nem tem prazo por
+  conversa. É a versão coletiva da mesma pergunta.
 - **Operação agora**, no painel: ramal por ramal, quantos esperando e **quem
   está disponível naquele ramal neste instante**. O ramal com fila e sem ninguém
   disponível aparece primeiro e em vermelho — é o único estado que exige ação
@@ -392,8 +398,9 @@ Registrado para não haver surpresa em demonstração:
 
 - **Plantão / escala** — sessão que termina no fim do turno e devolve as conversas
   para a fila.
-- **Escalonamento** — chamado sem resposta subindo para supervisor de ramal e de
-  hospital.
+- **Escalonamento por chamado** — chamado individual sem resposta subindo por
+  degraus até supervisor de ramal e de hospital, com prazo próprio. O que existe
+  hoje é o alerta coletivo (ramal descoberto), não a escada por conversa.
 - **Controle de acesso por link** — quem de fora enxerga quais ramais, com
   registro de tentativa negada.
 - **Menu em árvore** — ramal dentro de ramal, montado pelo admin.

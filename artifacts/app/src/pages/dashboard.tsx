@@ -22,6 +22,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useTenantId, useMyRole } from "@/hooks/useTenantId";
+import { useRamalDescoberto } from "@/hooks/useRamalDescoberto";
 import { cn } from "@/lib/utils";
 import {
   getReportOverview,
@@ -334,6 +335,9 @@ export default function DashboardPage() {
   // agente comum dispara 403 a cada intervalo de polling, indefinidamente.
   const canSeeReports = role === "admin" || role === "supervisor";
   const roleResolved = role !== null;
+
+  // Avisa quem manda quando um ramal fica com fila e sem ninguem disponivel.
+  useRamalDescoberto(tenantId, role);
 
   const { data: overview, isLoading: loadingOverview, error: overviewErr } = useQuery({
     queryKey: ["reports", "overview", tenantId],
