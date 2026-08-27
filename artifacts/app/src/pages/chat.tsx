@@ -6,6 +6,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/lib/devAuth";
 import { initSocket, getSocket, joinTenant } from "@/lib/socket";
+import { avisarChamadoNovo, limparAvisos } from "@/lib/aviso";
 import { Send, Phone, X, ArrowRightLeft, Loader2, Wifi, WifiOff, ChevronDown, MessageCircle, PanelRightOpen, PanelRightClose } from "lucide-react";
 import { Sidebar } from "./dashboard";
 import { ContactPanel } from "@/components/ContactPanel";
@@ -75,10 +76,13 @@ function formatTime(ts: string | null): string {
 function ConversationItem({
   conv,
   active,
+  naoVista,
   onClick,
 }: {
   conv: Conversation;
   active: boolean;
+  /** Chegou algo aqui e ninguem abriu ainda. */
+  naoVista: boolean;
   onClick: () => void;
 }) {
   const initials = conv.contact.name
@@ -91,6 +95,10 @@ function ConversationItem({
       className={cn(
         "w-full flex items-start gap-3 px-4 py-3 text-left hover:bg-white/5 transition-colors border-b border-white/5",
         active && "bg-[#25D366]/10",
+        // A barra na lateral marca a linha sem mexer no layout: pintar o fundo
+        // brigaria com o destaque da conversa aberta, e as duas coisas podem
+        // valer ao mesmo tempo.
+        naoVista && !active && "bg-[#25D366]/[0.06] border-l-2 border-l-[#25D366]",
       )}
     >
       <Avatar className="h-10 w-10 shrink-0 mt-0.5">
@@ -228,6 +236,37 @@ export default function ChatPage() {
 
   const [activeTab, setActiveTab] = useState<FilterTab>("all");
   const [selectedId, setSelectedId] = useState<number | null>(null);
+
+  /** Conversas com novidade que a pessoa ainda nao abriu. */
+  const [naoVistas, setNaoVistas] = useState<Set<number>>(new Set());
+
+  // O handler do socket e registrado uma vez so. Ler `selectedId` direto de la
+  // congelaria o valor do primeiro render, e toda conversa aberta continuaria
+  // bipando. A ref e o que mantem o handler estavel e o valor atual.
+  const selectedIdRef = useRef<number | null>(null);
+  useEffect(() => {
+    selectedIdRef.current = selectedId;
+    if (selectedId === null) return;
+    setNaoVistas((s) => {
+      if (!s.has(selectedId)) return s;
+      const proximo = new Set(s);
+      proximo.delete(selectedId);
+      return proximo;
+    });
+  }, [selectedId]);
+
+  // Voltar para a aba zera o contador do titulo: a pessoa ja viu.
+  useEffect(() => {
+    const aoVoltar = () => {
+      if (document.visibilityState === "visible") limparAvisos();
+    };
+    document.addEventListener("visibilitychange", aoVoltar);
+    window.addEventListener("focus", aoVoltar);
+    return () => {
+      document.removeEventListener("visibilitychange", aoVoltar);
+      window.removeEventListener("focus", aoVoltar);
+    };
+  }, []);
   const [inputText, setInputText] = useState("");
   const [agentStatus, setAgentStatus] = useState<"available" | "busy" | "away" | "offline">("offline");
   const [showStatusMenu, setShowStatusMenu] = useState(false);
@@ -290,12 +329,23 @@ export default function ChatPage() {
       socket.on("new_message", (data: { conversationId: number }) => {
         void qc.invalidateQueries({ queryKey: ["messages", tenantId, data.conversationId] });
         void qc.invalidateQueries({ queryKey: ["conversations", tenantId] });
+
+        // Só avisa o que a pessoa não está vendo. A conversa aberta na tela
+        // atualiza sozinha, e bipar a cada mensagem dela — inclusive as que o
+        // próprio atendente acabou de mandar — treinaria todo mundo a ignorar
+        // o aviso, que é o oposto do que ele existe para fazer.
+        if (data.conversationId !== selectedIdRef.current) {
+          setNaoVistas((s) => new Set(s).add(data.conversationId));
+          avisarChamadoNovo();
+        }
       });
       socket.on("conversation_updated", () => {
         void qc.invalidateQueries({ queryKey: ["conversations", tenantId] });
       });
       socket.on("conversation_assigned", (data: { conversation: { id: number } }) => {
         void qc.invalidateQueries({ queryKey: ["conversations", tenantId] });
+        setNaoVistas((s) => new Set(s).add(data.conversation.id));
+        avisarChamadoNovo();
         toast({ title: "Nova conversa atribuída", description: `Conversa #${data.conversation.id}` });
       });
 
@@ -507,6 +557,7 @@ export default function ChatPage() {
                 key={conv.id}
                 conv={conv}
                 active={conv.id === selectedId}
+                naoVista={naoVistas.has(conv.id)}
                 onClick={() => setSelectedId(conv.id)}
               />
             ))
