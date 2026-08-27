@@ -1,8 +1,12 @@
 import { useUser } from "@/lib/devAuth";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Switch } from "@/components/ui/switch";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  Avatar,
+  Badge,
+  Card,
+  CardBody,
+  CardHeader,
+  Switch,
+} from "@healthventureslm/design-system";
 import { PageShell } from "@/components/PageShell";
 import { useTenantId, useMyRole } from "@/hooks/useTenantId";
 import { TeamSection, DepartmentsSection } from "@/components/settings/team-management";
@@ -17,32 +21,25 @@ export default function SettingsPage() {
     <PageShell title="Configurações">
             
             <Card>
-              <CardHeader>
-                <CardTitle>Meu Perfil</CardTitle>
-                <CardDescription>Informações da sua conta de usuário.</CardDescription>
-              </CardHeader>
-              <CardContent>
+              <CardHeader title={<>Meu Perfil</>} subtitle={<>Informações da sua conta de usuário.</>} />
+              <CardBody>
                 <div className="flex items-center space-x-4">
-                  <Avatar className="w-16 h-16 border-2 border-border">
-                    <AvatarImage src={user?.imageUrl} />
-                    <AvatarFallback className="text-lg bg-muted text-foreground">
-                      {user?.fullName?.substring(0, 2).toUpperCase() || "US"}
-                    </AvatarFallback>
-                  </Avatar>
+                  <Avatar
+                    size="lg"
+                    src={user?.imageUrl}
+                    fromName={user?.fullName ?? undefined}
+                  />
                   <div>
                     <h3 className="font-medium text-lg text-foreground">{user?.fullName || "Usuário"}</h3>
                     <p className="text-muted-foreground">{user?.primaryEmailAddress?.emailAddress || "email@exemplo.com"}</p>
                   </div>
                 </div>
-              </CardContent>
+              </CardBody>
             </Card>
 
             <Card>
-              <CardHeader>
-                <CardTitle>Plano Atual</CardTitle>
-                <CardDescription>Gerencie sua assinatura e limites de uso.</CardDescription>
-              </CardHeader>
-              <CardContent>
+              <CardHeader title={<>Plano Atual</>} subtitle={<>Gerencie sua assinatura e limites de uso.</>} />
+              <CardBody>
                 <div className="flex items-center justify-between p-4 border rounded-lg bg-muted/50">
                   <div>
                     <div className="flex items-center gap-2 mb-1">
@@ -55,7 +52,7 @@ export default function SettingsPage() {
                     Fazer Upgrade
                   </button>
                 </div>
-              </CardContent>
+              </CardBody>
             </Card>
 
             {isAdmin && tenantId && (
@@ -66,11 +63,8 @@ export default function SettingsPage() {
             )}
 
             <Card>
-              <CardHeader>
-                <CardTitle>Notificações</CardTitle>
-                <CardDescription>Configure como e quando você deseja ser alertado.</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
+              <CardHeader title={<>Notificações</>} subtitle={<>Configure como e quando você deseja ser alertado.</>} />
+              <CardBody className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
                     <div className="font-medium text-foreground">Novas Mensagens</div>
@@ -92,7 +86,7 @@ export default function SettingsPage() {
                   </div>
                   <Switch checked={true} />
                 </div>
-              </CardContent>
+              </CardBody>
             </Card>
 
     </PageShell>

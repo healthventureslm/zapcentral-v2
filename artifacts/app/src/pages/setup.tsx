@@ -8,9 +8,13 @@
  */
 import { useEffect, useState } from "react";
 import { Loader2, ShieldCheck } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Button,
+  Card,
+  CardBody,
+  CardHeader,
+  Input,
+} from "@healthventureslm/design-system";
 import { API_BASE, authHeaders } from "@/lib/apiBase";
 import { basePath } from "@/App";
 
@@ -98,14 +102,9 @@ export default function SetupPage() {
         </div>
 
         <Card className="shadow-sm border-0">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base">Criar a central</CardTitle>
-            <CardDescription>
-              Preencha os dados abaixo. Você precisará do segredo de ativação
-              fornecido junto com o acesso à plataforma.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
+          <CardHeader title={<>Criar a central</>} subtitle={<>Preencha os dados abaixo. Você precisará do segredo de ativação
+              fornecido junto com o acesso à plataforma.</>} />
+          <CardBody>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-1.5">
                 <label className="text-sm font-medium text-foreground">
@@ -150,7 +149,7 @@ export default function SetupPage() {
                 Ativar plataforma
               </Button>
             </form>
-          </CardContent>
+          </CardBody>
         </Card>
 
         <p className="text-center text-xs text-muted-foreground">

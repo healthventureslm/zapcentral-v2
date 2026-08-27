@@ -4,7 +4,7 @@
  */
 import { useClerk } from "@/lib/devAuth";
 import { LogOut, MessageSquare } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@healthventureslm/design-system";
 
 export default function NoAccessPage() {
   const { signOut } = useClerk();
@@ -25,7 +25,7 @@ export default function NoAccessPage() {
         </div>
 
         <Button
-          variant="outline"
+          variant="secondary"
           className="gap-2"
           onClick={() => void signOut()}
         >

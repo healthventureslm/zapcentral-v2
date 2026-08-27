@@ -4,12 +4,17 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Settings, Plus, Trash2, Loader2, Save } from "lucide-react";
-import { Button, EmptyState } from "@healthventureslm/design-system";
+import {
+  Button,
+  Card,
+  CardBody,
+  EmptyState,
+} from "@healthventureslm/design-system";
 import { PageShell } from "@/components/PageShell";
 import { getChannelSettings, updateChannelSettings, type ChannelSettings } from "@/lib/api";
 import { useTenantId } from "@/hooks/useTenantId";
 import { useToast } from "@/hooks/use-toast";
-import { Card, CardContent } from "@/components/ui/card";
+
 
 const DAYS = [
   { key: "monday", label: "Segunda" },
@@ -115,7 +120,7 @@ export default function ChannelSettingsPage() {
     >
           {/* Messages */}
           <Card>
-            <CardContent className="p-6 space-y-4">
+            <CardBody className="p-6 space-y-4">
               <h2 className="font-semibold text-foreground">Mensagens Automáticas</h2>
 
               <FormField
@@ -162,12 +167,12 @@ export default function ChannelSettingsPage() {
                   placeholder="Obrigado pelo contato! Se precisar de mais ajuda, estamos à disposição."
                 />
               </FormField>
-            </CardContent>
+            </CardBody>
           </Card>
 
           {/* IVR Menu Options */}
           <Card>
-            <CardContent className="p-6 space-y-4">
+            <CardBody className="p-6 space-y-4">
               <div className="flex items-center justify-between">
                 <h2 className="font-semibold text-foreground">Opções do Menu IVR</h2>
                 <button
@@ -235,12 +240,12 @@ export default function ChannelSettingsPage() {
                   ))}
                 </div>
               )}
-            </CardContent>
+            </CardBody>
           </Card>
 
           {/* Distribution & Timing */}
           <Card>
-            <CardContent className="p-6 space-y-4">
+            <CardBody className="p-6 space-y-4">
               <h2 className="font-semibold text-foreground">Distribuição e Tempo</h2>
 
               <FormField label="Modo de distribuição">
@@ -291,12 +296,12 @@ export default function ChannelSettingsPage() {
                   </label>
                 </div>
               </FormField>
-            </CardContent>
+            </CardBody>
           </Card>
 
           {/* Working Hours */}
           <Card>
-            <CardContent className="p-6 space-y-4">
+            <CardBody className="p-6 space-y-4">
               <div className="flex items-center justify-between">
                 <h2 className="font-semibold text-foreground">Horário de Atendimento</h2>
                 <label className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -375,7 +380,7 @@ export default function ChannelSettingsPage() {
                   })}
                 </div>
               )}
-            </CardContent>
+            </CardBody>
           </Card>
     </PageShell>
   );
