@@ -12,7 +12,8 @@
     "migrate": "drizzle-kit migrate --config ./drizzle.config.ts",
     "push": "drizzle-kit push --config ./drizzle.config.ts",
     "push-force": "drizzle-kit push --force --config ./drizzle.config.ts",
-    "seed:demo": "tsx --env-file-if-exists=../../.env src/seedDemo.ts"
+    "seed:demo": "tsx --env-file-if-exists=../../.env src/seedDemo.ts",
+    "seed:ramais": "tsx --env-file-if-exists=../../.env src/seedRamais.ts"
   },
   "dependencies": {
     "drizzle-orm": "catalog:",

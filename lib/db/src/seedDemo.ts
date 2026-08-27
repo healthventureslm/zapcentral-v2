@@ -26,6 +26,7 @@ import {
   platformConfigTable,
 } from "./schema";
 import { eq, and } from "drizzle-orm";
+import { RAMAIS } from "./ramais";
 
 /**
  * Minutos de inatividade ate a conversa encerrar sozinha, nesta central.
@@ -41,20 +42,6 @@ import { eq, and } from "drizzle-orm";
  * encerramento automatico basta baixar o valor na tela para 1 minuto.
  */
 const TIMEOUT_DA_DEMONSTRACAO = 240;
-
-/** Os ramais, no padrao "<unidade> — Medicos" usado pelo hospital. */
-const RAMAIS = [
-  { nome: "Emergência — Médicos", cor: "#ef4444" },
-  { nome: "UTI — Médicos", cor: "#f97316" },
-  { nome: "UCI — Médicos", cor: "#eab308" },
-  { nome: "USI — Médicos", cor: "#84cc16" },
-  { nome: "TMO — Médicos", cor: "#22c55e" },
-  { nome: "UI 1 — Médicos", cor: "#14b8a6" },
-  { nome: "UI 2 — Médicos", cor: "#06b6d4" },
-  { nome: "UI 3 — Médicos", cor: "#3b82f6" },
-  { nome: "Centro Cirúrgico — Médicos", cor: "#8b5cf6" },
-  { nome: "Radiologia — Médicos", cor: "#ec4899" },
-];
 
 /**
  * A equipe. Os ids seguem o formato do bypass de desenvolvimento

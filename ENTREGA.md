@@ -170,7 +170,43 @@ git push origin main
    `DEV_AUTH_BYPASS` **não pode existir** em produção — o próprio código se recusa
    a subir com ele e `NODE_ENV=production`.
 
-### 5.3 Antes de dar merge, saiba disto
+### 5.3 Os ramais em produção
+
+Os dez ramais do hospital — Emergência, UTI, UCI, USI, TMO, UI 1, UI 2, UI 3,
+Centro Cirúrgico e Radiologia, todos "— Médicos" — vêm no **seed de
+demonstração**, que roda na sua máquina.
+
+**Eles não aparecem em produção sozinhos.** E o `seed:demo` não serve lá: junto
+com os ramais ele cria equipe fictícia, pacientes inventados, conversas com nota
+de satisfação e apaga o movimento anterior da central. Num banco com atendimento
+real, isso é perda de dado.
+
+Para criar só os ramais, num banco de verdade:
+
+```bash
+DATABASE_URL="<url de producao>" pnpm --filter @workspace/db run seed:ramais
+```
+
+O que ele faz e o que não faz:
+
+- Cria os dez ramais que faltarem. Não cria pessoa, não cria conversa, não apaga
+  nada.
+- É idempotente: o que já existe (pelo nome, dentro da central) fica como está —
+  inclusive cor, descrição e status, que alguém pode ter editado pelo painel.
+  Rodar de novo depois de desativar um ramal **não** o reativa.
+- Monta o menu do robô com os quatro primeiros **apenas se ainda não houver
+  menu**. Sobrescrever o menu de uma central em operação mudaria, sem aviso, o
+  número que os pacientes já conhecem — quem digitasse "2" cairia noutra equipe.
+- Com mais de uma central ativa, ele **para e lista as opções** em vez de
+  escolher sozinho. Aí é `TENANT_SLUG=<slug>` na frente do comando.
+
+Dez opções num menu ficam ilegíveis no celular, então o menu nasce com quatro. Os
+outros seis existem e entram pelo painel, na ordem que o hospital quiser.
+
+Alternativa: criar pelo painel, um a um, em **Ramais**. O e-mail da Health já tem
+admin em produção.
+
+### 5.4 Antes de dar merge, saiba disto
 
 **`pnpm run build` na raiz falha.** O artifact `artifacts/zapcentral-deck` tem um
 erro de typecheck **pré-existente**, anterior a esta branch, e o `build` da raiz
