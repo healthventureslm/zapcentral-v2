@@ -23,6 +23,7 @@ import {
   contactsTable,
   conversationsTable,
   messagesTable,
+  platformConfigTable,
 } from "./schema";
 import { eq, and } from "drizzle-orm";
 
@@ -234,6 +235,31 @@ async function popular(): Promise<void> {
     equipe.push({ id, nome: p.nome, ramais: p.ramais });
   }
   console.log(`  ${equipe.length} pessoas na equipe`);
+
+  // Marca a plataforma como configurada.
+  //
+  // O seed cria a central direto no banco, sem passar pela tela de
+  // configuracao inicial — que e quem normalmente grava esta chave. Sem ela a
+  // API responde `bootstrapped: false`, e /setup continua oferecendo criar a
+  // central mesmo com tudo pronto: parece que o sistema foi zerado. Pior,
+  // quem preenchesse o formulario criaria uma SEGUNDA central.
+  const admin = equipe[0];
+  if (admin) {
+    await db
+      .insert(platformConfigTable)
+      .values({ key: "super_admin_bootstrapped", value: admin.id })
+      .onConflictDoNothing();
+
+    await db
+      .update(tenantUsersTable)
+      .set({ isSuperAdmin: true })
+      .where(
+        and(
+          eq(tenantUsersTable.tenantId, tenantId),
+          eq(tenantUsersTable.clerkUserId, admin.id),
+        ),
+      );
+  }
 
   // ------------------------------------------------------------------
   // Menu do robo — so os quatro primeiros ramais. Um menu com dez opcoes

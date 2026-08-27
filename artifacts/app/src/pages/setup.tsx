@@ -6,7 +6,7 @@
  *   2. Creates the user's "central" (tenant)
  *   3. Adds the user as admin of that tenant
  */
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Loader2, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,6 +17,26 @@ import { basePath } from "@/App";
 
 
 export default function SetupPage() {
+  // A rota e publica e nao passa pelo TenantGuard, entao digitar /setup na
+  // barra de enderecos exibia o formulario de configuracao inicial mesmo com a
+  // central ja criada — parece que o sistema foi zerado. Plataforma ja
+  // configurada volta para o painel.
+  useEffect(() => {
+    void (async () => {
+      try {
+        const res = await fetch(`${API_BASE}/onboard/status`, {
+          headers: await authHeaders(),
+        });
+        if (!res.ok) return;
+        const { bootstrapped } = (await res.json()) as { bootstrapped: boolean };
+        if (bootstrapped) window.location.assign(basePath || "/");
+      } catch {
+        // Sem resposta da API, deixa o formulario visivel: melhor mostrar do
+        // que travar quem realmente precisa configurar.
+      }
+    })();
+  }, []);
+
   const [tenantName, setTenantName] = useState("");
   const [secret, setSecret] = useState("");
   const [loading, setLoading] = useState(false);
