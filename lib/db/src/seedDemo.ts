@@ -124,14 +124,28 @@ async function popular(): Promise<void> {
         .limit(2)
     ).find((t) => t.name !== "System");
 
-  if (!alvo) {
-    throw new Error(
-      "Nenhuma central encontrada. Rode a configuração inicial no app antes.",
-    );
-  }
+  // Numa maquina nova o banco esta vazio. Criar a central aqui evita obrigar
+  // quem esta montando o ambiente a passar pela tela de configuracao inicial
+  // antes de conseguir ver qualquer coisa.
+  const central2 =
+    alvo ??
+    (
+      await db
+        .insert(tenantsTable)
+        .values({
+          name: "Hospital",
+          slug: "central-teste",
+          planType: "professional",
+          status: "active",
+          maxAgents: 50,
+        })
+        .returning({ id: tenantsTable.id, name: tenantsTable.name })
+    )[0];
 
-  const tenantId = alvo.id;
-  console.log(`Populando a central "${alvo.name}" (id ${tenantId})`);
+  if (!central2) throw new Error("Nao foi possivel criar a central.");
+
+  const tenantId = central2.id;
+  console.log(`Populando a central "${central2.name}" (id ${tenantId})`);
 
   // ------------------------------------------------------------------
   // Limpa o movimento anterior desta central. Sem isto, cada ensaio
