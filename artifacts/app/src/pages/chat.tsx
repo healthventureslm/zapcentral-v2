@@ -99,7 +99,7 @@ function ConversationItem({
     <button
       onClick={onClick}
       className={cn(
-        "w-full flex items-start gap-3 px-4 py-3 text-left hover:bg-card/5 transition-colors border-b border-white/5",
+        "w-full flex items-start gap-3 px-4 py-3 text-left hover:bg-white/5 transition-colors border-b border-white/5",
         active && "bg-primary/10",
         // A barra na lateral marca a linha sem mexer no layout: pintar o fundo
         // brigaria com o destaque da conversa aberta, e as duas coisas podem
@@ -515,7 +515,7 @@ export default function ChatPage() {
                       statusMutation.mutate(s);
                       setShowStatusMenu(false);
                     }}
-                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--text-strong)] hover:bg-card/5"
+                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--text-strong)] hover:bg-white/5"
                   >
                     <StatusDot status={AGENT_STATUS_DOT[s] ?? "neutral"} />
                     {AGENT_STATUS_LABELS[s]}
@@ -663,7 +663,7 @@ export default function ChatPage() {
                               key={d.id}
                               onClick={() => transferMutation.mutate(d.id)}
                               disabled={transferMutation.isPending}
-                              className="w-full text-left px-3 py-2 text-sm text-foreground hover:bg-card/5 transition-colors"
+                              className="w-full text-left px-3 py-2 text-sm text-foreground hover:bg-white/5 transition-colors"
                             >
                               {d.name}
                             </button>
@@ -688,7 +688,7 @@ export default function ChatPage() {
             </div>
 
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto px-6 py-4 bg-[var(--surface-conversa)]">
+            <div className="flex-1 overflow-y-auto px-6 py-4 bg-background">
               {msgsLoading ? (
                 <div className="flex justify-center py-8">
                   <Loader2 className="w-5 h-5 text-primary animate-spin" />

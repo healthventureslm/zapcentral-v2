@@ -102,7 +102,7 @@ function TagPicker({
                 onAdd(t.id);
                 setOpen(false);
               }}
-              className="w-full text-left px-2 py-1 rounded hover:bg-card/5 text-xs text-[var(--text-strong)] flex items-center gap-2"
+              className="w-full text-left px-2 py-1 rounded hover:bg-white/5 text-xs text-[var(--text-strong)] flex items-center gap-2"
             >
               <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: t.color }} />
               {t.name}
@@ -368,7 +368,7 @@ export function ContactPanel({
           </p>
           <div className="space-y-2">
             {openDeals.map((d) => (
-              <div key={d.id} className="bg-[var(--surface-conversa)] rounded-lg p-2.5">
+              <div key={d.id} className="bg-card rounded-lg p-2.5">
                 <p className="text-xs font-medium text-[var(--text-strong)] truncate">{d.title}</p>
                 <div className="flex items-center justify-between mt-1">
                   <Badge
@@ -423,7 +423,7 @@ export function ContactPanel({
             <p className="text-xs text-muted-foreground">Nenhuma nota ainda</p>
           )}
           {contact.notes.map((n) => (
-            <div key={n.id} className="bg-[var(--surface-conversa)] rounded-lg p-2.5 group">
+            <div key={n.id} className="bg-card rounded-lg p-2.5 group">
               <p className="text-xs text-foreground whitespace-pre-wrap">{n.content}</p>
               <div className="flex items-center justify-between mt-1.5">
                 <span className="text-[10px] text-muted-foreground">
