@@ -9,6 +9,7 @@ import {
   conversationsTable,
   tenantUsersTable,
   contactsTable,
+  departmentsTable,
   whatsappInstancesTable,
 } from "@workspace/db";
 import { eq, and, asc, desc, sql } from "drizzle-orm";
@@ -133,6 +134,54 @@ router.get(
 );
 
 /**
+ * Prefixo com quem esta falando.
+ *
+ * Do lado do paciente existe uma conversa so, com o numero da central. Sem
+ * isto ele nao tem como saber se quem respondeu agora e a mesma pessoa de
+ * antes — e depois de uma transferencia, nunca e. Cada atendente acabava
+ * escrevendo "aqui e a Dra. Fulana" na mao, toda vez.
+ *
+ * So vale para texto: legenda de midia tem limite curto no WhatsApp e o
+ * prefixo comeria o espaco util.
+ */
+async function assinatura(
+  tenantId: number,
+  clerkUserId: string,
+  conversationId: number,
+): Promise<string> {
+  const [autor] = await db
+    .select({
+      firstName: tenantUsersTable.firstName,
+      lastName: tenantUsersTable.lastName,
+    })
+    .from(tenantUsersTable)
+    .where(
+      and(
+        eq(tenantUsersTable.tenantId, tenantId),
+        eq(tenantUsersTable.clerkUserId, clerkUserId),
+      ),
+    )
+    .limit(1);
+
+  const nome = [autor?.firstName, autor?.lastName].filter(Boolean).join(" ");
+  if (!nome) return "";
+
+  const [setor] = await db
+    .select({ name: departmentsTable.name })
+    .from(conversationsTable)
+    .innerJoin(
+      departmentsTable,
+      eq(departmentsTable.id, conversationsTable.departmentId),
+    )
+    .where(eq(conversationsTable.id, conversationId))
+    .limit(1);
+
+  return setor ? `*${nome} — ${setor.name}*
+` : `*${nome}*
+`;
+}
+
+/**
  * POST /api/tenants/:tenantId/conversations/:conversationId/messages
  * Send a message to the customer.
  */
@@ -219,6 +268,13 @@ router.post(
     let messageId: string | null = null;
     let fromIdentifier = "";
 
+    // O que sai para o paciente leva a assinatura; o que fica gravado e
+    // aparece no painel continua sendo o texto que o atendente digitou.
+    const textoParaEnviar =
+      msg.type === "text"
+        ? `${await assinatura(tenantId, uid, conversationId)}${msg.content}`
+        : "";
+
     if (contact.channel === "telegram") {
       const bot = await getTenantTelegramBot(tenantId);
       if (!bot) {
@@ -234,7 +290,7 @@ router.post(
           const sent = await sendTelegramMessage(
             bot.botToken,
             contact.externalId,
-            msg.content,
+            textoParaEnviar,
           );
           messageId = String(sent.message_id);
         } else {
@@ -285,7 +341,7 @@ router.post(
           const result = await sendText(
             instance.instanceName,
             contact.externalId,
-            msg.content,
+            textoParaEnviar,
           );
           messageId = result.key.id;
         } else {

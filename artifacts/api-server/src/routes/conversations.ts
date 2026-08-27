@@ -597,7 +597,10 @@ router.post(
     const isAdminOrSupervisor = ["admin", "supervisor"].includes(membership?.role ?? "");
 
     if (!isAdminOrSupervisor && conv.assignedTo !== uid) {
-      res.status(403).json({ error: "Forbidden: can only transfer your own conversations" });
+      res.status(403).json({
+        error:
+          "Você só pode transferir conversas atribuídas a você. Peça a um supervisor.",
+      });
       return;
     }
 
@@ -619,7 +622,9 @@ router.post(
         .limit(1);
 
       if (!targetAgent) {
-        res.status(400).json({ error: "Target agent is not an active member" });
+        res.status(400).json({
+          error: "O atendente escolhido não está ativo nesta central.",
+        });
         return;
       }
 
@@ -640,7 +645,7 @@ router.post(
         .limit(1);
 
       if (!dept) {
-        res.status(404).json({ error: "Department not found in this tenant" });
+        res.status(404).json({ error: "Ramal não encontrado nesta central." });
         return;
       }
 
@@ -682,6 +687,44 @@ router.post(
             );
         }
       });
+
+      // Avisa o paciente. Do lado dele existe uma conversa so, com o numero da
+      // central: sem este aviso, de repente e outra pessoa escrevendo e ele nao
+      // tem como saber que foi transferido.
+      const [setorDestino] = await db
+        .select({ name: departmentsTable.name })
+        .from(departmentsTable)
+        .where(
+          and(
+            eq(departmentsTable.id, toDepartmentId),
+            eq(departmentsTable.tenantId, tenantId),
+          ),
+        )
+        .limit(1);
+
+      if (setorDestino) {
+        // O destino nao precisa ser passado: sendTenantMessage resolve o
+        // contato pela propria conversa, e pelo externalId — que existe nos
+        // dois canais, ao contrario do telefone, nulo no Telegram.
+        const [instanciaDaCentral] = await db
+          .select({ phoneNumber: whatsappInstancesTable.phoneNumber })
+          .from(whatsappInstancesTable)
+          .where(
+            and(
+              eq(whatsappInstancesTable.tenantId, tenantId),
+              eq(whatsappInstancesTable.status, "connected"),
+            ),
+          )
+          .limit(1);
+
+        await sendTenantMessage(
+          tenantId,
+          conversationId,
+          null,
+          `Estou transferindo você para ${setorDestino.name}. Aguarde um instante.`,
+          instanciaDaCentral?.phoneNumber ?? "",
+        );
+      }
 
       // Now try auto-assign — conversation is waiting+unassigned and will be found
       const assignedAgent = await tryAutoAssign(tenantId, conversationId, toDepartmentId, mode);

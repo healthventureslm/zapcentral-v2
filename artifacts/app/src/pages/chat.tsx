@@ -17,6 +17,8 @@ import {
   sendMessage,
   pickConversation,
   closeConversation,
+  transferConversation,
+  listDepartments,
   updateMyStatus,
   getMyStatus,
   type Conversation,
@@ -316,6 +318,31 @@ export default function ChatPage() {
   });
 
   // Close conversation
+  // Transferir entre ramais. O backend ja avisa o paciente da troca; aqui e so
+  // escolher o destino.
+  const { data: setores = [] } = useQuery({
+    queryKey: ["departments", tenantId],
+    queryFn: () => listDepartments(tenantId!),
+    enabled: !!tenantId,
+  });
+
+  const transferMutation = useMutation({
+    mutationFn: (toDepartmentId: number) =>
+      transferConversation(tenantId!, selectedId!, { toDepartmentId }),
+    onSuccess: () => {
+      setTransferindo(false);
+      void qc.invalidateQueries({ queryKey: ["conversations", tenantId] });
+      toast({ title: "Conversa transferida" });
+    },
+    onError: () =>
+      toast({
+        title: "Não foi possível transferir",
+        description:
+          "Confira se você é o responsável pela conversa e se o ramal está ativo.",
+        variant: "destructive",
+      }),
+  });
+
   const closeMutation = useMutation({
     mutationFn: () => closeConversation(tenantId!, selectedId!),
     onSuccess: () => {
@@ -333,7 +360,19 @@ export default function ChatPage() {
     onSuccess: (data) => setAgentStatus(data.status),
   });
 
+  const [transferindo, setTransferindo] = useState(false);
   const selectedConv = conversations.find((c) => c.id === selectedId);
+
+  // Sem isto o menu de ramais fica flutuando sobre a conversa depois de um
+  // clique em qualquer outro lugar, e reabre sozinho ao trocar de conversa —
+  // ao vivo, parece defeito.
+  useEffect(() => setTransferindo(false), [selectedId]);
+  useEffect(() => {
+    if (!transferindo) return;
+    const fechar = () => setTransferindo(false);
+    document.addEventListener("mousedown", fechar);
+    return () => document.removeEventListener("mousedown", fechar);
+  }, [transferindo]);
 
   const handleSend = useCallback(() => {
     if (!inputText.trim() || !selectedId || !tenantId) return;
@@ -500,6 +539,54 @@ export default function ChatPage() {
                     )}
                     Pegar
                   </button>
+                )}
+
+                {["active", "waiting"].includes(selectedConv.status) && (
+                  <div
+                    className="relative"
+                    onMouseDown={(e) => e.stopPropagation()}
+                  >
+                    <button
+                      onClick={() => setTransferindo((v) => !v)}
+                      className="text-xs bg-white/5 hover:bg-white/10 text-gray-300 px-3 py-1.5 rounded-md transition-colors flex items-center gap-1.5"
+                    >
+                      <ArrowRightLeft className="w-3 h-3" />
+                      Transferir
+                    </button>
+
+                    {transferindo && (
+                      <div className="absolute right-0 top-full mt-1 w-56 bg-[#1a2735] border border-white/10 rounded-lg shadow-xl z-20 py-1">
+                        <p className="px-3 py-1.5 text-[11px] text-gray-400 uppercase tracking-wide">
+                          Transferir para o ramal
+                        </p>
+                        {setores.filter(
+                          (d) =>
+                            d.id !== selectedConv.departmentId &&
+                            d.status === "active",
+                        ).length === 0 && (
+                          <p className="px-3 py-2 text-xs text-gray-500">
+                            Não há outro ramal cadastrado.
+                          </p>
+                        )}
+                        {setores
+                          .filter(
+                            (d) =>
+                              d.id !== selectedConv.departmentId &&
+                              d.status === "active",
+                          )
+                          .map((d) => (
+                            <button
+                              key={d.id}
+                              onClick={() => transferMutation.mutate(d.id)}
+                              disabled={transferMutation.isPending}
+                              className="w-full text-left px-3 py-2 text-sm text-gray-200 hover:bg-white/5 transition-colors"
+                            >
+                              {d.name}
+                            </button>
+                          ))}
+                      </div>
+                    )}
+                  </div>
                 )}
 
                 {["active", "waiting"].includes(selectedConv.status) && (
