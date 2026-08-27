@@ -83,9 +83,9 @@ export default function TelegramConnectPage() {
 
   if (!isAdmin) {
     return (
-      <div className="flex h-screen">
+      <div className="min-h-[100dvh] bg-background">
         <Sidebar />
-        <main className="flex-1 flex items-center justify-center p-8">
+        <main className="ml-64 flex items-center justify-center p-8 min-h-[100dvh]">
           <EmptyState
             title="Acesso restrito"
             description="Apenas administradores e supervisores podem gerenciar canais."
@@ -96,9 +96,9 @@ export default function TelegramConnectPage() {
   }
 
   return (
-    <div className="flex h-screen">
+    <div className="min-h-[100dvh] bg-background">
       <Sidebar />
-      <main className="flex-1 overflow-y-auto p-8">
+      <main className="ml-64 p-8">
         <div className="max-w-2xl mx-auto space-y-6">
           <PageHeader
             title="Telegram"

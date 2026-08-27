@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { UserButton, useUser } from "@/lib/devAuth";
+import { useClerk, useUser } from "@/lib/devAuth";
 import { Link, useLocation } from "wouter";
 import {
   LayoutDashboard,
@@ -16,6 +16,7 @@ import {
   Headset,
   ListTree,
   PlayCircle,
+  LogOut,
 } from "lucide-react";
 import { useInternalChatNotifications } from "@/hooks/useInternalChat";
 import {
@@ -70,11 +71,19 @@ function iniciaisDe(nome: string | null | undefined): string {
   return (primeira + ultima).toUpperCase() || "?";
 }
 
+const ROTULO_DO_PAPEL: Record<string, string> = {
+  admin: "Administrador",
+  supervisor: "Supervisor",
+  agent: "Atendente",
+};
+
 export function Sidebar() {
   const [location, setLocation] = useLocation();
   const tenantId = useTenantId();
   const internalUnread = useInternalChatNotifications(tenantId);
   const { user } = useUser();
+  const { signOut } = useClerk();
+  const papel = ROTULO_DO_PAPEL[useMyRole() ?? ""];
 
   // O item ativo: prefixo conta, menos para "/", que so casa exato — senao a
   // raiz ficaria ativa em todas as telas.
@@ -92,6 +101,11 @@ export function Sidebar() {
       <SidebarNav
         brand={{ title: "ZapCentral" }}
         activeId={ativo}
+        // Estado nao controlado: o proprio componente guarda e restaura o
+        // colapso. O conteudo das paginas acompanha por CSS — ver a regra de
+        // `.ml-64` no index.css.
+        collapsible
+        persistKey="zapcentral-sidebar"
         // Sem `href` de proposito: com ele o componente nao chama
         // preventDefault e o navegador recarrega a pagina inteira, matando a
         // navegacao do SPA. O roteamento fica com o wouter.
@@ -110,11 +124,27 @@ export function Sidebar() {
         // O nome de quem esta logado, e nao "Minha conta": numa demonstracao
         // com duas telas lado a lado, saber quem e cada janela e o que faz a
         // transferencia entre atendentes ficar legivel.
+        //
+        // O papel entra junto porque muda o que a pessoa ve: um agente nao
+        // enxerga relatorios nem a fila dos outros ramais, e sem isso na tela
+        // a diferenca so aparece quando algo falta.
         user={{
           name: user?.fullName ?? "Minha conta",
           initials: iniciaisDe(user?.fullName),
+          ...(papel ? { role: papel } : {}),
+          ...(user?.imageUrl ? { avatarSrc: user.imageUrl } : {}),
         }}
-        footerAction={<UserButton />}
+        // Sair como acao, e nao o UserButton inteiro: ele traz o proprio
+        // avatar, que ficaria lado a lado com o do bloco de usuario — dois
+        // retratos da mesma pessoa, um deles sem funcao.
+        userActions={[
+          {
+            id: "sair",
+            icon: <LogOut className="w-4 h-4" />,
+            label: "Sair",
+            onClick: () => void signOut(),
+          },
+        ]}
       />
     </div>
   );

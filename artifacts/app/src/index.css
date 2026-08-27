@@ -42,6 +42,25 @@
   --sidebar-width: 16rem;
 }
 
+/*
+ * O conteudo acompanha o colapso da barra.
+ *
+ * As onze paginas compensam a barra fixa com `ml-64`, valor absoluto. Ao
+ * recolher, a barra vai para 72px e sobraria uma faixa vazia de quase 200px
+ * em todas as telas. Em vez de trocar `ml-64` por uma classe propria em cada
+ * pagina, a margem passa a seguir o estado pelo seletor :has().
+ *
+ * A transicao usa a mesma duracao e curva da barra, senao o conteudo chega
+ * antes dela e o movimento parece dois.
+ */
+.ml-64 {
+  transition: margin-left var(--dur-slow) var(--ease-soft);
+}
+
+body:has(.hv-sidebar--collapsed) .ml-64 {
+  margin-left: var(--sidebar-width-collapsed);
+}
+
 @custom-variant dark (&:is(.dark *));
 
 /*
