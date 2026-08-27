@@ -507,7 +507,8 @@ function DepartmentCard({ tenantId, dept, onChanged }: { tenantId: number; dept:
           )}
         </button>
         <Badge className={`border-none text-xs ${full ? "bg-red-100 text-red-700" : "bg-gray-100 text-gray-600"}`}>
-          {dept.agentCount}{dept.maxAgents !== null ? ` / ${dept.maxAgents}` : ""} agentes
+          {dept.agentCount}{dept.maxAgents !== null ? ` / ${dept.maxAgents}` : ""}
+          {dept.maxAgents === null && dept.agentCount === 1 ? " agente" : " agentes"}
           {full && " · lotado"}
         </Badge>
         <Button

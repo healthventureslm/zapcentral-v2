@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { UserButton } from "@clerk/react";
+import { UserButton } from "@/lib/devAuth";
 import { Link, useLocation } from "wouter";
 import {
   LayoutDashboard,

@@ -2,7 +2,7 @@
  * WhatsApp instance management per tenant.
  */
 import { Router } from "express";
-import { getAuth } from "@clerk/express";
+import { getAuth } from "../lib/devAuth";
 import { db } from "@workspace/db";
 import { whatsappInstancesTable, tenantsTable } from "@workspace/db";
 import { eq, and } from "drizzle-orm";

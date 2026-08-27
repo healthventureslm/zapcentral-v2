@@ -2,7 +2,7 @@
  * Message routes — list and send messages within a conversation.
  */
 import { Router } from "express";
-import { getAuth } from "@clerk/express";
+import { getAuth } from "../lib/devAuth";
 import { db } from "@workspace/db";
 import {
   messagesTable,
@@ -19,6 +19,11 @@ import {
   sendMessage as sendTelegramMessage,
   sendMediaByUrl as sendTelegramMedia,
 } from "../services/telegram";
+import {
+  entregaLocal,
+  idSimulado,
+  REMETENTE_SIMULADO,
+} from "../services/simulado";
 import { getTenantTelegramBot } from "../services/ivr";
 import { emitToTenant, emitToAgent } from "../services/socket";
 
@@ -259,15 +264,17 @@ router.post(
         )
         .limit(1);
 
+      // Entrega local: numero simulado, ou ambiente sem provedor. A mensagem
+      // e gravada e emitida normalmente, so nao sai para fora. Sem isto o
+      // atendente nao consegue responder nada em demonstracao.
+      if (entregaLocal()) {
+        messageId = idSimulado("out");
+        fromIdentifier = instance?.phoneNumber ?? REMETENTE_SIMULADO;
+      } else {
       if (!instance) {
         res
           .status(503)
           .json({ error: "WhatsApp is not connected for this tenant" });
-        return;
-      }
-
-      if (!isEvolutionConfigured()) {
-        res.status(503).json({ error: "Evolution API is not configured" });
         return;
       }
 
@@ -295,6 +302,7 @@ router.post(
         req.log.error({ err }, "Failed to send message via Evolution API");
         res.status(502).json({ error: "Failed to send message" });
         return;
+      }
       }
     }
 
