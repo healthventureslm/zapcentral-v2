@@ -27,6 +27,21 @@ import {
 } from "./schema";
 import { eq, and } from "drizzle-orm";
 
+/**
+ * Minutos de inatividade ate a conversa encerrar sozinha, nesta central.
+ *
+ * O padrao do produto e 30 minutos, e esta certo para um hospital de verdade.
+ * Para a demonstracao ele e curto demais pelo motivo mais bobo possivel: a
+ * varredura tambem roda sobre o movimento do seed, entao semear de manha e
+ * apresentar depois do almoco encontraria a fila vazia — o seed teria sido
+ * encerrado por inatividade antes de alguem abrir o painel.
+ *
+ * Quatro horas cobrem qualquer ensaio sem desligar a funcionalidade: ela
+ * continua ligada, continua visivel em Configuracoes, e para DEMONSTRAR o
+ * encerramento automatico basta baixar o valor na tela para 1 minuto.
+ */
+const TIMEOUT_DA_DEMONSTRACAO = 240;
+
 /** Os ramais, no padrao "<unidade> — Medicos" usado pelo hospital. */
 const RAMAIS = [
   { nome: "Emergência — Médicos", cor: "#ef4444" },
@@ -317,10 +332,15 @@ async function popular(): Promise<void> {
       menuPrompt: "Com qual equipe você precisa falar? Responda com o número:",
       menuOptions: menu,
       distributionMode: "round_robin",
+      inactivityTimeoutMinutes: TIMEOUT_DA_DEMONSTRACAO,
     })
     .onConflictDoUpdate({
       target: [channelSettingsTable.tenantId],
-      set: { menuOptions: menu, distributionMode: "round_robin" },
+      set: {
+        menuOptions: menu,
+        distributionMode: "round_robin",
+        inactivityTimeoutMinutes: TIMEOUT_DA_DEMONSTRACAO,
+      },
     });
   console.log(`  menu do robô com ${menu.length} opções`);
 

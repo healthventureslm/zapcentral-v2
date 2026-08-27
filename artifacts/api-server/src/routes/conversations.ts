@@ -24,6 +24,7 @@ import {
 } from "../middlewares/auth";
 import { sendTenantMessage, tryAutoAssign } from "../services/ivr";
 import { emitToTenant, emitToAgent } from "../services/socket";
+import { encerrarConversa } from "../services/encerramento";
 
 const router = Router();
 
@@ -845,91 +846,21 @@ router.post(
       return;
     }
 
-    // Get closing message
-    const [settings] = await db
-      .select({ closingMessage: channelSettingsTable.closingMessage })
-      .from(channelSettingsTable)
-      .where(eq(channelSettingsTable.tenantId, tenantId))
-      .limit(1);
+    // Despedida, pesquisa, vaga do atendente e aviso ao painel: os quatro
+    // efeitos vivem em `services/encerramento.ts`, compartilhados com a
+    // varredura de inatividade.
+    const updated = await encerrarConversa({
+      tenantId,
+      conversationId,
+      encerradaPor: uid,
+      nota: parsed.data.note ?? null,
+      motivo: "atendente",
+    });
 
-    // Send closing message to customer
-    const contact = await db
-      .select({ phone: contactsTable.phone })
-      .from(contactsTable)
-      .where(eq(contactsTable.id, conv.contactId))
-      .then((r) => r[0]);
-
-    // Persist the closed + survey-eligible state BEFORE sending anything:
-    // the customer can reply the instant WhatsApp delivers the survey, and
-    // the webhook must already see an eligible closed conversation. If the
-    // survey send fails afterwards, we clear surveySentAt.
-    let [updated] = await db
-      .update(conversationsTable)
-      .set({
-        status: "closed",
-        closedAt: new Date(),
-        closedBy: uid,
-        closingNote: parsed.data.note ?? null,
-        surveySentAt: contact ? new Date() : null,
-        updatedAt: new Date(),
-      })
-      .where(eq(conversationsTable.id, conversationId))
-      .returning();
-
-    if (contact) {
-      const [instance] = await db
-        .select({ phoneNumber: whatsappInstancesTable.phoneNumber })
-        .from(whatsappInstancesTable)
-        .where(eq(whatsappInstancesTable.tenantId, tenantId))
-        .limit(1);
-
-      if (settings?.closingMessage) {
-        await sendTenantMessage(
-          tenantId,
-          conversationId,
-          contact.phone,
-          settings.closingMessage,
-          instance?.phoneNumber ?? "",
-        ).catch(() => null);
-      }
-
-      // Post-service satisfaction survey (1–5)
-      const surveyResult = await sendTenantMessage(
-        tenantId,
-        conversationId,
-        contact.phone,
-        "Como você avalia o nosso atendimento? Responda com uma nota de 1 a 5 (5 = excelente). Se quiser, escreva um comentário junto com a nota.",
-        instance?.phoneNumber ?? "",
-      ).catch(() => null);
-
-      if (surveyResult === null) {
-        // Survey never reached the customer — withdraw eligibility
-        const [reverted] = await db
-          .update(conversationsTable)
-          .set({ surveySentAt: null, updatedAt: new Date() })
-          .where(eq(conversationsTable.id, conversationId))
-          .returning();
-        updated = reverted;
-      }
+    if (!updated) {
+      res.status(400).json({ error: "Esta conversa já foi encerrada." });
+      return;
     }
-
-    // Decrement agent's count
-    if (conv.assignedTo) {
-      await db
-        .update(agentStatusesTable)
-        .set({
-          activeConversations: sql`GREATEST(0, ${agentStatusesTable.activeConversations} - 1)`,
-          updatedAt: new Date(),
-        })
-        .where(
-          and(
-            eq(agentStatusesTable.clerkUserId, conv.assignedTo),
-            eq(agentStatusesTable.tenantId, tenantId),
-          ),
-        );
-    }
-
-    emitToTenant(tenantId, "conversation_updated", { conversation: updated });
 
     res.json(updated);
   },
