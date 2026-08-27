@@ -1,11 +1,11 @@
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardBody } from "@healthventureslm/design-system";
 import { AlertCircle } from 'lucide-react';
 
 export default function NotFound() {
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-muted">
       <Card className="w-full max-w-md mx-4">
-        <CardContent className="pt-6">
+        <CardBody>
           <div className="flex mb-4 gap-2">
             <AlertCircle className="h-8 w-8 text-red-500" />
             <h1 className="text-2xl font-bold text-foreground">
@@ -16,7 +16,7 @@ export default function NotFound() {
           <p className="mt-4 text-sm text-muted-foreground">
             Did you forget to add the page to the router?
           </p>
-        </CardContent>
+        </CardBody>
       </Card>
     </div>
   );

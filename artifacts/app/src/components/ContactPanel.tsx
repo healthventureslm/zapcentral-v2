@@ -3,6 +3,7 @@
  * Shows CRM data for the conversation's contact: profile, tags,
  * conversation tags, notes and open deals — with quick actions.
  */
+import { Badge } from "@healthventureslm/design-system";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "wouter";
@@ -19,7 +20,6 @@ import {
   Pencil,
   IdCard,
 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import {
   getContact,
   updateContact,
