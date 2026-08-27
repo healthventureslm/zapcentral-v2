@@ -43,11 +43,11 @@ export default function DevSignInPage() {
     <div className="min-h-[100dvh] flex items-center justify-center bg-gradient-to-b from-[#0F1923] to-[#1a2735] p-4">
       <div className="w-full max-w-md space-y-4">
         <div className="text-center space-y-2">
-          <div className="inline-flex items-center justify-center w-14 h-14 bg-[#25D366] rounded-2xl mb-2">
+          <div className="inline-flex items-center justify-center w-14 h-14 bg-primary rounded-2xl mb-2">
             <ShieldAlert className="w-7 h-7 text-white" />
           </div>
           <h1 className="text-2xl font-bold text-white">ZapCentral</h1>
-          <p className="text-[#8899A6] text-sm">
+          <p className="text-muted-foreground text-sm">
             Modo de desenvolvimento — sem autenticação real
           </p>
         </div>
@@ -68,7 +68,7 @@ export default function DevSignInPage() {
               }}
             >
               <div className="space-y-1">
-                <label className="text-xs text-[#8899A6]">E-mail</label>
+                <label className="text-xs text-muted-foreground">E-mail</label>
                 <Input
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -77,7 +77,7 @@ export default function DevSignInPage() {
                 />
               </div>
               <div className="space-y-1">
-                <label className="text-xs text-[#8899A6]">Nome</label>
+                <label className="text-xs text-muted-foreground">Nome</label>
                 <Input
                   value={name}
                   onChange={(e) => setName(e.target.value)}
@@ -87,14 +87,14 @@ export default function DevSignInPage() {
               </div>
               <Button
                 type="submit"
-                className="w-full bg-[#25D366] hover:bg-[#1aab4e] text-white font-semibold"
+                className="w-full bg-primary hover:bg-[#1aab4e] text-white font-semibold"
               >
                 Entrar
               </Button>
             </form>
 
             <div className="pt-2 border-t border-[#2a3a4a] space-y-2">
-              <p className="text-xs text-[#8899A6]">
+              <p className="text-xs text-muted-foreground">
                 Ou entre com um clique — a equipe da central:
               </p>
               <div className="space-y-1">
@@ -103,12 +103,12 @@ export default function DevSignInPage() {
                     key={s.email}
                     type="button"
                     onClick={() => enter(s.email, s.name)}
-                    className="w-full text-left px-3 py-2 rounded border border-[#2a3a4a] hover:border-[#25D366] transition-colors group"
+                    className="w-full text-left px-3 py-2 rounded border border-[#2a3a4a] hover:border-primary transition-colors group"
                   >
-                    <span className="text-sm text-white group-hover:text-[#25D366]">
+                    <span className="text-sm text-white group-hover:text-primary">
                       {s.name}
                     </span>
-                    <span className="text-xs text-[#8899A6] ml-2">{s.papel}</span>
+                    <span className="text-xs text-muted-foreground ml-2">{s.papel}</span>
                   </button>
                 ))}
               </div>

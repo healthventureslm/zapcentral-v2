@@ -63,19 +63,19 @@ const clerkAppearance = {
     card: "!shadow-none !border-0 !bg-transparent !rounded-none",
     footer: "!shadow-none !border-0 !bg-transparent !rounded-none",
     headerTitle: "text-white font-bold",
-    headerSubtitle: "text-[#8899A6]",
+    headerSubtitle: "text-muted-foreground",
     socialButtonsBlockButtonText: "text-white",
-    formFieldLabel: "text-[#8899A6]",
-    footerActionLink: "text-[#25D366] hover:text-[#1aab4e]",
-    footerActionText: "text-[#8899A6]",
-    dividerText: "text-[#8899A6]",
-    identityPreviewEditButton: "text-[#25D366]",
-    formFieldSuccessText: "text-[#25D366]",
+    formFieldLabel: "text-muted-foreground",
+    footerActionLink: "text-primary hover:text-[#1aab4e]",
+    footerActionText: "text-muted-foreground",
+    dividerText: "text-muted-foreground",
+    identityPreviewEditButton: "text-primary",
+    formFieldSuccessText: "text-primary",
     alertText: "text-white",
     logoBox: "flex justify-center w-full mb-2",
     logoImage: "h-16 w-16",
     socialButtonsBlockButton: "border border-[#2a3a4a] bg-[#1a2735] hover:bg-[#243447] text-white",
-    formButtonPrimary: "bg-[#25D366] hover:bg-[#1aab4e] text-white font-semibold",
+    formButtonPrimary: "bg-primary hover:bg-[#1aab4e] text-white font-semibold",
     formFieldInput: "bg-[#1a2735] border-[#2a3a4a] text-white",
     footerAction: "bg-[#0a1520]",
     dividerLine: "bg-[#2a3a4a]",
@@ -169,8 +169,8 @@ function TenantGuard({ children }: { children: ReactNode }) {
   // Loading spinner while determining state
   if (!isLoaded || (isSignedIn && (!meQuery.isSuccess || (!hasRealTenant && !statusQuery.isSuccess)))) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#F4F7F8]">
-        <div className="w-8 h-8 border-2 border-[#25D366] border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }

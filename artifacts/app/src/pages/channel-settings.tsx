@@ -92,29 +92,29 @@ export default function ChannelSettingsPage() {
 
   if (isLoading || !tenantId) {
     return (
-      <div className="min-h-[100dvh] bg-[#F4F7F8]">
+      <div className="min-h-[100dvh] bg-background">
         <Sidebar />
         <div className="ml-64 flex items-center justify-center h-screen">
-          <Loader2 className="w-6 h-6 text-[#25D366] animate-spin" />
+          <Loader2 className="w-6 h-6 text-primary animate-spin" />
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-[100dvh] bg-[#F4F7F8]">
+    <div className="min-h-[100dvh] bg-background">
       <Sidebar />
 
       <div className="ml-64 flex flex-col">
         <header className="h-16 bg-white shadow-sm flex items-center justify-between px-8">
           <h1 className="text-xl font-semibold text-gray-800 flex items-center gap-2">
-            <Settings className="w-5 h-5 text-[#25D366]" />
+            <Settings className="w-5 h-5 text-primary" />
             Configurações do Canal
           </h1>
           <button
             onClick={() => saveMutation.mutate()}
             disabled={saveMutation.isPending}
-            className="bg-[#25D366] hover:bg-[#1ebe57] disabled:opacity-60 text-white px-5 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors"
+            className="bg-primary hover:bg-primary/90 disabled:opacity-60 text-white px-5 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors"
           >
             {saveMutation.isPending ? (
               <Loader2 className="w-4 h-4 animate-spin" />
@@ -138,7 +138,7 @@ export default function ChannelSettingsPage() {
                 <textarea
                   {...field("welcomeMessage")}
                   rows={3}
-                  className="w-full mt-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#25D366] resize-none"
+                  className="w-full mt-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary resize-none"
                   placeholder="Olá! Seja bem-vindo ao nosso atendimento. Como podemos ajudá-lo?"
                 />
               </FormField>
@@ -147,7 +147,7 @@ export default function ChannelSettingsPage() {
                 <input
                   type="text"
                   {...field("menuPrompt")}
-                  className="w-full mt-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#25D366]"
+                  className="w-full mt-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary"
                   placeholder="Por favor, escolha uma opção:"
                 />
               </FormField>
@@ -159,7 +159,7 @@ export default function ChannelSettingsPage() {
                 <textarea
                   {...field("offHoursMessage")}
                   rows={2}
-                  className="w-full mt-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#25D366] resize-none"
+                  className="w-full mt-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary resize-none"
                   placeholder="No momento estamos fora do horário de atendimento. Retornaremos em breve!"
                 />
               </FormField>
@@ -171,7 +171,7 @@ export default function ChannelSettingsPage() {
                 <textarea
                   {...field("closingMessage")}
                   rows={2}
-                  className="w-full mt-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#25D366] resize-none"
+                  className="w-full mt-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary resize-none"
                   placeholder="Obrigado pelo contato! Se precisar de mais ajuda, estamos à disposição."
                 />
               </FormField>
@@ -190,7 +190,7 @@ export default function ChannelSettingsPage() {
                       { key: String(prev.length + 1), label: "", departmentId: 0 },
                     ])
                   }
-                  className="text-sm text-[#25D366] hover:text-[#1ebe57] flex items-center gap-1"
+                  className="text-sm text-primary hover:text-primary/90 flex items-center gap-1"
                 >
                   <Plus className="w-4 h-4" />
                   Adicionar opção
@@ -214,7 +214,7 @@ export default function ChannelSettingsPage() {
                           setMenuOptions(next);
                         }}
                         placeholder="1"
-                        className="w-14 border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-center focus:outline-none focus:border-[#25D366]"
+                        className="w-14 border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-center focus:outline-none focus:border-primary"
                       />
                       <input
                         type="text"
@@ -225,7 +225,7 @@ export default function ChannelSettingsPage() {
                           setMenuOptions(next);
                         }}
                         placeholder="Vendas"
-                        className="flex-1 border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-[#25D366]"
+                        className="flex-1 border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-primary"
                       />
                       <input
                         type="number"
@@ -236,7 +236,7 @@ export default function ChannelSettingsPage() {
                           setMenuOptions(next);
                         }}
                         placeholder="ID Depto"
-                        className="w-24 border border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:border-[#25D366]"
+                        className="w-24 border border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:border-primary"
                       />
                       <button
                         onClick={() => setMenuOptions((prev) => prev.filter((_, i) => i !== idx))}
@@ -265,7 +265,7 @@ export default function ChannelSettingsPage() {
                       distributionMode: e.target.value as "manual" | "round_robin" | "least_load",
                     }))
                   }
-                  className="w-full mt-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#25D366]"
+                  className="w-full mt-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary"
                 >
                   <option value="manual">Manual — agente escolhe da fila</option>
                   <option value="round_robin">Round Robin — distribuição circular</option>
@@ -289,7 +289,7 @@ export default function ChannelSettingsPage() {
                         inactivityTimeoutMinutes: Number(e.target.value),
                       }))
                     }
-                    className="w-24 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#25D366]"
+                    className="w-24 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary"
                   />
                   <label className="flex items-center gap-2 text-sm text-gray-600">
                     <input
@@ -298,7 +298,7 @@ export default function ChannelSettingsPage() {
                       onChange={(e) =>
                         setForm((prev) => ({ ...prev, autoCloseEnabled: e.target.checked }))
                       }
-                      className="w-4 h-4 accent-[#25D366]"
+                      className="w-4 h-4 accent-primary"
                     />
                     Fechar automaticamente
                   </label>
@@ -319,7 +319,7 @@ export default function ChannelSettingsPage() {
                     onChange={(e) =>
                       setForm((prev) => ({ ...prev, workingHoursEnabled: e.target.checked }))
                     }
-                    className="w-4 h-4 accent-[#25D366]"
+                    className="w-4 h-4 accent-primary"
                   />
                   Habilitar
                 </label>
@@ -344,7 +344,7 @@ export default function ChannelSettingsPage() {
                                 },
                               }))
                             }
-                            className="w-4 h-4 accent-[#25D366]"
+                            className="w-4 h-4 accent-primary"
                           />
                           <span className={dayConfig.active ? "text-gray-800" : "text-gray-400"}>
                             {day.label}
@@ -364,7 +364,7 @@ export default function ChannelSettingsPage() {
                                   },
                                 }))
                               }
-                              className="border border-gray-200 rounded px-2 py-1 text-sm focus:outline-none focus:border-[#25D366]"
+                              className="border border-gray-200 rounded px-2 py-1 text-sm focus:outline-none focus:border-primary"
                             />
                             <span className="text-gray-400 text-sm">até</span>
                             <input
@@ -379,7 +379,7 @@ export default function ChannelSettingsPage() {
                                   },
                                 }))
                               }
-                              className="border border-gray-200 rounded px-2 py-1 text-sm focus:outline-none focus:border-[#25D366]"
+                              className="border border-gray-200 rounded px-2 py-1 text-sm focus:outline-none focus:border-primary"
                             />
                           </div>
                         )}

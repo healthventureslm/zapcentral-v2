@@ -123,10 +123,10 @@ export default function ContactDetailPage() {
 
   if (query.isLoading) {
     return (
-      <div className="min-h-[100dvh] bg-[#F4F7F8]">
+      <div className="min-h-[100dvh] bg-background">
         <Sidebar />
         <div className="ml-64 flex items-center justify-center h-screen">
-          <Loader2 className="w-8 h-8 text-[#25D366] animate-spin" />
+          <Loader2 className="w-8 h-8 text-primary animate-spin" />
         </div>
       </div>
     );
@@ -134,7 +134,7 @@ export default function ContactDetailPage() {
 
   if (!contact) {
     return (
-      <div className="min-h-[100dvh] bg-[#F4F7F8]">
+      <div className="min-h-[100dvh] bg-background">
         <Sidebar />
         <div className="ml-64 p-8 flex flex-col items-center justify-center h-[calc(100vh-4rem)]">
           <AlertCircle className="w-12 h-12 text-gray-400 mb-4" />
@@ -148,7 +148,7 @@ export default function ContactDetailPage() {
   }
 
   return (
-    <div className="min-h-[100dvh] bg-[#F4F7F8]">
+    <div className="min-h-[100dvh] bg-background">
       <Sidebar />
 
       <div className="ml-64 flex flex-col">
@@ -163,7 +163,7 @@ export default function ContactDetailPage() {
               <div className="flex items-center gap-3">
                 <Avatar className="h-8 w-8">
                   <AvatarImage src={contact.avatarUrl || undefined} />
-                  <AvatarFallback className="bg-[#25D366]/10 text-[#1f9d55] text-xs font-semibold">
+                  <AvatarFallback className="bg-primary/10 text-primary text-xs font-semibold">
                     {contact.name?.substring(0, 2).toUpperCase() || "??"}
                   </AvatarFallback>
                 </Avatar>
@@ -185,7 +185,7 @@ export default function ContactDetailPage() {
               ) : (
                 <div className="flex gap-2">
                   <Button variant="outline" onClick={() => setIsEditing(false)}>Cancelar</Button>
-                  <Button onClick={handleSaveBasic} className="bg-[#25D366] hover:bg-[#1ebe57] text-white" disabled={updateContact.isPending}>
+                  <Button onClick={handleSaveBasic} className="bg-primary hover:bg-primary/90 text-white" disabled={updateContact.isPending}>
                     {updateContact.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
                     Salvar
                   </Button>
@@ -334,7 +334,7 @@ export default function ContactDetailPage() {
                   <CardHeader className="pb-3 border-b border-gray-100 flex flex-row items-center justify-between space-y-0">
                     <CardTitle className="text-base font-semibold text-gray-800">Campos Customizados</CardTitle>
                     {isEditing ? null : (
-                      <Button variant="ghost" size="sm" className="h-8 text-xs text-[#25D366] hover:text-[#1ebe57]" onClick={() => setIsEditing(true)}>
+                      <Button variant="ghost" size="sm" className="h-8 text-xs text-primary hover:text-primary/90" onClick={() => setIsEditing(true)}>
                         Editar
                       </Button>
                     )}
@@ -449,7 +449,7 @@ export default function ContactDetailPage() {
                     <div className="flex justify-end p-2 border-t border-gray-200/50">
                       <Button 
                         size="sm" 
-                        className="bg-[#25D366] hover:bg-[#1ebe57] text-white"
+                        className="bg-primary hover:bg-primary/90 text-white"
                         onClick={() => {
                           const el = document.getElementById("note-input") as HTMLTextAreaElement;
                           if (el.value.trim()) {
@@ -504,7 +504,7 @@ export default function ContactDetailPage() {
                           </div>
                           <div className="mt-3">
                             <Link href={`/atendimento`}>
-                              <Button variant="link" size="sm" className="h-6 px-0 text-[#25D366] hover:text-[#1ebe57]">Ver no Atendimento &rarr;</Button>
+                              <Button variant="link" size="sm" className="h-6 px-0 text-primary hover:text-primary/90">Ver no Atendimento &rarr;</Button>
                             </Link>
                           </div>
                         </div>

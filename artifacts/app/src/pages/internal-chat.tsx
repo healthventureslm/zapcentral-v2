@@ -154,7 +154,7 @@ export default function InternalChatPage() {
       {/* Left panel */}
       <div className="ml-64 flex flex-col w-80 shrink-0 border-r border-white/5 h-full">
         <div className="h-14 flex items-center gap-2 px-4 border-b border-white/5 bg-[#0A1520]">
-          <Headset className="w-4 h-4 text-[#25D366]" />
+          <Headset className="w-4 h-4 text-primary" />
           <span className="text-sm font-semibold text-white">Chat interno</span>
         </div>
 
@@ -162,7 +162,7 @@ export default function InternalChatPage() {
           {/* Existing conversations */}
           {convsLoading ? (
             <div className="flex justify-center py-8">
-              <Loader2 className="w-5 h-5 text-[#25D366] animate-spin" />
+              <Loader2 className="w-5 h-5 text-primary animate-spin" />
             </div>
           ) : (
             (convs ?? []).map((c) => {
@@ -173,13 +173,13 @@ export default function InternalChatPage() {
                   onClick={() => setSelectedConvId(c.id)}
                   className={cn(
                     "w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-white/5 transition-colors border-b border-white/5",
-                    c.id === selectedConvId && "bg-[#25D366]/10",
+                    c.id === selectedConvId && "bg-primary/10",
                   )}
                 >
                   <div className="relative shrink-0">
                     <Avatar className="h-10 w-10">
                       <AvatarImage src={c.peer.avatarUrl ?? undefined} />
-                      <AvatarFallback className="bg-[#1A2B38] text-[#25D366] font-semibold text-sm">
+                      <AvatarFallback className="bg-[#1A2B38] text-primary font-semibold text-sm">
                         {initialsOf(c.peer)}
                       </AvatarFallback>
                     </Avatar>
@@ -192,14 +192,14 @@ export default function InternalChatPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-white truncate">{nameOf(c.peer)}</p>
-                    <p className="text-xs text-[#8899A6] truncate">
+                    <p className="text-xs text-muted-foreground truncate">
                       {c.lastMessage
                         ? (c.lastMessage.senderId === myId ? "Você: " : "") + c.lastMessage.content
                         : "Sem mensagens"}
                     </p>
                   </div>
                   {c.unreadCount > 0 && (
-                    <Badge className="bg-[#25D366] text-white border-none text-[10px] px-1.5">
+                    <Badge className="bg-primary text-white border-none text-[10px] px-1.5">
                       {c.unreadCount}
                     </Badge>
                   )}
@@ -211,7 +211,7 @@ export default function InternalChatPage() {
           {/* Colleagues without a conversation yet */}
           {others.filter((c) => !convPeerIds.has(c.clerkUserId)).length > 0 && (
             <>
-              <p className="px-4 pt-4 pb-2 text-[10px] font-semibold uppercase tracking-wider text-[#8899A6]">
+              <p className="px-4 pt-4 pb-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
                 Colegas
               </p>
               {others
@@ -226,7 +226,7 @@ export default function InternalChatPage() {
                     <div className="relative shrink-0">
                       <Avatar className="h-9 w-9">
                         <AvatarImage src={c.avatarUrl ?? undefined} />
-                        <AvatarFallback className="bg-[#1A2B38] text-[#25D366] font-semibold text-xs">
+                        <AvatarFallback className="bg-[#1A2B38] text-primary font-semibold text-xs">
                           {initialsOf(c)}
                         </AvatarFallback>
                       </Avatar>
@@ -239,7 +239,7 @@ export default function InternalChatPage() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm text-white truncate">{nameOf(c)}</p>
-                      <p className="text-xs text-[#8899A6]">
+                      <p className="text-xs text-muted-foreground">
                         {PRESENCE_LABELS[c.status] ?? "Offline"}
                       </p>
                     </div>
@@ -249,7 +249,7 @@ export default function InternalChatPage() {
           )}
 
           {!convsLoading && !others.length && !(convs ?? []).length && (
-            <div className="flex flex-col items-center justify-center py-16 text-[#8899A6] text-sm gap-2">
+            <div className="flex flex-col items-center justify-center py-16 text-muted-foreground text-sm gap-2">
               <MessageCircle className="w-6 h-6" />
               <span>Nenhum colega nesta central ainda</span>
             </div>
@@ -260,7 +260,7 @@ export default function InternalChatPage() {
       {/* Thread */}
       <div className="flex-1 flex flex-col h-full min-w-0">
         {!selectedConv ? (
-          <div className="flex-1 flex flex-col items-center justify-center text-[#8899A6] gap-3">
+          <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground gap-3">
             <Headset className="w-12 h-12 opacity-30" />
             <span className="text-sm">Selecione um colega para conversar</span>
           </div>
@@ -270,7 +270,7 @@ export default function InternalChatPage() {
               <div className="relative">
                 <Avatar className="h-9 w-9">
                   <AvatarImage src={selectedConv.peer.avatarUrl ?? undefined} />
-                  <AvatarFallback className="bg-[#1A2B38] text-[#25D366] font-semibold text-xs">
+                  <AvatarFallback className="bg-[#1A2B38] text-primary font-semibold text-xs">
                     {initialsOf(selectedConv.peer)}
                   </AvatarFallback>
                 </Avatar>
@@ -283,7 +283,7 @@ export default function InternalChatPage() {
               </div>
               <div>
                 <p className="text-sm font-semibold text-white">{nameOf(selectedConv.peer)}</p>
-                <p className="text-xs text-[#8899A6]">
+                <p className="text-xs text-muted-foreground">
                   {PRESENCE_LABELS[presenceOf(selectedConv.peer.clerkUserId)]}
                 </p>
               </div>
@@ -292,7 +292,7 @@ export default function InternalChatPage() {
             <div className="flex-1 overflow-y-auto px-6 py-4 bg-[#0F1923]">
               {msgsLoading ? (
                 <div className="flex justify-center py-8">
-                  <Loader2 className="w-5 h-5 text-[#25D366] animate-spin" />
+                  <Loader2 className="w-5 h-5 text-primary animate-spin" />
                 </div>
               ) : (
                 (messages ?? []).map((m) => {
@@ -303,7 +303,7 @@ export default function InternalChatPage() {
                         className={cn(
                           "max-w-[70%] rounded-xl px-4 py-2.5 shadow-sm",
                           mine
-                            ? "bg-[#25D366] text-white rounded-br-sm"
+                            ? "bg-primary text-white rounded-br-sm"
                             : "bg-white text-gray-900 rounded-bl-sm",
                         )}
                       >
@@ -335,12 +335,12 @@ export default function InternalChatPage() {
                   }}
                   rows={1}
                   placeholder="Mensagem interna (não vai para o WhatsApp)"
-                  className="flex-1 resize-none bg-[#1A2B38] text-white text-sm rounded-lg px-4 py-3 outline-none placeholder:text-[#8899A6] focus:ring-1 focus:ring-[#25D366]/50"
+                  className="flex-1 resize-none bg-[#1A2B38] text-white text-sm rounded-lg px-4 py-3 outline-none placeholder:text-muted-foreground focus:ring-1 focus:ring-primary/50"
                 />
                 <button
                   onClick={handleSend}
                   disabled={!inputText.trim() || sendMutation.isPending}
-                  className="bg-[#25D366] hover:bg-[#1ebe57] disabled:opacity-40 text-white p-3 rounded-lg transition-colors"
+                  className="bg-primary hover:bg-primary/90 disabled:opacity-40 text-white p-3 rounded-lg transition-colors"
                 >
                   {sendMutation.isPending ? (
                     <Loader2 className="w-4 h-4 animate-spin" />

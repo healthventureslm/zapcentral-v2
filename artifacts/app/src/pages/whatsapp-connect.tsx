@@ -40,7 +40,7 @@ function ShareQrCard({ tenantId }: { tenantId: number }) {
   return (
     <div className="bg-white rounded-xl shadow-sm p-6 mt-6">
       <h2 className="font-semibold text-gray-800 mb-1 flex items-center gap-2">
-        <QrCode className="w-4 h-4 text-[#25D366]" />
+        <QrCode className="w-4 h-4 text-primary" />
         Divulgue sua central
       </h2>
       <p className="text-sm text-gray-500 mb-4">
@@ -55,7 +55,7 @@ function ShareQrCard({ tenantId }: { tenantId: number }) {
         value={msg}
         onChange={(e) => setMsg(e.target.value)}
         maxLength={200}
-        className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mb-4 focus:outline-none focus:ring-2 focus:ring-[#25D366]/40"
+        className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mb-4 focus:outline-none focus:ring-2 focus:ring-primary/40"
         placeholder="Ex: Olá! Gostaria de atendimento."
       />
 
@@ -64,7 +64,7 @@ function ShareQrCard({ tenantId }: { tenantId: number }) {
           href={pageUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="bg-[#25D366] hover:bg-[#1ebe57] text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors"
+          className="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors"
         >
           <QrCode className="w-4 h-4" />
           Abrir página do QR
@@ -91,7 +91,7 @@ const STATUS_INFO: Record<
   connected: {
     label: "Conectado",
     icon: <CheckCircle2 className="w-5 h-5" />,
-    color: "text-[#25D366]",
+    color: "text-primary",
   },
   connecting: {
     label: "Conectando...",
@@ -101,7 +101,7 @@ const STATUS_INFO: Record<
   disconnected: {
     label: "Desconectado",
     icon: <WifiOff className="w-5 h-5" />,
-    color: "text-[#8899A6]",
+    color: "text-muted-foreground",
   },
   error: {
     label: "Erro de conexão",
@@ -226,13 +226,13 @@ export default function WhatsAppConnectPage() {
   const statusInfo = STATUS_INFO[status] ?? STATUS_INFO["disconnected"]!;
 
   return (
-    <div className="min-h-[100dvh] bg-[#F4F7F8]">
+    <div className="min-h-[100dvh] bg-background">
       <Sidebar />
 
       <div className="ml-64 flex flex-col">
         <header className="h-16 bg-white shadow-sm flex items-center justify-between px-8">
           <h1 className="text-xl font-semibold text-gray-800 flex items-center gap-2">
-            <Smartphone className="w-5 h-5 text-[#25D366]" />
+            <Smartphone className="w-5 h-5 text-primary" />
             WhatsApp
           </h1>
         </header>
@@ -271,7 +271,7 @@ export default function WhatsAppConnectPage() {
                 <button
                   onClick={() => connectMutation.mutate()}
                   disabled={connectMutation.isPending || !statusData?.evolutionConfigured}
-                  className="bg-[#25D366] hover:bg-[#1ebe57] disabled:opacity-50 text-white px-5 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors"
+                  className="bg-primary hover:bg-primary/90 disabled:opacity-50 text-white px-5 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors"
                 >
                   {connectMutation.isPending ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
@@ -341,8 +341,8 @@ export default function WhatsAppConnectPage() {
           {status === "connected" && (
             <div className="bg-white rounded-xl shadow-sm p-6">
               <div className="flex flex-col items-center text-center py-4">
-                <div className="w-16 h-16 rounded-full bg-[#25D366]/10 flex items-center justify-center mb-4">
-                  <CheckCircle2 className="w-8 h-8 text-[#25D366]" />
+                <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                  <CheckCircle2 className="w-8 h-8 text-primary" />
                 </div>
                 <h2 className="font-semibold text-gray-800 mb-2">
                   WhatsApp conectado com sucesso!
@@ -351,7 +351,7 @@ export default function WhatsAppConnectPage() {
                   Seu número está ativo e pronto para receber mensagens.
                 </p>
                 {instance?.phoneNumber && (
-                  <span className="mt-3 text-[#25D366] font-semibold text-lg">
+                  <span className="mt-3 text-primary font-semibold text-lg">
                     {instance.phoneNumber}
                   </span>
                 )}
@@ -377,7 +377,7 @@ export default function WhatsAppConnectPage() {
                   "Escaneie o QR Code exibido aqui",
                 ].map((step, i) => (
                   <li key={i} className="flex items-start gap-3 text-sm text-gray-600">
-                    <span className="w-6 h-6 rounded-full bg-[#25D366]/10 text-[#25D366] font-semibold flex items-center justify-center text-xs shrink-0">
+                    <span className="w-6 h-6 rounded-full bg-primary/10 text-primary font-semibold flex items-center justify-center text-xs shrink-0">
                       {i + 1}
                     </span>
                     {step}

@@ -77,7 +77,7 @@ function DevUserButton() {
       type="button"
       onClick={() => void devSignOut()}
       title={`${user?.email ?? "dev"} — clique para sair`}
-      className="w-8 h-8 rounded-full bg-[#25D366] text-white text-xs font-semibold flex items-center justify-center hover:opacity-80 transition-opacity"
+      className="w-8 h-8 rounded-full bg-primary text-white text-xs font-semibold flex items-center justify-center hover:opacity-80 transition-opacity"
     >
       {initials}
     </button>

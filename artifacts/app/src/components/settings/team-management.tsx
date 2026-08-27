@@ -154,7 +154,7 @@ export function TeamSection({ tenantId, myUserId }: { tenantId: number; myUserId
         <div className="flex items-center justify-between">
           <div>
             <CardTitle className="flex items-center gap-2">
-              <UsersIcon className="w-4 h-4 text-[#25D366]" /> Equipe
+              <UsersIcon className="w-4 h-4 text-primary" /> Equipe
             </CardTitle>
             <CardDescription>
               Convide usuários, defina acesso contínuo ou temporário e revogue quando precisar.
@@ -165,7 +165,7 @@ export function TeamSection({ tenantId, myUserId }: { tenantId: number; myUserId
       </CardHeader>
       <CardContent>
         {isLoading ? (
-          <div className="py-8 flex justify-center"><Loader2 className="w-5 h-5 animate-spin text-[#25D366]" /></div>
+          <div className="py-8 flex justify-center"><Loader2 className="w-5 h-5 animate-spin text-primary" /></div>
         ) : !users?.length ? (
           <p className="text-sm text-gray-500 py-4">Nenhum usuário ainda. Convide o primeiro.</p>
         ) : (
@@ -261,7 +261,7 @@ export function TeamSection({ tenantId, myUserId }: { tenantId: number; myUserId
                         onChange={(e) => setExpiryValue(e.target.value)}
                       />
                       <Button
-                        size="sm" className="h-8 text-xs bg-[#25D366] hover:bg-[#1ebe57] text-white"
+                        size="sm" className="h-8 text-xs bg-primary hover:bg-primary/90 text-white"
                         disabled={!expiryValue || patchM.isPending}
                         onClick={() => {
                           patchM.mutate(
@@ -324,7 +324,7 @@ function InviteDialog({ tenantId, onDone }: { tenantId: number; onDone: () => vo
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="bg-[#25D366] hover:bg-[#1ebe57] text-white gap-2" size="sm">
+        <Button className="bg-primary hover:bg-primary/90 text-white gap-2" size="sm">
           <Plus className="w-4 h-4" /> Convidar
         </Button>
       </DialogTrigger>
@@ -369,7 +369,7 @@ function InviteDialog({ tenantId, onDone }: { tenantId: number; onDone: () => vo
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
-            <Button type="submit" className="bg-[#25D366] hover:bg-[#1ebe57] text-white" disabled={inviteM.isPending}>
+            <Button type="submit" className="bg-primary hover:bg-primary/90 text-white" disabled={inviteM.isPending}>
               {inviteM.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
               Enviar convite
             </Button>
@@ -407,7 +407,7 @@ export function DepartmentsSection({ tenantId }: { tenantId: number }) {
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <DoorOpen className="w-4 h-4 text-[#25D366]" /> Setores (ramais)
+          <DoorOpen className="w-4 h-4 text-primary" /> Setores (ramais)
         </CardTitle>
         <CardDescription>
           Cada setor funciona como um quarto de hotel: tem nome e lotação máxima de agentes.
@@ -427,13 +427,13 @@ export function DepartmentsSection({ tenantId }: { tenantId: number }) {
         >
           <Input value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="Nome do setor (ex: Financeiro)" className="flex-1" />
           <Input value={newMax} onChange={(e) => setNewMax(e.target.value.replace(/\D/g, ""))} placeholder="Lotação máx." className="w-32" />
-          <Button type="submit" className="bg-[#25D366] hover:bg-[#1ebe57] text-white" disabled={createM.isPending}>
+          <Button type="submit" className="bg-primary hover:bg-primary/90 text-white" disabled={createM.isPending}>
             <Plus className="w-4 h-4" />
           </Button>
         </form>
 
         {isLoading ? (
-          <div className="py-8 flex justify-center"><Loader2 className="w-5 h-5 animate-spin text-[#25D366]" /></div>
+          <div className="py-8 flex justify-center"><Loader2 className="w-5 h-5 animate-spin text-primary" /></div>
         ) : !departments?.length ? (
           <p className="text-sm text-gray-500">Nenhum setor criado ainda.</p>
         ) : (

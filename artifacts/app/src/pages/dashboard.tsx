@@ -68,7 +68,7 @@ export function Sidebar() {
   return (
     <div className="fixed inset-y-0 left-0 w-64 bg-[#0F1923] flex flex-col z-10 sidebar-transition print:hidden">
       <div className="h-16 flex items-center px-6 border-b border-white/5">
-        <MessageCircle className="w-6 h-6 text-[#25D366] mr-2" />
+        <MessageCircle className="w-6 h-6 text-primary mr-2" />
         <span className="text-white font-semibold text-lg tracking-wide">
           ZapCentral
         </span>
@@ -86,14 +86,14 @@ export function Sidebar() {
               <div
                 className={`flex items-center px-3 py-2.5 rounded-md cursor-pointer transition-colors ${
                   active
-                    ? "bg-[#25D366]/10 text-[#25D366] border-r-2 border-[#25D366]"
-                    : "text-[#8899A6] hover:text-white hover:bg-white/5"
+                    ? "bg-primary/10 text-primary border-r-2 border-primary"
+                    : "text-muted-foreground hover:text-white hover:bg-white/5"
                 }`}
               >
                 <Icon className="w-5 h-5 mr-3" />
                 <span className="font-medium text-sm">{item.name}</span>
                 {item.path === "/equipe" && internalUnread > 0 && (
-                  <span className="ml-auto bg-[#25D366] text-white text-[10px] font-semibold rounded-full px-1.5 py-0.5 min-w-[18px] text-center">
+                  <span className="ml-auto bg-primary text-white text-[10px] font-semibold rounded-full px-1.5 py-0.5 min-w-[18px] text-center">
                     {internalUnread > 99 ? "99+" : internalUnread}
                   </span>
                 )}
@@ -108,7 +108,7 @@ export function Sidebar() {
         {/* O nome de quem esta logado, e nao "Minha Conta": numa demonstracao
             com duas telas lado a lado, saber quem e cada janela e o que faz a
             transferencia entre atendentes ficar legivel. */}
-        <span className="text-sm text-[#8899A6] font-medium truncate">
+        <span className="text-sm text-muted-foreground font-medium truncate">
           {user?.fullName ?? "Minha conta"}
         </span>
       </div>
@@ -467,7 +467,7 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="min-h-[100dvh] bg-[#F4F7F8]">
+    <div className="min-h-[100dvh] bg-background">
       <Sidebar />
 
       <div className="ml-64 flex flex-col print:ml-0">
@@ -586,7 +586,7 @@ export default function DashboardPage() {
                 </h2>
                 <Link
                   href="/relatorios"
-                  className="text-xs font-medium text-[#25D366] hover:underline"
+                  className="text-xs font-medium text-primary hover:underline"
                 >
                   Ver o relatório completo
                 </Link>

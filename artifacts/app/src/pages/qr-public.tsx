@@ -33,15 +33,15 @@ export default function QrPublicPage() {
       : null;
 
   return (
-    <div className="min-h-[100dvh] bg-[#F4F7F8] flex items-center justify-center p-6 print:bg-white">
+    <div className="min-h-[100dvh] bg-background flex items-center justify-center p-6 print:bg-white">
       <div className="bg-white rounded-2xl shadow-lg p-10 max-w-md w-full text-center print:shadow-none">
-        <div className="w-14 h-14 rounded-full bg-[#25D366]/10 flex items-center justify-center mx-auto mb-4">
-          <MessageCircle className="w-7 h-7 text-[#25D366]" />
+        <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+          <MessageCircle className="w-7 h-7 text-primary" />
         </div>
 
         {isLoading && (
           <div className="py-12 flex justify-center">
-            <Loader2 className="w-6 h-6 text-[#25D366] animate-spin" />
+            <Loader2 className="w-6 h-6 text-primary animate-spin" />
           </div>
         )}
 
@@ -78,7 +78,7 @@ export default function QrPublicPage() {
               href={waLink}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 bg-[#25D366] hover:bg-[#1ebe57] text-white px-6 py-2.5 rounded-lg text-sm font-medium transition-colors print:hidden"
+              className="inline-flex items-center gap-2 bg-primary hover:bg-primary/90 text-white px-6 py-2.5 rounded-lg text-sm font-medium transition-colors print:hidden"
             >
               <MessageCircle className="w-4 h-4" />
               Abrir no WhatsApp

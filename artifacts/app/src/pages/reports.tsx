@@ -157,7 +157,7 @@ export default function ReportsPage() {
 
   if (role !== null && !canSeeReports) {
     return (
-      <div className="flex h-screen bg-[#F4F7F8]">
+      <div className="flex h-screen bg-background">
         <Sidebar />
         <main className="flex-1 flex items-center justify-center p-8">
           <Card className="max-w-md">
@@ -171,7 +171,7 @@ export default function ReportsPage() {
   }
 
   return (
-    <div className="min-h-[100dvh] bg-[#F4F7F8]">
+    <div className="min-h-[100dvh] bg-background">
       <Sidebar />
 
       <div className="ml-64 flex flex-col print:ml-0">
@@ -280,10 +280,10 @@ export default function ReportsPage() {
 
           <Tabs defaultValue="atendimento" className="w-full">
             <TabsList className="mb-6 bg-white border border-gray-200 p-1 print:hidden">
-              <TabsTrigger value="atendimento" className="data-[state=active]:bg-[#25D366] data-[state=active]:text-white">
+              <TabsTrigger value="atendimento" className="data-[state=active]:bg-primary data-[state=active]:text-white">
                 Atendimento
               </TabsTrigger>
-              <TabsTrigger value="agentes" className="data-[state=active]:bg-[#25D366] data-[state=active]:text-white">
+              <TabsTrigger value="agentes" className="data-[state=active]:bg-primary data-[state=active]:text-white">
                 Atendentes
               </TabsTrigger>
 

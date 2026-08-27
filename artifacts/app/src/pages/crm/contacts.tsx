@@ -262,14 +262,14 @@ export default function ContactsPage() {
   };
 
   return (
-    <div className="min-h-[100dvh] bg-[#F4F7F8]">
+    <div className="min-h-[100dvh] bg-background">
       <Sidebar />
 
       <div className="ml-64 flex flex-col">
         <header className="bg-white shadow-sm z-0">
           <div className="h-16 flex items-center justify-between px-8">
             <h1 className="text-xl font-semibold text-gray-800 flex items-center gap-2">
-              <UsersIcon className="w-5 h-5 text-[#25D366]" />
+              <UsersIcon className="w-5 h-5 text-primary" />
               CRM
             </h1>
             <div className="flex items-center gap-3">
@@ -365,8 +365,8 @@ export default function ContactsPage() {
 
           {/* Bulk Actions */}
           {selectedIds.size > 0 && (
-            <div className="bg-[#25D366]/10 border border-[#25D366]/20 rounded-lg p-3 mb-6 flex items-center justify-between animate-in fade-in slide-in-from-top-4">
-              <span className="text-sm font-medium text-[#1f9d55]">
+            <div className="bg-primary/10 border border-primary/20 rounded-lg p-3 mb-6 flex items-center justify-between animate-in fade-in slide-in-from-top-4">
+              <span className="text-sm font-medium text-primary">
                 {selectedIds.size} contato(s) selecionado(s)
               </span>
               <div className="flex items-center gap-2">
@@ -374,7 +374,7 @@ export default function ContactsPage() {
                   <Button 
                     variant="outline" 
                     size="sm" 
-                    className="bg-white border-[#25D366]/30 text-[#1f9d55] hover:bg-[#25D366]/10 hover:text-[#1f9d55]"
+                    className="bg-white border-primary/30 text-primary hover:bg-primary/10 hover:text-primary"
                     onClick={() => {
                       const ids = Array.from(selectedIds);
                       if (confirm("Deseja mesclar estes dois contatos? O primeiro selecionado será mantido como primário.")) {
@@ -396,7 +396,7 @@ export default function ContactsPage() {
                 )}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="sm" className="bg-white border-[#25D366]/30 text-[#1f9d55] hover:bg-[#25D366]/10 hover:text-[#1f9d55]">
+                    <Button variant="outline" size="sm" className="bg-white border-primary/30 text-primary hover:bg-primary/10 hover:text-primary">
                       <Tags className="w-4 h-4 mr-2" />
                       Adicionar Tag
                     </Button>
@@ -419,7 +419,7 @@ export default function ContactsPage() {
 
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="sm" className="bg-white border-[#25D366]/30 text-[#1f9d55] hover:bg-[#25D366]/10 hover:text-[#1f9d55]">
+                    <Button variant="outline" size="sm" className="bg-white border-primary/30 text-primary hover:bg-primary/10 hover:text-primary">
                       <UsersIcon className="w-4 h-4 mr-2" />
                       Atribuir Responsável
                     </Button>
@@ -450,7 +450,7 @@ export default function ContactsPage() {
                     <th className="px-6 py-4 w-12">
                       <input
                         type="checkbox"
-                        className="w-4 h-4 rounded border-gray-300 text-[#25D366] focus:ring-[#25D366]"
+                        className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary"
                         checked={
                           query.data?.contacts.length! > 0 &&
                           selectedIds.size === query.data?.contacts.length
@@ -469,7 +469,7 @@ export default function ContactsPage() {
                   {query.isLoading ? (
                     <tr>
                       <td colSpan={6} className="px-6 py-12 text-center">
-                        <Loader2 className="w-6 h-6 animate-spin text-[#25D366] mx-auto mb-2" />
+                        <Loader2 className="w-6 h-6 animate-spin text-primary mx-auto mb-2" />
                         <span className="text-gray-500">Carregando contatos...</span>
                       </td>
                     </tr>
@@ -492,7 +492,7 @@ export default function ContactsPage() {
                         <td className="px-6 py-4">
                           <input
                             type="checkbox"
-                            className="w-4 h-4 rounded border-gray-300 text-[#25D366] focus:ring-[#25D366]"
+                            className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary"
                             checked={selectedIds.has(contact.id)}
                             onChange={() => toggleSelect(contact.id)}
                           />
@@ -507,7 +507,7 @@ export default function ContactsPage() {
                                 </AvatarFallback>
                               </Avatar>
                               <div>
-                                <p className="font-medium text-gray-900 group-hover:text-[#25D366] transition-colors">
+                                <p className="font-medium text-gray-900 group-hover:text-primary transition-colors">
                                   {contact.name || "Sem nome"}
                                 </p>
                                 {contact.company && (
@@ -658,7 +658,7 @@ function CreateContactDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="bg-[#25D366] hover:bg-[#1ebe57] text-white gap-2 shadow-sm">
+        <Button className="bg-primary hover:bg-primary/90 text-white gap-2 shadow-sm">
           <Plus className="w-4 h-4" />
           Novo Contato
         </Button>
@@ -690,7 +690,7 @@ function CreateContactDialog() {
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
-            <Button type="submit" className="bg-[#25D366] hover:bg-[#1ebe57] text-white" disabled={createContact.isPending}>
+            <Button type="submit" className="bg-primary hover:bg-primary/90 text-white" disabled={createContact.isPending}>
               {createContact.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
               Salvar
             </Button>
@@ -761,13 +761,13 @@ function ImportCsvDialog() {
           <textarea
             value={csvText}
             onChange={e => setCsvText(e.target.value)}
-            className="w-full h-32 p-3 border rounded-md text-sm font-mono focus:outline-none focus:border-[#25D366]"
+            className="w-full h-32 p-3 border rounded-md text-sm font-mono focus:outline-none focus:border-primary"
             placeholder="phone,name\n5511999999999,João Silva"
           />
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
-          <Button onClick={onSubmit} className="bg-[#25D366] hover:bg-[#1ebe57] text-white" disabled={importCsv.isPending || !csvText.trim()}>
+          <Button onClick={onSubmit} className="bg-primary hover:bg-primary/90 text-white" disabled={importCsv.isPending || !csvText.trim()}>
             {importCsv.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
             Importar
           </Button>

@@ -14,7 +14,7 @@ export default function SettingsPage() {
   const isAdmin = role === "admin" || role === "supervisor";
 
   return (
-    <div className="min-h-[100dvh] bg-[#F4F7F8]">
+    <div className="min-h-[100dvh] bg-background">
       <Sidebar />
       
       <div className="ml-64 flex flex-col min-h-screen">
@@ -56,11 +56,11 @@ export default function SettingsPage() {
                   <div>
                     <div className="flex items-center gap-2 mb-1">
                       <h3 className="font-semibold text-gray-900">Professional</h3>
-                      <Badge className="bg-[#25D366] hover:bg-[#25D366]/90 border-none text-white">Ativo</Badge>
+                      <Badge className="bg-primary hover:bg-primary/90 border-none text-white">Ativo</Badge>
                     </div>
                     <p className="text-sm text-gray-500">50 agentes disponíveis • Faturamento mensal</p>
                   </div>
-                  <button className="text-sm font-medium text-[#25D366] hover:underline">
+                  <button className="text-sm font-medium text-primary hover:underline">
                     Fazer Upgrade
                   </button>
                 </div>

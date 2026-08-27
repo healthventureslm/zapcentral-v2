@@ -84,11 +84,11 @@ export default function SetupPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F4F7F8] flex items-center justify-center p-4">
+    <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="w-full max-w-md space-y-6">
         {/* Logo / header */}
         <div className="text-center space-y-2">
-          <div className="inline-flex items-center justify-center w-14 h-14 bg-[#25D366] rounded-2xl mb-2">
+          <div className="inline-flex items-center justify-center w-14 h-14 bg-primary rounded-2xl mb-2">
             <ShieldCheck className="w-7 h-7 text-white" />
           </div>
           <h1 className="text-2xl font-bold text-gray-900">Configuração inicial</h1>
@@ -143,7 +143,7 @@ export default function SetupPage() {
 
               <Button
                 type="submit"
-                className="w-full bg-[#25D366] hover:bg-[#1ebe57] text-white font-medium"
+                className="w-full bg-primary hover:bg-primary/90 text-white font-medium"
                 disabled={loading || !tenantName.trim() || !secret.trim()}
               >
                 {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}

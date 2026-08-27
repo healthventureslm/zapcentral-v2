@@ -11,7 +11,7 @@ export function CrmTabs() {
         <div
           className={`flex items-center gap-2 px-4 py-4 border-b-2 font-medium text-sm cursor-pointer transition-colors ${
             !isKanban
-              ? "border-[#25D366] text-[#25D366]"
+              ? "border-primary text-primary"
               : "border-transparent text-gray-500 hover:text-gray-900"
           }`}
         >
@@ -23,7 +23,7 @@ export function CrmTabs() {
         <div
           className={`flex items-center gap-2 px-4 py-4 border-b-2 font-medium text-sm cursor-pointer transition-colors ${
             isKanban
-              ? "border-[#25D366] text-[#25D366]"
+              ? "border-primary text-primary"
               : "border-transparent text-gray-500 hover:text-gray-900"
           }`}
         >

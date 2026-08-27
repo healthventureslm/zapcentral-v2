@@ -89,7 +89,7 @@ function TagPicker({
     <div className="relative inline-block">
       <button
         onClick={() => setOpen(!open)}
-        className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full border border-dashed border-white/20 text-[#8899A6] hover:text-white hover:border-white/40 transition-colors"
+        className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full border border-dashed border-white/20 text-muted-foreground hover:text-white hover:border-white/40 transition-colors"
       >
         <Plus className="w-3 h-3" /> tag
       </button>
@@ -109,7 +109,7 @@ function TagPicker({
             </button>
           ))}
           {available.length === 0 && (
-            <p className="text-[11px] text-[#8899A6] px-2 py-1">Sem tags disponíveis</p>
+            <p className="text-[11px] text-muted-foreground px-2 py-1">Sem tags disponíveis</p>
           )}
           <div className="flex gap-1 pt-1 border-t border-white/10">
             <input
@@ -120,12 +120,12 @@ function TagPicker({
                   createMutation.mutate(newName.trim());
               }}
               placeholder="Nova tag..."
-              className="flex-1 bg-[#0F1923] border border-white/10 rounded px-2 py-1 text-xs text-white placeholder-[#8899A6] focus:outline-none"
+              className="flex-1 bg-[#0F1923] border border-white/10 rounded px-2 py-1 text-xs text-white placeholder-muted-foreground focus:outline-none"
             />
             <button
               onClick={() => newName.trim() && createMutation.mutate(newName.trim())}
               disabled={createMutation.isPending || !newName.trim()}
-              className="text-xs text-[#25D366] px-1.5 disabled:opacity-40"
+              className="text-xs text-primary px-1.5 disabled:opacity-40"
             >
               {createMutation.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : "OK"}
             </button>
@@ -235,7 +235,7 @@ export function ContactPanel({
   if (isLoading || !contact) {
     return (
       <div className="w-72 shrink-0 border-l border-white/5 bg-[#0A1520] flex items-center justify-center">
-        <Loader2 className="w-5 h-5 text-[#25D366] animate-spin" />
+        <Loader2 className="w-5 h-5 text-primary animate-spin" />
       </div>
     );
   }
@@ -253,46 +253,46 @@ export function ContactPanel({
           <div className="flex items-center gap-2">
             <button
               onClick={() => (editing ? setEditing(false) : startEditing())}
-              className="text-[#8899A6] hover:text-[#25D366]"
+              className="text-muted-foreground hover:text-primary"
               title="Completar cadastro"
             >
               <Pencil className="w-3.5 h-3.5" />
             </button>
             <Link
               href={`/crm/contatos/${contact.id}`}
-              className="text-[#8899A6] hover:text-[#25D366]"
+              className="text-muted-foreground hover:text-primary"
               title="Abrir perfil no CRM"
             >
               <ExternalLink className="w-3.5 h-3.5" />
             </Link>
           </div>
         </div>
-        <p className="text-xs text-[#8899A6]">{contact.phone}</p>
+        <p className="text-xs text-muted-foreground">{contact.phone}</p>
         {editing ? (
           <div className="mt-2 space-y-2">
             <input
               value={editName}
               onChange={(e) => setEditName(e.target.value)}
               placeholder="Nome completo"
-              className="w-full bg-[#1A2B38] border border-white/10 rounded px-2 py-1.5 text-xs text-white placeholder:text-[#8899A6] focus:outline-none focus:border-[#25D366]/50"
+              className="w-full bg-[#1A2B38] border border-white/10 rounded px-2 py-1.5 text-xs text-white placeholder:text-muted-foreground focus:outline-none focus:border-primary/50"
             />
             <input
               value={editCpf}
               onChange={(e) => setEditCpf(e.target.value)}
               placeholder="CPF (000.000.000-00)"
-              className="w-full bg-[#1A2B38] border border-white/10 rounded px-2 py-1.5 text-xs text-white placeholder:text-[#8899A6] focus:outline-none focus:border-[#25D366]/50"
+              className="w-full bg-[#1A2B38] border border-white/10 rounded px-2 py-1.5 text-xs text-white placeholder:text-muted-foreground focus:outline-none focus:border-primary/50"
             />
             <div className="flex gap-2">
               <button
                 onClick={saveEdit}
                 disabled={updateContactM.isPending}
-                className="flex-1 bg-[#25D366] hover:bg-[#1ebe57] disabled:opacity-50 text-white text-xs py-1.5 rounded transition-colors"
+                className="flex-1 bg-primary hover:bg-primary/90 disabled:opacity-50 text-white text-xs py-1.5 rounded transition-colors"
               >
                 {updateContactM.isPending ? "Salvando..." : "Salvar"}
               </button>
               <button
                 onClick={() => setEditing(false)}
-                className="px-3 text-xs text-[#8899A6] hover:text-white"
+                className="px-3 text-xs text-muted-foreground hover:text-white"
               >
                 Cancelar
               </button>
@@ -301,7 +301,7 @@ export function ContactPanel({
         ) : (
           <>
             {contact.cpf ? (
-              <p className="text-xs text-[#8899A6] flex items-center gap-1.5 mt-1">
+              <p className="text-xs text-muted-foreground flex items-center gap-1.5 mt-1">
                 <IdCard className="w-3 h-3" /> CPF: {formatCpf(contact.cpf)}
               </p>
             ) : (
@@ -315,12 +315,12 @@ export function ContactPanel({
           </>
         )}
         {contact.email && (
-          <p className="text-xs text-[#8899A6] flex items-center gap-1.5 mt-1">
+          <p className="text-xs text-muted-foreground flex items-center gap-1.5 mt-1">
             <Mail className="w-3 h-3" /> {contact.email}
           </p>
         )}
         {contact.company && (
-          <p className="text-xs text-[#8899A6] flex items-center gap-1.5 mt-1">
+          <p className="text-xs text-muted-foreground flex items-center gap-1.5 mt-1">
             <Building2 className="w-3 h-3" /> {contact.company}
           </p>
         )}
@@ -328,7 +328,7 @@ export function ContactPanel({
 
       {/* Contact tags */}
       <div className="p-4 border-b border-white/5">
-        <p className="text-[11px] uppercase tracking-wide text-[#8899A6] mb-2 flex items-center gap-1.5">
+        <p className="text-[11px] uppercase tracking-wide text-muted-foreground mb-2 flex items-center gap-1.5">
           <TagIcon className="w-3 h-3" /> Tags do contato
         </p>
         <div className="flex flex-wrap gap-1.5 items-center">
@@ -345,7 +345,7 @@ export function ContactPanel({
 
       {/* Conversation tags */}
       <div className="p-4 border-b border-white/5">
-        <p className="text-[11px] uppercase tracking-wide text-[#8899A6] mb-2 flex items-center gap-1.5">
+        <p className="text-[11px] uppercase tracking-wide text-muted-foreground mb-2 flex items-center gap-1.5">
           <TagIcon className="w-3 h-3" /> Tags da conversa
         </p>
         <div className="flex flex-wrap gap-1.5 items-center">
@@ -363,7 +363,7 @@ export function ContactPanel({
       {/* Open deals */}
       {openDeals.length > 0 && (
         <div className="p-4 border-b border-white/5">
-          <p className="text-[11px] uppercase tracking-wide text-[#8899A6] mb-2 flex items-center gap-1.5">
+          <p className="text-[11px] uppercase tracking-wide text-muted-foreground mb-2 flex items-center gap-1.5">
             <Briefcase className="w-3 h-3" /> Negócios abertos
           </p>
           <div className="space-y-2">
@@ -378,7 +378,7 @@ export function ContactPanel({
                     {d.stageName}
                   </Badge>
                   {d.value && (
-                    <span className="text-[11px] text-[#25D366]">
+                    <span className="text-[11px] text-primary">
                       {brl.format(Number(d.value))}
                     </span>
                   )}
@@ -391,7 +391,7 @@ export function ContactPanel({
 
       {/* Notes */}
       <div className="p-4">
-        <p className="text-[11px] uppercase tracking-wide text-[#8899A6] mb-2 flex items-center gap-1.5">
+        <p className="text-[11px] uppercase tracking-wide text-muted-foreground mb-2 flex items-center gap-1.5">
           <StickyNote className="w-3 h-3" /> Notas internas
         </p>
         <div className="flex gap-1.5 mb-3">
@@ -402,13 +402,13 @@ export function ContactPanel({
               if (e.key === "Enter" && noteText.trim()) addNoteM.mutate();
             }}
             placeholder="Adicionar nota..."
-            className="flex-1 bg-[#1A2B38] border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white placeholder-[#8899A6] focus:outline-none focus:border-[#25D366]/50"
+            className="flex-1 bg-[#1A2B38] border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white placeholder-muted-foreground focus:outline-none focus:border-primary/50"
           />
           <button
             onClick={() => noteText.trim() && addNoteM.mutate()}
             disabled={addNoteM.isPending || !noteText.trim()}
             className={cn(
-              "bg-[#25D366] hover:bg-[#1ebe57] text-white rounded-lg px-2.5 disabled:opacity-40",
+              "bg-primary hover:bg-primary/90 text-white rounded-lg px-2.5 disabled:opacity-40",
             )}
           >
             {addNoteM.isPending ? (
@@ -420,13 +420,13 @@ export function ContactPanel({
         </div>
         <div className="space-y-2">
           {contact.notes.length === 0 && (
-            <p className="text-xs text-[#8899A6]">Nenhuma nota ainda</p>
+            <p className="text-xs text-muted-foreground">Nenhuma nota ainda</p>
           )}
           {contact.notes.map((n) => (
             <div key={n.id} className="bg-[#111E28] rounded-lg p-2.5 group">
               <p className="text-xs text-white whitespace-pre-wrap">{n.content}</p>
               <div className="flex items-center justify-between mt-1.5">
-                <span className="text-[10px] text-[#8899A6]">
+                <span className="text-[10px] text-muted-foreground">
                   {new Date(n.createdAt).toLocaleString("pt-BR", {
                     day: "2-digit",
                     month: "2-digit",
@@ -436,7 +436,7 @@ export function ContactPanel({
                 </span>
                 <button
                   onClick={() => deleteNoteM.mutate(n.id)}
-                  className="opacity-0 group-hover:opacity-100 text-[#8899A6] hover:text-red-400 transition-opacity"
+                  className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-red-400 transition-opacity"
                 >
                   <Trash2 className="w-3 h-3" />
                 </button>

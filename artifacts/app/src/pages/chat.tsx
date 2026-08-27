@@ -94,15 +94,15 @@ function ConversationItem({
       onClick={onClick}
       className={cn(
         "w-full flex items-start gap-3 px-4 py-3 text-left hover:bg-white/5 transition-colors border-b border-white/5",
-        active && "bg-[#25D366]/10",
+        active && "bg-primary/10",
         // A barra na lateral marca a linha sem mexer no layout: pintar o fundo
         // brigaria com o destaque da conversa aberta, e as duas coisas podem
         // valer ao mesmo tempo.
-        naoVista && !active && "bg-[#25D366]/[0.06] border-l-2 border-l-[#25D366]",
+        naoVista && !active && "bg-primary/[0.06] border-l-2 border-l-primary",
       )}
     >
       <Avatar className="h-10 w-10 shrink-0 mt-0.5">
-        <AvatarFallback className="bg-[#1A2B38] text-[#25D366] font-semibold text-sm">
+        <AvatarFallback className="bg-[#1A2B38] text-primary font-semibold text-sm">
           {initials}
         </AvatarFallback>
       </Avatar>
@@ -111,7 +111,7 @@ function ConversationItem({
           <span className="font-medium text-white text-sm truncate">
             {conv.contact.name ?? contactHandle(conv.contact)}
           </span>
-          <span className="text-xs text-[#8899A6] shrink-0">
+          <span className="text-xs text-muted-foreground shrink-0">
             {formatTime(conv.lastMessageAt)}
           </span>
         </div>
@@ -134,13 +134,13 @@ function ConversationItem({
               "text-[10px] px-1.5 py-0 border-none rounded",
               conv.contact.channel === "telegram"
                 ? "bg-[#229ED9]/20 text-[#5EC5F0]"
-                : "bg-[#25D366]/20 text-[#4ade80]",
+                : "bg-primary/20 text-[#4ade80]",
             )}
           >
             {conv.contact.channel === "telegram" ? "Telegram" : "WhatsApp"}
           </Badge>
           {conv.departmentName && (
-            <span className="text-xs text-[#8899A6] truncate">
+            <span className="text-xs text-muted-foreground truncate">
               {conv.departmentName}
             </span>
           )}
@@ -164,7 +164,7 @@ function MessageBubble({
         className={cn(
           "max-w-[70%] rounded-xl px-4 py-2.5 shadow-sm",
           isOut
-            ? "bg-[#25D366] text-white rounded-br-sm"
+            ? "bg-primary text-white rounded-br-sm"
             : "bg-white text-gray-900 rounded-bl-sm",
         )}
       >
@@ -516,7 +516,7 @@ export default function ChatPage() {
             )}
           </div>
           {isConnected ? (
-            <Wifi className="w-3.5 h-3.5 text-[#25D366]" />
+            <Wifi className="w-3.5 h-3.5 text-primary" />
           ) : (
             <WifiOff className="w-3.5 h-3.5 text-red-400" />
           )}
@@ -531,8 +531,8 @@ export default function ChatPage() {
               className={cn(
                 "flex-1 py-2.5 text-xs font-medium transition-colors",
                 activeTab === tab
-                  ? "text-[#25D366] border-b-2 border-[#25D366]"
-                  : "text-[#8899A6] hover:text-white",
+                  ? "text-primary border-b-2 border-primary"
+                  : "text-muted-foreground hover:text-white",
               )}
             >
               {tab === "all" ? "Todos" : tab === "mine" ? "Minhas" : "Fila"}
@@ -544,10 +544,10 @@ export default function ChatPage() {
         <div className="flex-1 overflow-y-auto">
           {convsLoading ? (
             <div className="flex items-center justify-center h-32">
-              <Loader2 className="w-5 h-5 text-[#25D366] animate-spin" />
+              <Loader2 className="w-5 h-5 text-primary animate-spin" />
             </div>
           ) : conversations.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-32 text-[#8899A6] text-sm gap-2">
+            <div className="flex flex-col items-center justify-center h-32 text-muted-foreground text-sm gap-2">
               <MessageCircle className="w-6 h-6" />
               <span>Nenhuma conversa</span>
             </div>
@@ -568,7 +568,7 @@ export default function ChatPage() {
       {/* Chat panel */}
       <div className="flex-1 flex flex-col h-full min-w-0">
         {!selectedConv ? (
-          <div className="flex-1 flex flex-col items-center justify-center text-[#8899A6] gap-3">
+          <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground gap-3">
             <MessageCircle className="w-12 h-12 opacity-30" />
             <span className="text-sm">Selecione uma conversa</span>
           </div>
@@ -578,7 +578,7 @@ export default function ChatPage() {
             <div className="h-14 bg-[#0A1520] border-b border-white/5 flex items-center justify-between px-6">
               <div className="flex items-center gap-3">
                 <Avatar className="h-9 w-9">
-                  <AvatarFallback className="bg-[#1A2B38] text-[#25D366] font-semibold text-xs">
+                  <AvatarFallback className="bg-[#1A2B38] text-primary font-semibold text-xs">
                     {(selectedConv.contact.name ?? contactHandle(selectedConv.contact))
                       .split(" ")
                       .map((w) => w[0])
@@ -591,7 +591,7 @@ export default function ChatPage() {
                   <p className="text-sm font-semibold text-white">
                     {selectedConv.contact.name ?? contactHandle(selectedConv.contact)}
                   </p>
-                  <p className="text-xs text-[#8899A6]">
+                  <p className="text-xs text-muted-foreground">
                     {selectedConv.contact.phone}
                     {selectedConv.contact.cpf && ` · CPF: ${formatCpf(selectedConv.contact.cpf)}`}
                     {selectedConv.departmentName && ` · ${selectedConv.departmentName}`}
@@ -606,7 +606,7 @@ export default function ChatPage() {
 
                 <button
                   onClick={() => setShowContactPanel((v) => !v)}
-                  className="text-[#8899A6] hover:text-white p-1.5 rounded-md hover:bg-white/5 transition-colors"
+                  className="text-muted-foreground hover:text-white p-1.5 rounded-md hover:bg-white/5 transition-colors"
                   title={showContactPanel ? "Ocultar dados do contato" : "Mostrar dados do contato"}
                 >
                   {showContactPanel ? (
@@ -620,7 +620,7 @@ export default function ChatPage() {
                   <button
                     onClick={() => pickMutation.mutate(selectedConv.id)}
                     disabled={pickMutation.isPending}
-                    className="text-xs bg-[#25D366] hover:bg-[#1ebe57] text-white px-3 py-1.5 rounded-md transition-colors flex items-center gap-1.5"
+                    className="text-xs bg-primary hover:bg-primary/90 text-white px-3 py-1.5 rounded-md transition-colors flex items-center gap-1.5"
                   >
                     {pickMutation.isPending ? (
                       <Loader2 className="w-3 h-3 animate-spin" />
@@ -696,10 +696,10 @@ export default function ChatPage() {
             <div className="flex-1 overflow-y-auto px-6 py-4 bg-[#111E28]">
               {msgsLoading ? (
                 <div className="flex justify-center py-8">
-                  <Loader2 className="w-5 h-5 text-[#25D366] animate-spin" />
+                  <Loader2 className="w-5 h-5 text-primary animate-spin" />
                 </div>
               ) : (messages ?? []).length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-full text-[#8899A6] text-sm gap-2">
+                <div className="flex flex-col items-center justify-center h-full text-muted-foreground text-sm gap-2">
                   <MessageCircle className="w-6 h-6 opacity-40" />
                   <span>Nenhuma mensagem ainda</span>
                 </div>
@@ -724,13 +724,13 @@ export default function ChatPage() {
                   onKeyDown={handleKeyDown}
                   placeholder="Digite uma mensagem... (Enter para enviar)"
                   rows={1}
-                  className="flex-1 bg-[#1A2B38] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-[#8899A6] resize-none focus:outline-none focus:border-[#25D366]/50 transition-colors min-h-[40px] max-h-32"
+                  className="flex-1 bg-[#1A2B38] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-muted-foreground resize-none focus:outline-none focus:border-primary/50 transition-colors min-h-[40px] max-h-32"
                   style={{ resize: "none" }}
                 />
                 <button
                   onClick={handleSend}
                   disabled={!inputText.trim() || sendMutation.isPending}
-                  className="bg-[#25D366] hover:bg-[#1ebe57] disabled:opacity-40 text-white p-2.5 rounded-xl transition-colors shrink-0"
+                  className="bg-primary hover:bg-primary/90 disabled:opacity-40 text-white p-2.5 rounded-xl transition-colors shrink-0"
                 >
                   {sendMutation.isPending ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
@@ -742,7 +742,7 @@ export default function ChatPage() {
             )}
 
             {selectedConv.status !== "active" && (
-              <div className="bg-[#0A1520] border-t border-white/5 px-6 py-3 text-xs text-[#8899A6] text-center">
+              <div className="bg-[#0A1520] border-t border-white/5 px-6 py-3 text-xs text-muted-foreground text-center">
                 {selectedConv.status === "waiting"
                   ? "Pegue a conversa para começar a atender"
                   : selectedConv.status === "closed"

@@ -68,7 +68,7 @@ function Passo({
   return (
     <div className="bg-white rounded-xl shadow-sm p-5">
       <div className="flex items-center gap-2 mb-3">
-        <span className="w-6 h-6 rounded-full bg-[#25D366] text-white text-xs font-bold flex items-center justify-center shrink-0">
+        <span className="w-6 h-6 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center shrink-0">
           {numero}
         </span>
         <h2 className="font-semibold text-gray-800 text-sm">{titulo}</h2>
@@ -157,7 +157,7 @@ export default function SimuladorPage() {
   }
 
   return (
-    <div className="min-h-[100dvh] bg-[#F4F7F8]">
+    <div className="min-h-[100dvh] bg-background">
       <Sidebar />
 
       <div className="ml-64 flex flex-col">
@@ -202,7 +202,7 @@ export default function SimuladorPage() {
                         onClick={() => setPersonaId(p.id)}
                         className={`text-left rounded-lg border p-3 transition-colors ${
                           ativa
-                            ? "border-[#25D366] bg-[#25D366]/5 ring-1 ring-[#25D366]/30"
+                            ? "border-primary bg-primary/5 ring-1 ring-primary/30"
                             : "border-gray-200 hover:border-gray-300 bg-white"
                         }`}
                       >
@@ -243,12 +243,12 @@ export default function SimuladorPage() {
                       if (e.key === "Enter") mandar(texto);
                     }}
                     placeholder="Ex: Oi, preciso falar com a Emergência"
-                    className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#25D366]/40"
+                    className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
                   />
                   <button
                     onClick={() => mandar(texto)}
                     disabled={!texto.trim() || enviar.isPending}
-                    className="bg-[#25D366] hover:bg-[#1ebe57] disabled:opacity-40 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2"
+                    className="bg-primary hover:bg-primary/90 disabled:opacity-40 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2"
                   >
                     {enviar.isPending ? (
                       <Loader2 className="w-4 h-4 animate-spin" />
@@ -281,7 +281,7 @@ export default function SimuladorPage() {
                     Nenhum ramal no menu ainda. Monte o menu em{" "}
                     <Link
                       href="/configuracoes-canal"
-                      className="text-[#25D366] font-medium"
+                      className="text-primary font-medium"
                     >
                       Atendimento automático
                     </Link>
@@ -297,9 +297,9 @@ export default function SimuladorPage() {
                         <button
                           key={o.key}
                           onClick={() => mandar(o.key)}
-                          className="text-xs bg-gray-50 border border-gray-200 hover:border-[#25D366] hover:bg-[#25D366]/5 rounded-lg px-3 py-1.5 text-gray-700 font-medium"
+                          className="text-xs bg-gray-50 border border-gray-200 hover:border-primary hover:bg-primary/5 rounded-lg px-3 py-1.5 text-gray-700 font-medium"
                         >
-                          <span className="text-[#25D366] font-bold mr-1">
+                          <span className="text-primary font-bold mr-1">
                             {o.key}
                           </span>
                           {o.label}
@@ -317,7 +317,7 @@ export default function SimuladorPage() {
                       <button
                         key={n}
                         onClick={() => mandar(n)}
-                        className="w-9 h-9 rounded-lg border border-gray-200 hover:border-[#25D366] text-sm font-semibold text-gray-700"
+                        className="w-9 h-9 rounded-lg border border-gray-200 hover:border-primary text-sm font-semibold text-gray-700"
                       >
                         {n}
                       </button>
@@ -328,19 +328,19 @@ export default function SimuladorPage() {
 
               <div className="bg-[#0F1923] rounded-xl p-5 text-white">
                 <div className="flex items-start gap-3">
-                  <MessageCircle className="w-5 h-5 text-[#25D366] mt-0.5 shrink-0" />
+                  <MessageCircle className="w-5 h-5 text-primary mt-0.5 shrink-0" />
                   <div>
                     <p className="font-semibold text-sm mb-1">
                       Agora abra o outro lado
                     </p>
-                    <p className="text-xs text-[#8899A6] leading-relaxed mb-3">
+                    <p className="text-xs text-muted-foreground leading-relaxed mb-3">
                       A conversa que você acabou de criar está na fila do ramal.
                       Abra o Atendimento numa segunda aba e responda: a mensagem
                       aparece aqui no mesmo instante.
                     </p>
                     <Link
                       href="/atendimento"
-                      className="inline-flex items-center gap-1.5 text-xs font-semibold bg-[#25D366] hover:bg-[#1ebe57] text-white px-3 py-1.5 rounded-lg"
+                      className="inline-flex items-center gap-1.5 text-xs font-semibold bg-primary hover:bg-primary/90 text-white px-3 py-1.5 rounded-lg"
                     >
                       Ir para o Atendimento
                       <ArrowRight className="w-3.5 h-3.5" />
@@ -353,14 +353,14 @@ export default function SimuladorPage() {
             {/* -------------------------------------------------- coluna direita */}
             <div className="bg-white rounded-xl shadow-sm overflow-hidden xl:sticky xl:top-8">
               <div className="bg-[#0F1923] px-4 py-3 flex items-center gap-3">
-                <div className="w-9 h-9 rounded-full bg-[#25D366]/20 flex items-center justify-center">
-                  <Smartphone className="w-4 h-4 text-[#25D366]" />
+                <div className="w-9 h-9 rounded-full bg-primary/20 flex items-center justify-center">
+                  <Smartphone className="w-4 h-4 text-primary" />
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="text-white text-sm font-semibold truncate">
                     {personaAtual?.nome ?? "Selecione uma pessoa"}
                   </p>
-                  <p className="text-[#8899A6] text-xs truncate">
+                  <p className="text-muted-foreground text-xs truncate">
                     {personaAtual
                       ? `${personaAtual.canal === "telegram" ? "Telegram" : "WhatsApp"} · ${personaAtual.telefone}`
                       : "—"}
@@ -405,7 +405,7 @@ export default function SimuladorPage() {
                         }`}
                       >
                         {!doPaciente && (
-                          <p className="text-[10px] font-semibold text-[#25D366] mb-0.5">
+                          <p className="text-[10px] font-semibold text-primary mb-0.5">
                             {m.sentBy ? "Atendente" : "Central (robô)"}
                           </p>
                         )}
@@ -433,12 +433,12 @@ export default function SimuladorPage() {
                     if (e.key === "Enter") mandar(texto);
                   }}
                   placeholder="Escrever como esta pessoa…"
-                  className="flex-1 border border-gray-200 rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#25D366]/40"
+                  className="flex-1 border border-gray-200 rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
                 />
                 <button
                   onClick={() => mandar(texto)}
                   disabled={!texto.trim() || enviar.isPending}
-                  className="w-10 h-10 rounded-full bg-[#25D366] hover:bg-[#1ebe57] disabled:opacity-40 text-white flex items-center justify-center shrink-0"
+                  className="w-10 h-10 rounded-full bg-primary hover:bg-primary/90 disabled:opacity-40 text-white flex items-center justify-center shrink-0"
                 >
                   {enviar.isPending ? (
                     <Loader2 className="w-4 h-4 animate-spin" />

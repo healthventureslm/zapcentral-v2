@@ -81,13 +81,13 @@ export default function KanbanPage() {
   };
 
   return (
-    <div className="min-h-[100dvh] bg-[#F4F7F8] flex flex-col">
+    <div className="min-h-[100dvh] bg-background flex flex-col">
       <Sidebar />
       <div className="ml-64 flex flex-col flex-1 h-screen overflow-hidden">
         <header className="bg-white shadow-sm z-10 flex-shrink-0">
           <div className="h-16 flex items-center justify-between px-8">
             <h1 className="text-xl font-semibold text-gray-800 flex items-center gap-2">
-              <KanbanSquare className="w-5 h-5 text-[#25D366]" />
+              <KanbanSquare className="w-5 h-5 text-primary" />
               Funil de Vendas
             </h1>
             <div className="flex items-center gap-3">
@@ -101,7 +101,7 @@ export default function KanbanPage() {
         <main className="flex-1 overflow-x-auto overflow-y-hidden p-6">
           {dealStages.isLoading || dealsQuery.isLoading ? (
             <div className="h-full flex items-center justify-center">
-              <Loader2 className="w-8 h-8 animate-spin text-[#25D366]" />
+              <Loader2 className="w-8 h-8 animate-spin text-primary" />
             </div>
           ) : (
             <div className="flex h-full gap-6 items-start">
@@ -139,7 +139,7 @@ export default function KanbanPage() {
                           draggable
                           onDragStart={(e) => handleDragStart(e, deal.id)}
                           onDragEnd={(e) => handleDragEnd(e, deal.id)}
-                          className="bg-white rounded-lg shadow-sm border border-gray-200 p-3.5 cursor-grab active:cursor-grabbing hover:border-[#25D366]/50 transition-colors group relative"
+                          className="bg-white rounded-lg shadow-sm border border-gray-200 p-3.5 cursor-grab active:cursor-grabbing hover:border-primary/50 transition-colors group relative"
                         >
                           <div className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity">
                             <DealActionsMenu deal={deal} />
@@ -311,7 +311,7 @@ function CreateDealDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="bg-[#25D366] hover:bg-[#1ebe57] text-white">
+        <Button className="bg-primary hover:bg-primary/90 text-white">
           <Plus className="w-4 h-4 mr-2" />
           Novo Negócio
         </Button>
@@ -371,7 +371,7 @@ function CreateDealDialog() {
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
-            <Button type="submit" className="bg-[#25D366] hover:bg-[#1ebe57] text-white" disabled={createDeal.isPending}>
+            <Button type="submit" className="bg-primary hover:bg-primary/90 text-white" disabled={createDeal.isPending}>
               {createDeal.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
               Salvar
             </Button>

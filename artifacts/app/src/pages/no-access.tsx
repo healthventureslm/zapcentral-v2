@@ -10,7 +10,7 @@ export default function NoAccessPage() {
   const { signOut } = useClerk();
 
   return (
-    <div className="min-h-screen bg-[#F4F7F8] flex items-center justify-center p-4">
+    <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="w-full max-w-sm text-center space-y-6">
         <div className="inline-flex items-center justify-center w-14 h-14 bg-gray-200 rounded-2xl">
           <MessageSquare className="w-7 h-7 text-gray-400" />
