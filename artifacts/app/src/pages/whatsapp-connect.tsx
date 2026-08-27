@@ -233,7 +233,7 @@ export default function WhatsAppConnectPage() {
   const statusInfo = STATUS_INFO[status] ?? STATUS_INFO["disconnected"]!;
 
   return (
-    <PageShell title="WhatsApp">
+    <PageShell title="WhatsApp" icon={<Smartphone />}>
           <Card>
             <CardHeader
               title="Status da conexão"

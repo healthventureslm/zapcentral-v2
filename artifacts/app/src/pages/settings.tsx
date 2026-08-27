@@ -1,3 +1,4 @@
+import { Settings as SettingsIcon } from "lucide-react";
 import { useUser } from "@/lib/devAuth";
 import {
   Avatar,
@@ -18,7 +19,7 @@ export default function SettingsPage() {
   const isAdmin = role === "admin" || role === "supervisor";
 
   return (
-    <PageShell title="Configurações">
+    <PageShell title="Configurações" icon={<SettingsIcon />}>
             
             <Card>
               <CardHeader title={<>Meu Perfil</>} subtitle={<>Informações da sua conta de usuário.</>} />

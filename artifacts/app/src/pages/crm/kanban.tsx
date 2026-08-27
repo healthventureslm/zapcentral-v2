@@ -66,6 +66,7 @@ export default function KanbanPage() {
 
   return (
     <PageShell
+      icon={<KanbanSquare />}
         title="Funil de vendas"
         actions={
           <div className="flex items-center gap-3">

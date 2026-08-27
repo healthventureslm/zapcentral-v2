@@ -300,6 +300,7 @@ export default function ContactsPage() {
 
   return (
     <PageShell
+      icon={<UsersIcon />}
         title="CRM"
         actions={
           <div className="flex items-center gap-3">

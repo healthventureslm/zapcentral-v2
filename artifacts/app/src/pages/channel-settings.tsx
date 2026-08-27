@@ -3,7 +3,7 @@
  */
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Settings, Plus, Trash2, Loader2, Save } from "lucide-react";
+import { Settings, Plus, Trash2, Loader2, Save, ListTree } from "lucide-react";
 import {
   Button,
   Card,
@@ -98,7 +98,7 @@ export default function ChannelSettingsPage() {
 
   if (isLoading || !tenantId) {
     return (
-      <PageShell title="Configurações do canal">
+      <PageShell title="Configurações do canal" icon={<ListTree />}>
         <EmptyState loading />
       </PageShell>
     );
@@ -106,6 +106,7 @@ export default function ChannelSettingsPage() {
 
   return (
     <PageShell
+      icon={<ListTree />}
       title="Configurações do canal"
       actions={
         <Button

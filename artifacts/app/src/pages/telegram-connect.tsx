@@ -82,7 +82,7 @@ export default function TelegramConnectPage() {
 
   if (!isAdmin) {
     return (
-      <PageShell title="Telegram">
+      <PageShell title="Telegram" icon={<Send />}>
         <EmptyState
           title="Acesso restrito"
           description="Apenas administradores e supervisores podem gerenciar canais."
@@ -93,6 +93,7 @@ export default function TelegramConnectPage() {
 
   return (
     <PageShell
+      icon={<Send />}
       title="Telegram"
       subtitle="Conecte um bot para atender pelo Telegram. WhatsApp e Telegram podem funcionar juntos ou separadamente."
     >

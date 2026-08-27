@@ -16,6 +16,7 @@ import {
   Send,
   Smartphone,
   ArrowRight,
+  PlayCircle,
 } from "lucide-react";
 import { Button } from "@healthventureslm/design-system";
 import { PageShell } from "@/components/PageShell";
@@ -159,6 +160,7 @@ export default function SimuladorPage() {
 
   return (
     <PageShell
+      icon={<PlayCircle />}
       title="Simulador de atendimento"
       subtitle="Escreva como um paciente e veja a central responder — sem precisar de celular pareado."
       actions={

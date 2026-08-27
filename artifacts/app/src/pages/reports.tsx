@@ -13,7 +13,8 @@ import {
   TrendingUp,
   FileSpreadsheet,
   MessageCircle,
-  Star
+  Star,
+  BarChart3,
 } from "lucide-react";
 import { PageShell } from "@/components/PageShell";
 import {
@@ -156,7 +157,7 @@ export default function ReportsPage() {
 
   if (role !== null && !canSeeReports) {
     return (
-      <PageShell title="Relatórios">
+      <PageShell title="Relatórios" icon={<BarChart3 />}>
         <EmptyState
           title="Acesso restrito"
           description="Os relatórios são restritos a administradores e supervisores."
@@ -167,6 +168,7 @@ export default function ReportsPage() {
 
   return (
     <PageShell
+      icon={<BarChart3 />}
       title="Relatórios"
       actions={
         <Button
