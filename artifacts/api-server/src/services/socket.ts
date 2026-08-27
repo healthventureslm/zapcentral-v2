@@ -20,7 +20,7 @@ import { distribuirFilaParada } from "./ivr";
 import { logger } from "../lib/logger";
 import { db } from "@workspace/db";
 import { tenantUsersTable, agentStatusesTable } from "@workspace/db";
-import { eq, and } from "drizzle-orm";
+import { eq, and, inArray } from "drizzle-orm";
 
 let _io: SocketIOServer | null = null;
 
@@ -218,7 +218,15 @@ export async function reconciliarPresenca(): Promise<void> {
     await db
       .update(agentStatusesTable)
       .set({ status: "offline", updatedAt: new Date() })
-      .where(eq(agentStatusesTable.status, "available"));
+      .where(
+        // `busy` tambem, e nao so por higiene: ate esta versao, pegar uma
+        // conversa gravava 'busy' e NADA devolvia para 'available'. Quem ja
+        // usava o sistema tem gente presa em 'busy', invisivel para a fila
+        // para sempre. Como a promocao por presenca so tira quem esta
+        // 'offline', sem isto essas pessoas nunca seriam recuperadas — a
+        // correcao da fila valeria so para cadastros novos.
+        inArray(agentStatusesTable.status, ["available", "busy"]),
+      );
   } catch (err) {
     logger.error({ err }, "Falha ao reconciliar presenca no boot");
   }
