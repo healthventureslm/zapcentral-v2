@@ -5,6 +5,7 @@ import {
   departmentAgentsTable,
   tenantUsersTable,
   agentStatusesTable,
+  channelSettingsTable,
   insertDepartmentSchema,
 } from "@workspace/db";
 import { eq, and, sql } from "drizzle-orm";
@@ -267,14 +268,53 @@ router.delete(
       return;
     }
 
-    await db
-      .delete(departmentsTable)
-      .where(
-        and(
-          eq(departmentsTable.id, departmentId),
-          eq(departmentsTable.tenantId, tenantId),
-        ),
+    // Apagar o setor e limpar o menu do robo tem de acontecer junto. O menu
+    // guarda o id do setor num JSON separado (`channel_settings.menu_options`),
+    // e um id orfao ali faz o roteamento violar a chave estrangeira de
+    // `conversations.department_id`: o webhook estoura, o paciente nao recebe
+    // resposta e a conversa trava no menu.
+    await db.transaction(async (tx) => {
+      await tx
+        .delete(departmentsTable)
+        .where(
+          and(
+            eq(departmentsTable.id, departmentId),
+            eq(departmentsTable.tenantId, tenantId),
+          ),
+        );
+
+      // FOR UPDATE: sem a trava, apagar dois setores em sequencia rapida e um
+      // lost update classico — o segundo le o menu antes de o primeiro gravar,
+      // e ressuscita a opcao que o primeiro tinha removido.
+      const [config] = await tx
+        .select({ menuOptions: channelSettingsTable.menuOptions })
+        .from(channelSettingsTable)
+        .where(eq(channelSettingsTable.tenantId, tenantId))
+        .limit(1)
+        .for("update");
+
+      if (!config) return;
+
+      const restantes = (config.menuOptions ?? []).filter(
+        (o) => o.departmentId !== departmentId,
       );
+
+      if (restantes.length === (config.menuOptions ?? []).length) return;
+
+      // As chaves das opcoes restantes NAO sao renumeradas, de proposito.
+      //
+      // Renumerar parece mais limpo — sem buraco entre "2" e "4" — mas quem
+      // esta com o menu antigo aberto no celular digitaria "3" esperando o
+      // setor de antes e cairia noutro, sem ninguem perceber. Num hospital
+      // isso e encaminhar paciente para a equipe errada em silencio.
+      //
+      // Deixando o buraco, a tecla antiga simplesmente nao casa e a pessoa
+      // recebe o menu de novo, ja sem a opcao morta. Falha visivel e segura.
+      await tx
+        .update(channelSettingsTable)
+        .set({ menuOptions: restantes, updatedAt: new Date() })
+        .where(eq(channelSettingsTable.tenantId, tenantId));
+    });
 
     res.status(204).end();
   },

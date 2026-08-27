@@ -82,6 +82,36 @@ export function isWithinWorkingHours(settings: {
 }
 
 /**
+ * As opcoes do menu que ainda apontam para um setor existente e ativo.
+ *
+ * O menu vive num JSON (`channel_settings.menu_options`) e o setor vive noutra
+ * tabela: apagar ou desativar um setor deixa a opcao orfa. Oferecer uma opcao
+ * orfa prende a pessoa — ela escolhe, e recebe "opcao invalida" com a mesma
+ * opcao listada de novo.
+ *
+ * Uma fonte so, usada tanto para montar o menu quanto para reexibi-lo.
+ */
+async function opcoesVivas(
+  tenantId: number,
+  opcoes: { key: string; label: string; departmentId: number }[],
+): Promise<{ key: string; label: string; departmentId: number }[]> {
+  if (opcoes.length === 0) return [];
+
+  const ativos = await db
+    .select({ id: departmentsTable.id })
+    .from(departmentsTable)
+    .where(
+      and(
+        eq(departmentsTable.tenantId, tenantId),
+        eq(departmentsTable.status, "active"),
+      ),
+    );
+
+  const vivos = new Set(ativos.map((d) => d.id));
+  return opcoes.filter((o) => vivos.has(o.departmentId));
+}
+
+/**
  * Process an incoming message through the IVR state machine.
  * Returns the next conversation status.
  */
@@ -146,10 +176,42 @@ export async function processIvrMessage(
     }
 
     // Send menu
+    const vivas = await opcoesVivas(
+      tenantId,
+      settings.menuOptions as {
+        key: string;
+        label: string;
+        departmentId: number;
+      }[],
+    );
+
+    // Menu vazio (nenhum setor do menu existe mais) nao pode virar uma frase
+    // truncada no celular da pessoa. Sem opcao para oferecer, ela vai direto
+    // para a fila do primeiro setor ativo.
+    if (vivas.length === 0) {
+      const [primeiro] = await db
+        .select({ id: departmentsTable.id })
+        .from(departmentsTable)
+        .where(
+          and(
+            eq(departmentsTable.tenantId, tenantId),
+            eq(departmentsTable.status, "active"),
+          ),
+        )
+        .orderBy(asc(departmentsTable.id))
+        .limit(1);
+
+      return {
+        action: "route_to_department",
+        ...(primeiro ? { departmentId: primeiro.id } : {}),
+        replyText: settings.welcomeMessage,
+      };
+    }
+
     const menuText = buildMenuText(
       settings.welcomeMessage,
       settings.menuPrompt,
-      settings.menuOptions as { key: string; label: string }[],
+      vivas,
     );
     return { action: "send_menu", replyText: menuText };
   }
@@ -165,10 +227,30 @@ export async function processIvrMessage(
   );
 
   if (matched) {
-    return {
-      action: "route_to_department",
-      departmentId: matched.departmentId,
-    };
+    // O menu guarda o id do setor num JSON separado, que pode ficar apontando
+    // para um setor apagado. Rotear direto quebraria a chave estrangeira de
+    // `conversations.department_id`: o webhook estoura, a resposta nunca sai, e
+    // a conversa fica travada no menu para sempre. Conferir aqui custa uma
+    // consulta e transforma uma configuracao velha em "opcao invalida", que o
+    // fluxo ja sabe tratar.
+    const [aindaExiste] = await db
+      .select({ id: departmentsTable.id })
+      .from(departmentsTable)
+      .where(
+        and(
+          eq(departmentsTable.id, matched.departmentId),
+          eq(departmentsTable.tenantId, tenantId),
+          eq(departmentsTable.status, "active"),
+        ),
+      )
+      .limit(1);
+
+    if (aindaExiste) {
+      return {
+        action: "route_to_department",
+        departmentId: matched.departmentId,
+      };
+    }
   }
 
   // Invalid option
@@ -194,7 +276,8 @@ export async function processIvrMessage(
     };
   }
 
-  const optionList = options.map((o) => `${o.key} - ${o.label}`).join("\n");
+  const vivas = await opcoesVivas(tenantId, options);
+  const optionList = vivas.map((o) => `${o.key} - ${o.label}`).join("\n");
   return {
     action: "invalid_option",
     replyText: `Opção inválida. Por favor, escolha uma das opções:\n${optionList}`,
