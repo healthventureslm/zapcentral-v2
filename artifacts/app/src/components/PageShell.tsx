@@ -20,6 +20,7 @@ export function PageShell({
   subtitle,
   icon,
   actions,
+  onBack,
   width = "regular",
   children,
 }: {
@@ -28,6 +29,12 @@ export function PageShell({
   icon?: ReactNode;
   /** Acoes alinhadas a direita do titulo (botoes, filtros, selos). */
   actions?: ReactNode;
+  /**
+   * Mostra o controle de voltar. Recebe um handler, e nao um destino: o
+   * PageHeader com `backTo` navega por href, o que recarrega a pagina inteira
+   * e mata o roteamento do SPA.
+   */
+  onBack?: () => void;
   /**
    * `regular` cobre a maioria das telas. `wide` e para tabelas largas e
    * quadros, que precisam da tela inteira.
@@ -45,6 +52,7 @@ export function PageShell({
             {...(subtitle ? { subtitle } : {})}
             {...(icon ? { icon } : {})}
             {...(actions ? { actions } : {})}
+            {...(onBack ? { back: true, onBack } : {})}
           />
           <div className="mt-6 space-y-6">{children}</div>
         </div>

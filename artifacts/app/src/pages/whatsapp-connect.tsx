@@ -226,7 +226,7 @@ export default function WhatsAppConnectPage() {
   const statusInfo = STATUS_INFO[status] ?? STATUS_INFO["disconnected"]!;
 
   return (
-    <PageShell title="WhatsApp" icon={<Smartphone className="w-5 h-5" />}>
+    <PageShell title="WhatsApp">
           {/* Status Card */}
           <div className="bg-card rounded-xl shadow-sm p-6 mb-6">
             <div className="flex items-center justify-between">

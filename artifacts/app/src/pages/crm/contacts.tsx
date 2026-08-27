@@ -265,7 +265,6 @@ export default function ContactsPage() {
     <PageShell
         width="wide"
         title="CRM"
-        icon={<UsersIcon className="w-5 h-5" />}
         actions={
           <div className="flex items-center gap-3">
               <ManageTagsDialog />

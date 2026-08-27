@@ -102,7 +102,6 @@ export default function ChannelSettingsPage() {
   return (
     <PageShell
       title="Configurações do canal"
-      icon={<Settings className="w-5 h-5" />}
       actions={
         <Button
           variant="primary"

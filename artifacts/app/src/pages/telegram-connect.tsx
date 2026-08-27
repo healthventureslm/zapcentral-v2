@@ -9,10 +9,9 @@ import {
   CardHeader,
   EmptyState,
   Input,
-  PageHeader,
   Spinner,
 } from "@healthventureslm/design-system";
-import { Sidebar } from "@/components/Sidebar";
+import { PageShell } from "@/components/PageShell";
 import { useToast } from "@/hooks/use-toast";
 import { useTenantId, useMyRole } from "@/hooks/useTenantId";
 import {
@@ -83,28 +82,20 @@ export default function TelegramConnectPage() {
 
   if (!isAdmin) {
     return (
-      <div className="min-h-[100dvh] bg-background">
-        <Sidebar />
-        <main className="ml-64 flex items-center justify-center p-8 min-h-[100dvh]">
-          <EmptyState
-            title="Acesso restrito"
-            description="Apenas administradores e supervisores podem gerenciar canais."
-          />
-        </main>
-      </div>
+      <PageShell title="Telegram">
+        <EmptyState
+          title="Acesso restrito"
+          description="Apenas administradores e supervisores podem gerenciar canais."
+        />
+      </PageShell>
     );
   }
 
   return (
-    <div className="min-h-[100dvh] bg-background">
-      <Sidebar />
-      <main className="ml-64 p-8">
-        <div className="max-w-2xl mx-auto space-y-6">
-          <PageHeader
-            title="Telegram"
-            subtitle="Conecte um bot para atender pelo Telegram. WhatsApp e Telegram podem funcionar juntos ou separadamente."
-          />
-
+    <PageShell
+      title="Telegram"
+      subtitle="Conecte um bot para atender pelo Telegram. WhatsApp e Telegram podem funcionar juntos ou separadamente."
+    >
           {statusQuery.isLoading ? (
             <Card>
               <CardBody>
@@ -259,8 +250,6 @@ export default function TelegramConnectPage() {
               </CardBody>
             </Card>
           )}
-        </div>
-      </main>
-    </div>
+    </PageShell>
   );
 }

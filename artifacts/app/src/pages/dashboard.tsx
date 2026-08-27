@@ -49,7 +49,7 @@ import {
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
-import { Sidebar } from "@/components/Sidebar";
+import { PageShell } from "@/components/PageShell";
 
 
 /**
@@ -400,18 +400,11 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="min-h-[100dvh] bg-background">
-      <Sidebar />
-
-      <div className="ml-64 flex flex-col print:ml-0">
-        <div className="px-8 pt-6 print:hidden">
-          <PageHeader
-            title="Painel principal"
-            actions={<Badge variant="neutral">Central {tenantId ?? "…"}</Badge>}
-          />
-        </div>
-
-        <main className="flex-1 p-8">
+    <PageShell
+      width="wide"
+      title="Painel principal"
+      actions={<Badge variant="neutral">Central {tenantId ?? "…"}</Badge>}
+    >
           {noReportAccess && (
             <div className="mb-6 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
               As métricas do painel estão disponíveis apenas para administradores e
@@ -607,8 +600,6 @@ export default function DashboardPage() {
             naFila={waitingRes?.conversations ?? []}
             carregando={!ramais || !agents}
           />
-        </main>
-      </div>
-    </div>
+    </PageShell>
   );
 }
