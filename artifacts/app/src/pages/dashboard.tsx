@@ -29,6 +29,7 @@ import {
   Card,
   CardBody,
   CardHeader,
+  Table,
 } from "@healthventureslm/design-system";
 import { useTenantId, useMyRole } from "@/hooks/useTenantId";
 import { useRamalDescoberto } from "@/hooks/useRamalDescoberto";
@@ -252,60 +253,73 @@ function OperacaoAgora({
       />
       <CardBody>
         {carregando ? (
-          <div className="flex justify-center py-8">
-            <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
-          </div>
-        ) : linhas.length === 0 ? (
-          <p className="text-sm text-muted-foreground py-4">Nenhum ramal ativo.</p>
+          <EmptyState size="sm" loading />
         ) : (
-          <div className="divide-y divide-gray-100">
-            {linhas.map(({ ramal, disponiveis, online, fila }) => {
-              const descoberto = fila > 0 && disponiveis.length === 0;
-              return (
-                <div
-                  key={ramal.id}
-                  className="flex items-center justify-between gap-4 py-2.5"
-                >
-                  <div className="flex items-center gap-2.5 min-w-0">
+          /* Tabela, e nao divs empilhadas: a coluna da direita nao se explicava
+             sozinha. Com cabecalho, "Disponiveis" diz o que aquele texto e — e
+             no celular o proprio componente vira lista de cards, em vez de
+             espremer nome de agente contra nome de ramal. */
+          <Table
+            sortable
+            rowKey="id"
+            emptyText="Nenhum ramal ativo."
+            data={linhas.map(({ ramal, disponiveis, online, fila }) => ({
+              id: ramal.id,
+              ramal,
+              fila,
+              disponiveis,
+              online,
+              descoberto: fila > 0 && disponiveis.length === 0,
+            }))}
+            columns={[
+              {
+                key: "ramal",
+                header: "Ramal",
+                sortAccessor: (l) => l.ramal.name,
+                render: (l) => (
+                  <span className="inline-flex items-center gap-2.5">
                     <span
                       className="w-2 h-2 rounded-full shrink-0"
-                      style={{ backgroundColor: ramal.color }}
+                      style={{ backgroundColor: l.ramal.color }}
                     />
-                    <span className="text-sm font-medium text-foreground truncate">
-                      {ramal.name}
+                    <span className="font-medium">{l.ramal.name}</span>
+                  </span>
+                ),
+              },
+              {
+                key: "fila",
+                header: "Fila",
+                align: "right",
+                mono: true,
+                render: (l) =>
+                  l.fila > 0 ? (
+                    <Badge variant={l.descoberto ? "danger" : "warning"}>
+                      {l.fila}
+                    </Badge>
+                  ) : (
+                    <span className="text-[var(--text-subtle)]">—</span>
+                  ),
+              },
+              {
+                key: "disponiveis",
+                header: "Disponíveis",
+                align: "right",
+                sortAccessor: (l) => l.disponiveis.length,
+                render: (l) =>
+                  l.disponiveis.length > 0 ? (
+                    <span className="text-xs text-[var(--text-muted)]">
+                      {l.disponiveis.map(nomeDe).join(", ")}
                     </span>
-                    {fila > 0 && (
-                      <Badge
-                        className={cn(
-                          "text-[10px] px-1.5 py-0 h-4 border-none",
-                          descoberto
-                            ? "bg-red-100 text-red-700"
-                            : "bg-amber-100 text-amber-700",
-                        )}
-                      >
-                        {fila} na fila
-                      </Badge>
-                    )}
-                  </div>
-                  <div className="text-right shrink-0">
-                    {disponiveis.length > 0 ? (
-                      <p className="text-xs text-muted-foreground truncate max-w-[22rem]">
-                        {disponiveis.map(nomeDe).join(", ")}
-                      </p>
-                    ) : descoberto ? (
-                      <p className="text-xs font-medium text-red-600">
-                        Ninguém disponível
-                      </p>
-                    ) : (
-                      <p className="text-xs text-muted-foreground">
-                        {online.length > 0 ? "Sem vaga livre" : "Ninguém online"}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+                  ) : l.descoberto ? (
+                    <Badge variant="danger">Ninguém disponível</Badge>
+                  ) : (
+                    <span className="text-xs text-[var(--text-muted)]">
+                      {l.online.length > 0 ? "Sem vaga livre" : "Ninguém online"}
+                    </span>
+                  ),
+              },
+            ]}
+          />
         )}
       </CardBody>
     </Card>
