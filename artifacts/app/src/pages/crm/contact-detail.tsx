@@ -1,5 +1,17 @@
 import { useState, useRef, useEffect } from "react";
 import { useRoute, Link, useLocation } from "wouter";
+import {
+  Avatar,
+  Badge,
+  Button,
+  Card,
+  CardBody,
+  CardHeader,
+  EmptyState,
+  Input,
+  Menu,
+  Select,
+} from "@healthventureslm/design-system";
 import { Sidebar } from "@/components/Sidebar";
 import { useCrmHooks, useContactDetail } from "@/hooks/use-crm";
 import {
@@ -17,25 +29,7 @@ import {
   Briefcase,
   AlertCircle
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -140,7 +134,7 @@ export default function ContactDetailPage() {
           <AlertCircle className="w-12 h-12 text-muted-foreground mb-4" />
           <h2 className="text-xl font-semibold text-foreground mb-2">Contato não encontrado</h2>
           <Link href="/crm">
-            <Button variant="outline">Voltar para Contatos</Button>
+            <Button variant="secondary">Voltar para Contatos</Button>
           </Link>
         </div>
       </div>
@@ -156,17 +150,16 @@ export default function ContactDetailPage() {
           <div className="h-16 flex items-center justify-between px-8">
             <div className="flex items-center gap-4">
               <Link href="/crm">
-                <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground">
+                <Button variant="ghost" size="sm" className="h-8 w-8 text-muted-foreground hover:text-foreground">
                   <ArrowLeft className="w-4 h-4" />
                 </Button>
               </Link>
               <div className="flex items-center gap-3">
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src={contact.avatarUrl || undefined} />
-                  <AvatarFallback className="bg-primary/10 text-primary text-xs font-semibold">
-                    {contact.name?.substring(0, 2).toUpperCase() || "??"}
-                  </AvatarFallback>
-                </Avatar>
+                <Avatar
+                  size="sm"
+                  src={contact.avatarUrl ?? undefined}
+                  fromName={contact.name ?? undefined}
+                />
                 <h1 className="text-xl font-semibold text-foreground">
                   {contact.name || contact.phone}
                 </h1>
@@ -174,7 +167,7 @@ export default function ContactDetailPage() {
             </div>
             
             <div className="flex items-center gap-2">
-              <Button variant="outline" className="text-red-600 hover:text-red-700 hover:bg-red-50 border-transparent" onClick={handleDelete}>
+              <Button variant="secondary" className="text-red-600 hover:text-red-700 hover:bg-red-50 border-transparent" onClick={handleDelete}>
                 <Trash2 className="w-4 h-4 mr-2" />
                 Excluir
               </Button>
@@ -184,7 +177,7 @@ export default function ContactDetailPage() {
                 </Button>
               ) : (
                 <div className="flex gap-2">
-                  <Button variant="outline" onClick={() => setIsEditing(false)}>Cancelar</Button>
+                  <Button variant="secondary" onClick={() => setIsEditing(false)}>Cancelar</Button>
                   <Button onClick={handleSaveBasic} className="bg-primary hover:bg-primary/90 text-white" disabled={updateContact.isPending}>
                     {updateContact.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
                     Salvar
@@ -201,10 +194,8 @@ export default function ContactDetailPage() {
             {/* Left Column: Basic Info & Custom Fields */}
             <div className="space-y-6">
               <Card className="shadow-sm border-border">
-                <CardHeader className="pb-3 border-b border-border">
-                  <CardTitle className="text-base font-semibold text-foreground">Dados Principais</CardTitle>
-                </CardHeader>
-                <CardContent className="p-5 space-y-4">
+                <CardHeader title="Dados principais" />
+                <CardBody className="p-5 space-y-4">
                   <div className="space-y-1.5">
                     <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Nome</label>
                     {isEditing ? (
@@ -253,19 +244,25 @@ export default function ContactDetailPage() {
                   <div className="space-y-1.5">
                     <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Responsável</label>
                     {isEditing ? (
-                      <Select value={formData.assignedTo || "unassigned"} onValueChange={v => setFormData({...formData, assignedTo: v === "unassigned" ? "" : v})}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione um responsável" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="unassigned">Sem responsável</SelectItem>
-                          {agents.data?.map(a => (
-                            <SelectItem key={a.clerkUserId} value={a.clerkUserId}>
-                              {a.firstName ? `${a.firstName} ${a.lastName || ""}` : a.email}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <Select
+                        placeholder="Selecione um responsável"
+                        value={formData.assignedTo || "unassigned"}
+                        onChange={(v) =>
+                          setFormData({
+                            ...formData,
+                            assignedTo: v === "unassigned" ? "" : v,
+                          })
+                        }
+                        options={[
+                          { value: "unassigned", label: "Sem responsável" },
+                          ...(agents.data ?? []).map((a) => ({
+                            value: a.clerkUserId,
+                            label: a.firstName
+                              ? `${a.firstName} ${a.lastName || ""}`.trim()
+                              : a.email,
+                          })),
+                        ]}
+                      />
                     ) : (
                       <p className="text-sm font-medium text-foreground">
                         {contact.assignedTo ? (() => {
@@ -275,34 +272,32 @@ export default function ContactDetailPage() {
                       </p>
                     )}
                   </div>
-                </CardContent>
+                </CardBody>
               </Card>
 
               {/* Tags Section */}
               <Card className="shadow-sm border-border">
-                <CardHeader className="pb-3 border-b border-border flex flex-row items-center justify-between space-y-0">
-                  <CardTitle className="text-base font-semibold text-foreground">Tags</CardTitle>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted">
-                        <Plus className="w-4 h-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      {tags.data?.filter(t => !contact.tags.find(ct => ct.id === t.id)).length === 0 ? (
-                        <div className="px-2 py-1 text-sm text-muted-foreground">Todas as tags adicionadas</div>
-                      ) : (
-                        tags.data?.filter(t => !contact.tags.find(ct => ct.id === t.id)).map(t => (
-                          <DropdownMenuItem key={t.id} onClick={() => addTag.mutate(t.id)}>
-                            <span className="w-2 h-2 rounded-full mr-2" style={{ backgroundColor: t.color || "#ccc" }} />
-                            {t.name}
-                          </DropdownMenuItem>
-                        ))
-                      )}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </CardHeader>
-                <CardContent className="p-5">
+                <CardHeader
+                  title="Etiquetas"
+                  action={
+                    <Menu
+                      align="end"
+                      trigger={
+                        <Button variant="quiet" size="sm">
+                          <Plus className="w-4 h-4" />
+                        </Button>
+                      }
+                      items={(tags.data ?? [])
+                        .filter((et) => !contact.tags.find((ct) => ct.id === et.id))
+                        .map((et) => ({
+                          id: String(et.id),
+                          label: et.name,
+                          onSelect: () => addTag.mutate(et.id),
+                        }))}
+                    />
+                  }
+                />
+                <CardBody className="p-5">
                   <div className="flex flex-wrap gap-2">
                     {contact.tags.length === 0 ? (
                       <span className="text-sm text-muted-foreground">Nenhuma tag</span>
@@ -310,7 +305,7 @@ export default function ContactDetailPage() {
                       contact.tags.map(t => (
                         <Badge
                           key={t.id}
-                          variant="secondary"
+                          variant="neutral"
                           className="border-none font-medium pr-1 group flex items-center gap-1"
                           style={{ backgroundColor: `${t.color}20`, color: t.color }}
                         >
@@ -325,42 +320,44 @@ export default function ContactDetailPage() {
                       ))
                     )}
                   </div>
-                </CardContent>
+                </CardBody>
               </Card>
 
               {/* Custom Fields */}
               {customFields.data && customFields.data.length > 0 && (
                 <Card className="shadow-sm border-border">
-                  <CardHeader className="pb-3 border-b border-border flex flex-row items-center justify-between space-y-0">
-                    <CardTitle className="text-base font-semibold text-foreground">Campos Customizados</CardTitle>
-                    {isEditing ? null : (
-                      <Button variant="ghost" size="sm" className="h-8 text-xs text-primary hover:text-primary/90" onClick={() => setIsEditing(true)}>
-                        Editar
-                      </Button>
-                    )}
-                  </CardHeader>
-                  <CardContent className="p-5 space-y-4">
+                  <CardHeader
+                    title="Campos personalizados"
+                    action={
+                      isEditing ? undefined : (
+                        <Button variant="quiet" size="sm" onClick={() => setIsEditing(true)}>
+                          Editar
+                        </Button>
+                      )
+                    }
+                  />
+                  <CardBody className="p-5 space-y-4">
                     {contact.customFields.map(cf => (
                       <div key={cf.id} className="space-y-1.5">
                         <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{cf.name}</label>
                         {isEditing ? (
                           cf.type === 'select' ? (
                             <Select
+                              placeholder="Selecione…"
                               value={cf.value || ""}
-                              onValueChange={(v) => {
-                                const newValues = contact.customFields.map(f => f.id === cf.id ? { fieldId: f.id, value: v } : { fieldId: f.id, value: f.value });
-                                updateCustomValues.mutate(newValues);
+                              onChange={(v) => {
+                                const novos = contact.customFields.map((campo) =>
+                                  campo.id === cf.id
+                                    ? { fieldId: campo.id, value: v }
+                                    : { fieldId: campo.id, value: campo.value },
+                                );
+                                updateCustomValues.mutate(novos);
                               }}
-                            >
-                              <SelectTrigger>
-                                <SelectValue placeholder="Selecione..." />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {cf.options?.map(opt => (
-                                  <SelectItem key={opt} value={opt}>{opt}</SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
+                              options={(cf.options ?? []).map((opt) => ({
+                                value: opt,
+                                label: opt,
+                              }))}
+                            />
                           ) : (
                             <Input
                               type={cf.type === 'number' ? 'number' : cf.type === 'date' ? 'date' : 'text'}
@@ -376,7 +373,7 @@ export default function ContactDetailPage() {
                         )}
                       </div>
                     ))}
-                  </CardContent>
+                  </CardBody>
                 </Card>
               )}
             </div>
@@ -386,13 +383,8 @@ export default function ContactDetailPage() {
               
               {/* Linked Deals */}
               <Card className="shadow-sm border-border">
-                <CardHeader className="pb-3 border-b border-border flex flex-row items-center justify-between space-y-0">
-                  <CardTitle className="text-base font-semibold text-foreground flex items-center gap-2">
-                    <Briefcase className="w-5 h-5 text-amber-500" />
-                    Negócios no Funil
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-0">
+                <CardHeader title="Negócios no funil" />
+                <CardBody className="p-0">
                   {contact.deals.length === 0 ? (
                     <div className="p-6 text-center text-muted-foreground text-sm">
                       Nenhum negócio vinculado. Crie no Funil de Vendas.
@@ -404,7 +396,7 @@ export default function ContactDetailPage() {
                           <div>
                             <p className="font-medium text-foreground">{deal.title}</p>
                             <div className="flex items-center gap-3 mt-1">
-                              <Badge variant="outline" className="text-xs border-border" style={{ backgroundColor: `${deal.stageColor}15`, color: deal.stageColor, borderColor: `${deal.stageColor}30` }}>
+                              <Badge variant="neutral" className="text-xs border-border" style={{ backgroundColor: `${deal.stageColor}15`, color: deal.stageColor, borderColor: `${deal.stageColor}30` }}>
                                 {deal.stageName}
                               </Badge>
                               {deal.value && (
@@ -418,25 +410,20 @@ export default function ContactDetailPage() {
                             deal.status === 'won' ? "bg-green-100 text-green-700" :
                             deal.status === 'lost' ? "bg-red-100 text-red-700" :
                             "bg-blue-100 text-blue-700"
-                          } variant="secondary">
+                          } variant="neutral">
                             {deal.status === 'won' ? 'Ganho' : deal.status === 'lost' ? 'Perdido' : 'Em andamento'}
                           </Badge>
                         </li>
                       ))}
                     </ul>
                   )}
-                </CardContent>
+                </CardBody>
               </Card>
 
               {/* Timeline (Notes & Conversations mixed conceptually, for now showing Notes + Conversation history) */}
               <Card className="shadow-sm border-border flex-1">
-                <CardHeader className="pb-3 border-b border-border">
-                  <CardTitle className="text-base font-semibold text-foreground flex items-center gap-2">
-                    <Clock className="w-5 h-5 text-blue-500" />
-                    Histórico e Notas
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-6">
+                <CardHeader title="Histórico e notas" />
+                <CardBody className="p-6">
                   
                   {/* Note input */}
                   <div className="mb-8 bg-muted rounded-lg p-1">
@@ -499,12 +486,12 @@ export default function ContactDetailPage() {
                             </div>
                           </div>
                           <div className="flex items-center gap-2 mt-2">
-                            <Badge variant="outline" className="text-xs bg-muted">{conv.status}</Badge>
-                            {conv.departmentName && <Badge variant="outline" className="text-xs border-blue-200 text-blue-700 bg-blue-50">{conv.departmentName}</Badge>}
+                            <Badge variant="neutral" className="text-xs bg-muted">{conv.status}</Badge>
+                            {conv.departmentName && <Badge variant="neutral" className="text-xs border-blue-200 text-blue-700 bg-blue-50">{conv.departmentName}</Badge>}
                           </div>
                           <div className="mt-3">
                             <Link href={`/atendimento`}>
-                              <Button variant="link" size="sm" className="h-6 px-0 text-primary hover:text-primary/90">Ver no Atendimento &rarr;</Button>
+                              <Button variant="quiet" size="sm" className="h-6 px-0 text-primary hover:text-primary/90">Ver no Atendimento &rarr;</Button>
                             </Link>
                           </div>
                         </div>
@@ -512,7 +499,7 @@ export default function ContactDetailPage() {
                     ))}
 
                   </div>
-                </CardContent>
+                </CardBody>
               </Card>
 
             </div>
