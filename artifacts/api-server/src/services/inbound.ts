@@ -18,7 +18,13 @@ import {
 } from "@workspace/db";
 import { eq, and, sql } from "drizzle-orm";
 import { extractQrMarker, matchesQrMarker } from "../lib/qrMarker";
-import { processIvrMessage, sendTenantMessage, tryAutoAssign } from "./ivr";
+import {
+  processIvrMessage,
+  sendTenantMessage,
+  tryAutoAssign,
+  haAtendenteDisponivel,
+} from "./ivr";
+import { tratarPalavraMenu } from "./voltarAoMenu";
 import { emitToTenant, emitToAgent } from "./socket";
 
 export type InboundChannel = "whatsapp" | "telegram";
@@ -301,6 +307,25 @@ export async function handleInboundMessage(msg: InboundMessage): Promise<void> {
     .where(eq(conversationsTable.id, conversation.id));
 
   // -------------------------------------------------------------------------
+  // Palavra MENU — vem ANTES do IVR de proposito.
+  //
+  // Ela age justamente nos status que o IVR ignora ('waiting' e 'active'), e a
+  // confirmacao pendente precisa consumir a resposta antes que ela seja tratada
+  // como mensagem comum para o atendente. Se `tratarPalavraMenu` consumiu, nao
+  // ha mais nada a fazer com esta mensagem.
+  // -------------------------------------------------------------------------
+  if (msg.type === "text" && msg.content) {
+    const consumida = await tratarPalavraMenu({
+      tenantId,
+      conversation,
+      texto: msg.content,
+      externalId,
+      remetente: msg.toIdentifier,
+    });
+    if (consumida) return;
+  }
+
+  // -------------------------------------------------------------------------
   // IVR
   // -------------------------------------------------------------------------
   if (
@@ -435,13 +460,27 @@ export async function handleInboundMessage(msg: InboundMessage): Promise<void> {
             );
 
           const posicao = (fila?.antes ?? 0) + 1;
+
+          // "Assim que alguem estiver livre" e verdade quando ha equipe
+          // conectada, e mentira quando nao ha ninguem. Quem escreve as 3h da
+          // manha para um ramal sem plantao merece saber que a resposta vem no
+          // horario seguinte — e nao ficar olhando o celular a noite inteira.
+          //
+          // A conversa continua na fila: quando alguem abrir o painel,
+          // `distribuirFilaParada()` a entrega. O que muda e so a promessa.
+          const temGente = await haAtendenteDisponivel(tenantId, deptId);
+
           aviso =
             `Pronto! Você está na fila de *${nomeDoSetor}*.
 ` +
             (posicao > 1
               ? `Há ${posicao - 1} pessoa(s) na sua frente. `
               : "") +
-            "Assim que alguém da equipe estiver livre, respondemos por aqui.";
+            (temGente
+              ? "Assim que alguém da equipe estiver livre, respondemos por aqui."
+              : "No momento não há ninguém da equipe disponível. " +
+                "Sua mensagem está guardada e será respondida assim que houver atendimento.") +
+            "\n\nSe preferir falar com outra equipe, responda *MENU*.";
         }
 
         await sendTenantMessage(

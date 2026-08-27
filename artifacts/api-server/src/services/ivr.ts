@@ -95,7 +95,7 @@ export function isWithinWorkingHours(settings: {
  *
  * Uma fonte so, usada tanto para montar o menu quanto para reexibi-lo.
  */
-async function opcoesVivas(
+export async function opcoesVivas(
   tenantId: number,
   opcoes: { key: string; label: string; departmentId: number }[],
 ): Promise<{ key: string; label: string; departmentId: number }[]> {
@@ -434,6 +434,45 @@ export async function sendTenantMessage(
 /**
  * Auto-assign a waiting conversation to an available agent (round-robin or least-load).
  */
+/**
+ * Ha alguem do ramal com o painel aberto e vaga livre?
+ *
+ * Serve para o produto nao mentir para quem acabou de entrar na fila.
+ * "Assim que alguem estiver livre, respondemos por aqui" e verdade quando ha
+ * equipe conectada e mentira quando nao ha ninguem — e a pessoa fica esperando
+ * uma resposta que nao vem, de madrugada, sem saber que nao vem.
+ *
+ * E a mesma condicao que `tryAutoAssign` usa para escolher o atendente. Ela
+ * vive aqui em vez de ser deduzida do `null` daquela funcao porque `manual`
+ * devolve `null` sem sequer olhar a equipe: no modo manual ha gente de plantao,
+ * ela e que escolhe a conversa. Confundir os dois casos diria "nao ha ninguem"
+ * para uma central cheia de atendentes.
+ */
+export async function haAtendenteDisponivel(
+  tenantId: number,
+  departmentId: number,
+): Promise<boolean> {
+  const [linha] = await db
+    .select({ quantos: sql<number>`COUNT(*)::int` })
+    .from(agentStatusesTable)
+    .innerJoin(
+      departmentAgentsTable,
+      and(
+        eq(departmentAgentsTable.clerkUserId, agentStatusesTable.clerkUserId),
+        eq(departmentAgentsTable.departmentId, departmentId),
+      ),
+    )
+    .where(
+      and(
+        eq(agentStatusesTable.tenantId, tenantId),
+        eq(agentStatusesTable.status, "available"),
+        sql`${agentStatusesTable.activeConversations} < ${agentStatusesTable.maxConversations}`,
+      ),
+    );
+
+  return (linha?.quantos ?? 0) > 0;
+}
+
 export async function tryAutoAssign(
   tenantId: number,
   conversationId: number,
