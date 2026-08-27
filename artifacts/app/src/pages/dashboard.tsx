@@ -19,7 +19,12 @@ import {
 } from "lucide-react";
 import { useInternalChatNotifications } from "@/hooks/useInternalChat";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import {
+  Badge,
+  PageHeader,
+  Spinner,
+  StatCard,
+} from "@healthventureslm/design-system";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useTenantId, useMyRole } from "@/hooks/useTenantId";
 import { useRamalDescoberto } from "@/hooks/useRamalDescoberto";
@@ -144,11 +149,15 @@ function duracaoHumana(segundos: number | null | undefined): string {
 
 type Julgamento = "bom" | "atencao" | "ruim" | "neutro";
 
-const CORES_DO_JULGAMENTO: Record<Julgamento, string> = {
-  bom: "text-emerald-600",
-  atencao: "text-amber-600",
-  ruim: "text-red-600",
-  neutro: "text-muted-foreground",
+/** O acento do StatCard e semantico: o design system escolhe a cor. */
+const ACENTO_DO_JULGAMENTO: Record<
+  Julgamento,
+  "petrol" | "emerald" | "amber" | "coral" | "crimson"
+> = {
+  bom: "emerald",
+  atencao: "amber",
+  ruim: "crimson",
+  neutro: "petrol",
 };
 
 /**
@@ -175,27 +184,13 @@ function IndicadorComVeredito({
   explicacao: string;
 }) {
   return (
-    <Card>
-      <CardContent className="p-5">
-        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-          {titulo}
-        </p>
-        <div className="flex items-baseline gap-1 mt-2">
-          <span className="text-3xl font-bold text-foreground">{valor}</span>
-          {unidade && (
-            <span className="text-sm font-medium text-muted-foreground">{unidade}</span>
-          )}
-        </div>
-        <p
-          className={`text-xs font-semibold mt-1 ${CORES_DO_JULGAMENTO[julgamento]}`}
-        >
-          {veredito}
-        </p>
-        <p className="text-[11px] text-muted-foreground mt-2 leading-snug">
-          {explicacao}
-        </p>
-      </CardContent>
-    </Card>
+    <StatCard
+      label={titulo}
+      value={unidade ? `${valor} ${unidade}` : valor}
+      hint={explicacao}
+      trend={{ value: veredito, positive: julgamento === "bom" }}
+      accent={ACENTO_DO_JULGAMENTO[julgamento]}
+    />
   );
 }
 
@@ -471,14 +466,12 @@ export default function DashboardPage() {
       <Sidebar />
 
       <div className="ml-64 flex flex-col print:ml-0">
-        <header className="h-16 bg-card shadow-sm flex items-center justify-between px-8 z-0 print:hidden">
-          <h1 className="text-xl font-semibold text-foreground">
-            Painel Principal
-          </h1>
-          <Badge variant="outline" className="text-xs font-medium bg-muted">
-            Tenant: {tenantId || "..."}
-          </Badge>
-        </header>
+        <div className="px-8 pt-6 print:hidden">
+          <PageHeader
+            title="Painel principal"
+            actions={<Badge variant="neutral">Central {tenantId ?? "…"}</Badge>}
+          />
+        </div>
 
         <main className="flex-1 p-8">
           {noReportAccess && (
@@ -496,86 +489,33 @@ export default function DashboardPage() {
             </p>
           )}
 
+          {/* Os cinco indicadores do agora. Dirigidos por dados em vez de cinco
+              blocos repetidos: o acento e semantico (o design system escolhe a
+              cor), nao um circulo pastel escrito na mao. */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
-            <Card>
-              <CardContent className="p-6 flex items-center">
-                <div className="p-3 rounded-full bg-green-100 text-green-600 mr-4">
-                  <MessageCircle className="w-6 h-6" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">
-                    Ativas
-                  </p>
-                  <h3 className="text-2xl font-bold text-foreground">
-                    {loadingOverview ? <Loader2 className="w-5 h-5 animate-spin mt-1" /> : overview?.live.active ?? 0}
-                  </h3>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-6 flex items-center">
-                <div className="p-3 rounded-full bg-amber-100 text-amber-600 mr-4">
-                  <Clock className="w-6 h-6" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">
-                    Aguardando
-                  </p>
-                  <h3 className="text-2xl font-bold text-foreground">
-                    {loadingOverview ? <Loader2 className="w-5 h-5 animate-spin mt-1" /> : overview?.live.waiting ?? 0}
-                  </h3>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-6 flex items-center">
-                <div className="p-3 rounded-full bg-blue-100 text-blue-600 mr-4">
-                  <PhoneCall className="w-6 h-6" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">
-                    No Robô (IVR)
-                  </p>
-                  <h3 className="text-2xl font-bold text-foreground">
-                    {loadingOverview ? <Loader2 className="w-5 h-5 animate-spin mt-1" /> : overview?.live.inIvr ?? 0}
-                  </h3>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-6 flex items-center">
-                <div className="p-3 rounded-full bg-indigo-100 text-indigo-600 mr-4">
-                  <Users className="w-6 h-6" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">
-                    Agentes Online
-                  </p>
-                  <h3 className="text-2xl font-bold text-foreground">
-                    {agents ? onlineAgents : <Loader2 className="w-5 h-5 animate-spin mt-1" />}
-                  </h3>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-6 flex items-center">
-                <div className="p-3 rounded-full bg-purple-100 text-purple-600 mr-4">
-                  <CheckCircle2 className="w-6 h-6" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">
-                    Resolvidos Hoje
-                  </p>
-                  <h3 className="text-2xl font-bold text-foreground">
-                    {loadingOverview ? <Loader2 className="w-5 h-5 animate-spin mt-1" /> : overview?.live.closedToday ?? 0}
-                  </h3>
-                </div>
-              </CardContent>
-            </Card>
+            {(
+              [
+                { rotulo: "Ativas", icone: <MessageCircle className="w-5 h-5" />, valor: overview?.live.active, acento: "petrol" },
+                { rotulo: "Aguardando", icone: <Clock className="w-5 h-5" />, valor: overview?.live.waiting, acento: "amber" },
+                { rotulo: "No robô (IVR)", icone: <PhoneCall className="w-5 h-5" />, valor: overview?.live.inIvr, acento: "petrol" },
+                { rotulo: "Agentes online", icone: <Users className="w-5 h-5" />, valor: agents ? onlineAgents : undefined, acento: "emerald" },
+                { rotulo: "Resolvidos hoje", icone: <CheckCircle2 className="w-5 h-5" />, valor: overview?.live.closedToday, acento: "emerald" },
+              ] as const
+            ).map((c) => (
+              <StatCard
+                key={c.rotulo}
+                icon={c.icone}
+                label={c.rotulo}
+                accent={c.acento}
+                value={
+                  c.valor === undefined ? (
+                    <Spinner size="sm" />
+                  ) : (
+                    c.valor
+                  )
+                }
+              />
+            ))}
           </div>
 
           {!noReportAccess && (
@@ -740,7 +680,7 @@ export default function DashboardPage() {
                                 {conv.contact.name || conv.contact.phone}
                               </p>
                               {conv.departmentName && (
-                                <Badge variant="secondary" className="mt-1 text-[10px] px-1.5 py-0 h-4 border-none bg-muted text-muted-foreground">
+                                <Badge variant="neutral" className="mt-1">
                                   {conv.departmentName}
                                 </Badge>
                               )}
