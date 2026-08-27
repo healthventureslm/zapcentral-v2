@@ -1,7 +1,7 @@
 /**
  * Resolve onde a API vive e como autenticar com ela.
  *
- * Dois modos:
+ * Tres modos:
  *
  * 1. Mesma origem (local e Replit) — o prefixo `/api-server` e resolvido pelo
  *    proxy do Vite ou pelo router do Replit. A sessao viaja por cookie.
@@ -9,6 +9,10 @@
  * 2. Origem separada (frontend no Vercel, API exposta por tunel) — definido
  *    por `VITE_API_BASE_URL`. O tunel aponta direto para o servidor, entao o
  *    prefixo `/api-server` nao existe.
+ *
+ * 3. Processo unico — a API serve este painel, definido por
+ *    `VITE_API_SAME_ORIGIN=1`. Mesma origem, sem prefixo. Tem precedencia sobre
+ *    o modo 2 se as duas variaveis estiverem definidas.
  *
  * No modo 2 o cookie de sessao do Clerk NAO e enviado pelo navegador, porque
  * pertence a outra origem. Por isso mandamos o token no header Authorization,
@@ -22,13 +26,26 @@ const EXTERNAL_API_URL = (import.meta.env.VITE_API_BASE_URL ?? "")
   .trim()
   .replace(/\/+$/, "");
 
+/**
+ * Modo 3: a propria API serve este painel (`SERVE_APP=1` no servidor).
+ *
+ * Nao ha prefixo `/api-server` para reescrever nem outra origem para alcancar:
+ * a API responde em `/api` e o Socket.io em `/socket.io`, na mesma origem que
+ * entregou o HTML. E o modo que faz o produto inteiro caber numa URL — o painel,
+ * o webhook do Telegram e o do WhatsApp — sem nada compilado dentro do build.
+ */
+const MESMA_ORIGEM_DIRETA =
+  String(import.meta.env.VITE_API_SAME_ORIGIN ?? "").trim() === "1";
+
 /** true quando o frontend e a API estao em origens diferentes. */
-export const isCrossOrigin = EXTERNAL_API_URL.length > 0;
+export const isCrossOrigin = !MESMA_ORIGEM_DIRETA && EXTERNAL_API_URL.length > 0;
 
 /** Prefixo para todas as chamadas REST. */
-export const API_BASE = isCrossOrigin
-  ? `${EXTERNAL_API_URL}/api`
-  : "/api-server/api";
+export const API_BASE = MESMA_ORIGEM_DIRETA
+  ? "/api"
+  : isCrossOrigin
+    ? `${EXTERNAL_API_URL}/api`
+    : "/api-server/api";
 
 /** Origem para o Socket.io. */
 export const SOCKET_ORIGIN = isCrossOrigin
@@ -36,9 +53,10 @@ export const SOCKET_ORIGIN = isCrossOrigin
   : window.location.origin;
 
 /** Path do Socket.io — segue o mesmo prefixo das chamadas REST. */
-export const SOCKET_PATH = isCrossOrigin
-  ? "/socket.io"
-  : "/api-server/socket.io";
+export const SOCKET_PATH =
+  MESMA_ORIGEM_DIRETA || isCrossOrigin
+    ? "/socket.io"
+    : "/api-server/socket.io";
 
 /**
  * Objeto global que o Clerk instala no window. Tipado apenas com o que

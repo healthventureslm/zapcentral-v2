@@ -20,6 +20,26 @@ const app: Express = express();
 // origins that serve the frontend (e.g. https://zapcentral.example.com).
 // In development the Replit dev domain is auto-added so the Vite app works.
 // ---------------------------------------------------------------------------
+/**
+ * A origem publica em que este servidor responde, quando ele mesmo serve o
+ * painel.
+ *
+ * Sem isto, publicar o processo unico numa URL exigiria repetir essa URL em
+ * `ALLOWED_ORIGINS` — e esquecer disso nao da erro visivel: o painel abre, as
+ * telas carregam por HTTP, e so o tempo real morre em silencio, porque o
+ * Socket.io recusa a origem. `PUBLIC_URL` ja e obrigatoria para o webhook do
+ * Telegram, entao aproveitamos a mesma variavel em vez de criar a segunda.
+ */
+function origemPublica(): string | null {
+  const bruta = process.env["PUBLIC_URL"];
+  if (!bruta) return null;
+  try {
+    return new URL(bruta).origin;
+  } catch {
+    return null;
+  }
+}
+
 const trustedOrigins = new Set<string>();
 
 (process.env["ALLOWED_ORIGINS"] ?? "")
@@ -27,6 +47,12 @@ const trustedOrigins = new Set<string>();
   .map((o) => o.trim())
   .filter(Boolean)
   .forEach((o) => trustedOrigins.add(o));
+
+// A origem que serve este painel, quando o proprio servidor o serve.
+if (process.env["SERVE_APP"] === "1") {
+  const propria = origemPublica();
+  if (propria) trustedOrigins.add(propria);
+}
 
 // Replit dev domain — safe to add only in development
 if (
@@ -102,5 +128,73 @@ if (!isDevAuthBypass) {
 }
 
 app.use("/api", router);
+
+// ---------------------------------------------------------------------------
+// Processo unico: a API serve o painel compilado.
+//
+// Por que existe: sem isto, colocar o produto no ar exige duas implantacoes
+// (painel no Vercel, API num processo persistente) mais uma variavel com o
+// endereco da API compilada DENTRO do build do painel. Consequencia pratica:
+// toda vez que o endereco da API muda — e com tunel gratuito ele muda a cada
+// reinicio — o painel publicado quebra e so volta com um deploy novo.
+//
+// Com `SERVE_APP=1` o painel, a API, o Socket.io e os dois webhooks respondem na
+// MESMA origem. Sobe um processo, publica uma URL, e nada precisa saber o
+// endereco de nada. O painel tem que ter sido compilado com
+// `VITE_API_SAME_ORIGIN=1`, que e o que o desliga de procurar o prefixo
+// `/api-server`.
+//
+// Fica atras de uma variavel, e nao ligado sempre, porque o modo Replit e o modo
+// Vercel continuam validos e nao devem mudar de comportamento.
+// ---------------------------------------------------------------------------
+if (process.env["SERVE_APP"] === "1") {
+  const { existsSync } = await import("node:fs");
+  const { join, dirname } = await import("node:path");
+  const { fileURLToPath } = await import("node:url");
+
+  const aqui = dirname(fileURLToPath(import.meta.url));
+
+  // O build compila tudo num arquivo so em `artifacts/api-server/dist/`, entao
+  // subir tres niveis chega na raiz do repositorio. Em `tsx` (sem build) o
+  // arquivo esta em `src/`, um nivel mais fundo — daí as duas tentativas.
+  const candidatos = [
+    join(aqui, "..", "..", "..", "artifacts", "app", "dist", "public"),
+    join(aqui, "..", "..", "..", "..", "artifacts", "app", "dist", "public"),
+  ];
+  const painel = candidatos.find((c) => existsSync(join(c, "index.html")));
+
+  if (!painel) {
+    logger.error(
+      { candidatos },
+      "SERVE_APP=1 mas o painel compilado nao foi encontrado. " +
+        "Rode: pnpm --filter @workspace/app run build",
+    );
+  } else {
+    logger.info({ painel }, "Servindo o painel compilado");
+
+    // Os arquivos com hash no nome podem ser cacheados para sempre; o
+    // index.html, nunca — e ele que aponta para os hashes novos depois de um
+    // deploy, e um index cacheado deixa o navegador pedindo arquivo que nao
+    // existe mais.
+    app.use(
+      express.static(painel, {
+        index: false,
+        setHeaders(res, caminho) {
+          if (caminho.endsWith("index.html")) {
+            res.setHeader("Cache-Control", "no-store");
+          }
+        },
+      }),
+    );
+
+    // Qualquer rota que nao seja da API cai no index.html: o roteamento e do
+    // lado do navegador, e sem isto abrir /simulador direto na barra de
+    // endereco devolveria 404.
+    app.get(/^(?!\/api\/|\/socket\.io\/).*/, (_req, res) => {
+      res.setHeader("Cache-Control", "no-store");
+      res.sendFile(join(painel, "index.html"));
+    });
+  }
+}
 
 export default app;

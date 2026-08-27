@@ -42,6 +42,56 @@ function getPublicBaseUrl(req: import("express").Request): string {
   return `https://${req.get("host")}`;
 }
 
+/**
+ * A URL do webhook serve para o Telegram alcancar este servidor?
+ *
+ * O Telegram exige HTTPS publico. Num ambiente local a URL sai como
+ * `http://host.docker.internal:8080` — que funciona para a Evolution, porque ela
+ * roda no Docker desta maquina, e nao funciona para o Telegram, que precisa
+ * chegar aqui pela internet.
+ *
+ * A checagem existe para o erro aparecer ANTES de alguem colar o token: sem ela,
+ * o fluxo valida o bot, tenta registrar o webhook e devolve uma recusa do
+ * Telegram — momento em que quem esta demonstrando ja tem um bot criado, um token
+ * na tela e nenhuma pista do que fazer.
+ */
+function webhookAlcancavel(url: string): { ok: boolean; motivo?: string } {
+  let parsed: URL;
+  try {
+    parsed = new URL(url);
+  } catch {
+    return { ok: false, motivo: "A URL pública configurada é inválida." };
+  }
+
+  if (parsed.protocol !== "https:") {
+    return {
+      ok: false,
+      motivo: "O Telegram só aceita webhook em HTTPS, e esta URL é HTTP.",
+    };
+  }
+
+  const host = parsed.hostname;
+  const local =
+    host === "localhost" ||
+    host === "127.0.0.1" ||
+    host === "host.docker.internal" ||
+    host.endsWith(".local") ||
+    /^(10|127)\./.test(host) ||
+    /^192\.168\./.test(host) ||
+    /^172\.(1[6-9]|2\d|3[01])\./.test(host);
+
+  if (local) {
+    return {
+      ok: false,
+      motivo:
+        "A URL pública aponta para esta máquina, e o Telegram precisa " +
+        "alcançar o servidor pela internet.",
+    };
+  }
+
+  return { ok: true };
+}
+
 function webhookUrlFor(req: import("express").Request, botRowId: number): string {
   return `${getPublicBaseUrl(req)}/api/webhooks/telegram/${botRowId}`;
 }
@@ -84,8 +134,18 @@ router.get(
       .where(eq(telegramBotsTable.tenantId, tenantId))
       .limit(1);
 
+    // O diagnostico da URL publica vai no status, e nao so no connect: e o que
+    // permite a tela avisar antes de o token ser colado.
+    const alcance = webhookAlcancavel(webhookUrlFor(req, bot?.id ?? 0));
+
     if (!bot) {
-      res.json({ connected: false, bot: null });
+      res.json({
+        connected: false,
+        bot: null,
+        webhookAlcancavel: alcance.ok,
+        webhookMotivo: alcance.motivo ?? null,
+        urlPublica: getPublicBaseUrl(req),
+      });
       return;
     }
 
@@ -107,6 +167,9 @@ router.get(
       pendingUpdates,
       /** true quando o webhook registrado nao aponta mais para nos */
       webhookStale: remoteUrl !== null && remoteUrl !== bot.webhookUrl,
+      webhookAlcancavel: alcance.ok,
+      webhookMotivo: alcance.motivo ?? null,
+      urlPublica: getPublicBaseUrl(req),
     });
   },
 );

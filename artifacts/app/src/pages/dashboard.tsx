@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { UserButton } from "@/lib/devAuth";
+import { UserButton, useUser } from "@/lib/devAuth";
 import { Link, useLocation } from "wouter";
 import {
   LayoutDashboard,
@@ -15,6 +15,7 @@ import {
   Loader2,
   Headset,
   ListTree,
+  PlayCircle,
 } from "lucide-react";
 import { useInternalChatNotifications } from "@/hooks/useInternalChat";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -46,7 +47,8 @@ const navItems = [
   { name: "WhatsApp", path: "/whatsapp", icon: Smartphone },
   { name: "Telegram", path: "/telegram", icon: Send },
   { name: "Atendimento automático", path: "/configuracoes-canal", icon: ListTree },
-  { name: "CRM", path: "/crm", icon: Users },
+  { name: "Simulador", path: "/simulador", icon: PlayCircle },
+  { name: "Contatos", path: "/crm", icon: Users },
   { name: "Relatórios", path: "/relatorios", icon: BarChart3 },
   { name: "Configurações", path: "/settings", icon: Settings },
 ];
@@ -55,6 +57,7 @@ export function Sidebar() {
   const [location] = useLocation();
   const tenantId = useTenantId();
   const internalUnread = useInternalChatNotifications(tenantId);
+  const { user } = useUser();
 
   return (
     <div className="fixed inset-y-0 left-0 w-64 bg-[#0F1923] flex flex-col z-10 sidebar-transition print:hidden">
@@ -96,9 +99,97 @@ export function Sidebar() {
 
       <div className="p-4 border-t border-white/5 flex items-center gap-3">
         <UserButton />
-        <span className="text-sm text-[#8899A6] font-medium">Minha Conta</span>
+        {/* O nome de quem esta logado, e nao "Minha Conta": numa demonstracao
+            com duas telas lado a lado, saber quem e cada janela e o que faz a
+            transferencia entre atendentes ficar legivel. */}
+        <span className="text-sm text-[#8899A6] font-medium truncate">
+          {user?.fullName ?? "Minha conta"}
+        </span>
       </div>
     </div>
+  );
+}
+
+
+/**
+ * "1 conversa" / "3 conversas".
+ *
+ * O "(s)" resolve o problema gramatical e cria outro: numa frase que existe para
+ * ser lida rapido, ele obriga o leitor a escolher a forma certa no meio da
+ * leitura.
+ */
+function plural(n: number, singular: string, plural_: string): string {
+  return `${n} ${n === 1 ? singular : plural_}`;
+}
+
+/**
+ * Traduz segundos em algo que se le em voz alta.
+ *
+ * "3,2 min" e "192 s" sao o mesmo dado, mas so o primeiro cabe numa frase dita
+ * para um gestor.
+ */
+function duracaoHumana(segundos: number | null | undefined): string {
+  if (segundos === null || segundos === undefined) return "—";
+  if (segundos < 60) return `${Math.round(segundos)} s`;
+  const min = segundos / 60;
+  if (min < 60) return `${min.toFixed(1).replace(".", ",")} min`;
+  return `${(min / 60).toFixed(1).replace(".", ",")} h`;
+}
+
+type Julgamento = "bom" | "atencao" | "ruim" | "neutro";
+
+const CORES_DO_JULGAMENTO: Record<Julgamento, string> = {
+  bom: "text-emerald-600",
+  atencao: "text-amber-600",
+  ruim: "text-red-600",
+  neutro: "text-gray-400",
+};
+
+/**
+ * Indicador com veredito.
+ *
+ * O numero sozinho obriga quem le a saber de cabeca qual e a meta. Um painel que
+ * diz "3,2 min" e um painel que diz "3,2 min — acima da meta de 3 min" custam o
+ * mesmo e sao produtos diferentes: o segundo pode ser lido por quem nunca abriu
+ * o sistema antes.
+ */
+function IndicadorComVeredito({
+  titulo,
+  valor,
+  unidade,
+  veredito,
+  julgamento,
+  explicacao,
+}: {
+  titulo: string;
+  valor: string;
+  unidade?: string;
+  veredito: string;
+  julgamento: Julgamento;
+  explicacao: string;
+}) {
+  return (
+    <Card>
+      <CardContent className="p-5">
+        <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+          {titulo}
+        </p>
+        <div className="flex items-baseline gap-1 mt-2">
+          <span className="text-3xl font-bold text-gray-900">{valor}</span>
+          {unidade && (
+            <span className="text-sm font-medium text-gray-500">{unidade}</span>
+          )}
+        </div>
+        <p
+          className={`text-xs font-semibold mt-1 ${CORES_DO_JULGAMENTO[julgamento]}`}
+        >
+          {veredito}
+        </p>
+        <p className="text-[11px] text-gray-400 mt-2 leading-snug">
+          {explicacao}
+        </p>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -160,6 +251,72 @@ export default function DashboardPage() {
     .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
     .slice(0, 5);
 
+  // -------------------------------------------------------------------------
+  // Os vereditos.
+  //
+  // A regra de corte mora aqui, e nao no servidor, de proposito: e julgamento de
+  // apresentacao, nao dado. O servidor entrega o numero e a meta; a tela decide
+  // como chamar o resultado.
+  // -------------------------------------------------------------------------
+  const metaEmSegundos = overview?.period.slaTargetSecs ?? 180;
+  const metaEmMinutos = Math.round(metaEmSegundos / 60);
+
+  const tempoMedio = overview?.period.avgFirstResponseSecs ?? null;
+  const vereditoTempo: { texto: string; julgamento: Julgamento } =
+    tempoMedio === null
+      ? { texto: "sem atendimento no período", julgamento: "neutro" }
+      : tempoMedio <= metaEmSegundos
+        ? { texto: `dentro da meta de ${metaEmMinutos} min`, julgamento: "bom" }
+        : tempoMedio <= metaEmSegundos * 2
+          ? { texto: `acima da meta de ${metaEmMinutos} min`, julgamento: "atencao" }
+          : { texto: `mais do que o dobro da meta`, julgamento: "ruim" };
+
+  const pctNaMeta = overview?.period.slaPct ?? null;
+  const vereditoMeta: { texto: string; julgamento: Julgamento } =
+    pctNaMeta === null
+      ? { texto: "ninguém foi atendido no período", julgamento: "neutro" }
+      : pctNaMeta >= 90
+        ? { texto: "muito bom", julgamento: "bom" }
+        : pctNaMeta >= 70
+          ? { texto: "aceitável, dá para melhorar", julgamento: "atencao" }
+          : { texto: "abaixo do aceitável", julgamento: "ruim" };
+
+  const nota = overview?.period.avgRating ?? null;
+  const quantosAvaliaram = overview?.period.ratingCount ?? 0;
+  const vereditoNota: { texto: string; julgamento: Julgamento } =
+    nota === null || quantosAvaliaram === 0
+      ? { texto: "ninguém avaliou ainda", julgamento: "neutro" }
+      : nota >= 4.5
+        ? { texto: `ótima — ${plural(quantosAvaliaram, "avaliação", "avaliações")}`, julgamento: "bom" }
+        : nota >= 3.5
+          ? { texto: `boa — ${plural(quantosAvaliaram, "avaliação", "avaliações")}`, julgamento: "atencao" }
+          : { texto: `baixa — ${plural(quantosAvaliaram, "avaliação", "avaliações")}`, julgamento: "ruim" };
+
+  // A frase de resumo. Montada em pedaços porque "0 pessoas esperando" e
+  // "ninguém esperando" nao sao a mesma leitura para quem le com pressa.
+  const emAtendimento = overview?.live.active ?? 0;
+  const naFila = overview?.live.waiting ?? 0;
+  const noRobo = overview?.live.inIvr ?? 0;
+  const resolvidasHoje = overview?.live.closedToday ?? 0;
+
+  const resumoAgora = [
+    emAtendimento === 0
+      ? "Agora: nenhuma conversa em atendimento"
+      : `Agora: ${plural(emAtendimento, "conversa em atendimento", "conversas em atendimento")}`,
+    naFila === 0
+      ? " e ninguém esperando na fila"
+      : ` e ${plural(naFila, "pessoa esperando na fila", "pessoas esperando na fila")}`,
+    noRobo > 0
+      ? `, ${plural(noRobo, "ainda escolhendo o ramal no robô", "ainda escolhendo o ramal no robô")}`
+      : "",
+    resolvidasHoje === 0
+      ? ". Hoje nenhum atendimento foi encerrado"
+      : `. Hoje ${plural(resolvidasHoje, "atendimento foi encerrado", "atendimentos foram encerrados")}`,
+    tempoMedio !== null
+      ? `, com ${duracaoHumana(tempoMedio)} de espera média pela primeira resposta nos últimos 30 dias.`
+      : ".",
+  ].join("");
+
   const formatBucketTime = (isoString: string) => {
     const d = new Date(isoString);
     return d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
@@ -186,6 +343,15 @@ export default function DashboardPage() {
               supervisores. Acesse o Atendimento para ver suas conversas.
             </div>
           )}
+          {/* A leitura do painel em uma frase.
+              Sem isto, quem abre a tela precisa somar cinco numeros de cabeca
+              para saber se a central esta bem ou mal AGORA. */}
+          {!noReportAccess && overview && (
+            <p className="text-sm text-gray-600 mb-6 leading-relaxed max-w-3xl">
+              {resumoAgora}
+            </p>
+          )}
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
             <Card>
               <CardContent className="p-6 flex items-center">
@@ -267,6 +433,62 @@ export default function DashboardPage() {
               </CardContent>
             </Card>
           </div>
+
+          {!noReportAccess && (
+            <div className="mb-8">
+              <div className="flex items-baseline justify-between mb-3">
+                <h2 className="text-sm font-semibold text-gray-700">
+                  Como a central atendeu nos últimos 30 dias
+                </h2>
+                <Link
+                  href="/relatorios"
+                  className="text-xs font-medium text-[#25D366] hover:underline"
+                >
+                  Ver o relatório completo
+                </Link>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <IndicadorComVeredito
+                  titulo="Tempo até a primeira resposta"
+                  valor={duracaoHumana(overview?.period.avgFirstResponseSecs)}
+                  veredito={vereditoTempo.texto}
+                  julgamento={vereditoTempo.julgamento}
+                  explicacao={`Do momento em que o paciente escreve até alguém da equipe responder. A meta é ${metaEmMinutos} min.`}
+                />
+                <IndicadorComVeredito
+                  titulo="Atendidos dentro da meta"
+                  valor={
+                    overview?.period.slaPct === null ||
+                    overview?.period.slaPct === undefined
+                      ? "—"
+                      : String(overview.period.slaPct)
+                  }
+                  unidade={
+                    overview?.period.slaPct === null ||
+                    overview?.period.slaPct === undefined
+                      ? undefined
+                      : "%"
+                  }
+                  veredito={vereditoMeta.texto}
+                  julgamento={vereditoMeta.julgamento}
+                  explicacao={`Quantos, entre os que foram atendidos, receberam resposta em menos de ${metaEmMinutos} min.`}
+                />
+                <IndicadorComVeredito
+                  titulo="Satisfação (1 a 5)"
+                  valor={
+                    overview?.period.avgRating
+                      ? overview.period.avgRating
+                          .toFixed(1)
+                          .replace(".", ",")
+                      : "—"
+                  }
+                  veredito={vereditoNota.texto}
+                  julgamento={vereditoNota.julgamento}
+                  explicacao="Nota que os próprios pacientes deram no fim do atendimento."
+                />
+              </div>
+            </div>
+          )}
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <Card className="lg:col-span-2">

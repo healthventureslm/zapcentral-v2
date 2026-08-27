@@ -13,6 +13,7 @@ import {
   conversationsTable,
   messagesTable,
   channelSettingsTable,
+  departmentsTable,
   tenantsTable,
 } from "@workspace/db";
 import { eq, and, sql } from "drizzle-orm";
@@ -388,6 +389,69 @@ export async function handleInboundMessage(msg: InboundMessage): Promise<void> {
       const assignedAgent = deptId
         ? await tryAutoAssign(tenantId, conversation.id, deptId, mode)
         : null;
+
+      // Confirmar o ramal escolhido.
+      //
+      // Sem isto, quem digita "1" recebe SILENCIO ate um atendente digitar
+      // alguma coisa. Do lado do paciente e indistinguivel de sistema quebrado:
+      // ele nao sabe se a escolha foi aceita, em que ramal caiu, nem se tem
+      // alguem do outro lado. Era o unico ponto do fluxo em que o produto
+      // deixava de responder.
+      //
+      // A fala muda conforme haja atendente ou nao: prometer "ja chamamos
+      // alguem" para uma fila vazia seria mentira, e dizer "aguarde na fila"
+      // para quem ja foi atribuido faria o paciente esperar sem motivo.
+      if (deptId) {
+        const [setor] = await db
+          .select({ name: departmentsTable.name })
+          .from(departmentsTable)
+          .where(eq(departmentsTable.id, deptId))
+          .limit(1);
+
+        const nomeDoSetor = setor?.name ?? "atendimento";
+
+        let aviso: string;
+        if (assignedAgent) {
+          aviso =
+            `Pronto! Você está em *${nomeDoSetor}*.
+` +
+            "Já chamamos alguém da equipe — responderemos por aqui.";
+        } else {
+          // Posicao na fila: conta quem chegou antes neste mesmo ramal e ainda
+          // espera. Quem sabe que e o terceiro espera; quem nao sabe nada
+          // desiste e liga no telefone, que e o que o produto quer evitar.
+          const [fila] = await db
+            .select({ antes: sql<number>`COUNT(*)::int` })
+            .from(conversationsTable)
+            .where(
+              and(
+                eq(conversationsTable.tenantId, tenantId),
+                eq(conversationsTable.departmentId, deptId),
+                eq(conversationsTable.status, "waiting"),
+                sql`${conversationsTable.createdAt} < (
+                  SELECT created_at FROM conversations WHERE id = ${conversation.id}
+                )`,
+              ),
+            );
+
+          const posicao = (fila?.antes ?? 0) + 1;
+          aviso =
+            `Pronto! Você está na fila de *${nomeDoSetor}*.
+` +
+            (posicao > 1
+              ? `Há ${posicao - 1} pessoa(s) na sua frente. `
+              : "") +
+            "Assim que alguém da equipe estiver livre, respondemos por aqui.";
+        }
+
+        await sendTenantMessage(
+          tenantId,
+          conversation.id,
+          externalId,
+          aviso,
+          msg.toIdentifier,
+        );
+      }
 
       const updatedConv = await db
         .select()

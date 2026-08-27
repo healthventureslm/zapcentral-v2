@@ -21,6 +21,7 @@ import {
   sendMediaByUrl as sendTelegramMedia,
 } from "../services/telegram";
 import {
+  ehContatoSimulado,
   entregaLocal,
   idSimulado,
   REMETENTE_SIMULADO,
@@ -275,7 +276,13 @@ router.post(
         ? `${await assinatura(tenantId, uid, conversationId)}${msg.content}`
         : "";
 
-    if (contact.channel === "telegram") {
+    // Contato do simulador: grava e emite, nao sai para provedor nenhum. Vem
+    // antes do desvio por canal porque vale igual para WhatsApp e Telegram — o
+    // numero simulado nao existe em nenhum dos dois.
+    if (ehContatoSimulado(contact.externalId)) {
+      messageId = idSimulado("out");
+      fromIdentifier = REMETENTE_SIMULADO;
+    } else if (contact.channel === "telegram") {
       const bot = await getTenantTelegramBot(tenantId);
       if (!bot) {
         res

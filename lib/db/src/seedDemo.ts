@@ -129,6 +129,22 @@ function idMensagem(): string {
   return `seed_${AGORA}_${seqMensagem}`;
 }
 
+
+/**
+ * Tempo, em segundos, entre a mensagem do paciente e a primeira resposta de
+ * quem atende — uma entrada por conversa do seed.
+ *
+ * Antes eram de 2 a 8 minutos, calculados por `2 + (i % 7)`. O efeito colateral
+ * era que a demonstracao abria acusando a propria equipe: media de 4,4 min
+ * contra uma meta de 3, e 40% dos atendimentos fora dela. Dado de demonstracao
+ * deve mostrar uma central bem operada.
+ *
+ * O indice 5 e lento de proposito (9 min): e a conversa que recebe nota 3 e o
+ * comentario "demorou um pouco para responder". Sem nenhum caso ruim, os
+ * indicadores ficariam perfeitos — e painel perfeito nao e lido, e desacreditado.
+ */
+const TEMPO_DE_RESPOSTA_SEG = [55, 95, 40, 130, 75, 540, 110, 65, 150, 85, 70, 100];
+
 async function popular(): Promise<void> {
   const [central] = await db
     .select({ id: tenantsTable.id, name: tenantsTable.name })
@@ -355,7 +371,7 @@ async function popular(): Promise<void> {
     // as 00h10, somar 30 minutos jogaria o fechamento no futuro.
     const limite = (t: number) => new Date(Math.min(t, AGORA - 60_000));
     const primeiraResposta = limite(
-      abertura.getTime() + (2 + (i % 7)) * 60_000,
+      abertura.getTime() + TEMPO_DE_RESPOSTA_SEG[i % TEMPO_DE_RESPOSTA_SEG.length]! * 1000,
     );
     const fechamento = limite(abertura.getTime() + (14 + (i % 23)) * 60_000);
 

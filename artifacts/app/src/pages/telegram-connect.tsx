@@ -229,6 +229,39 @@ export default function TelegramConnectPage() {
                 <CardTitle className="text-lg">Conectar um bot</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
+                {/* O aviso vem ANTES do passo a passo.
+                    Sem ele, quem esta demonstrando cria o bot no BotFather, cola
+                    o token e so entao descobre que o Telegram nao alcanca este
+                    servidor — com um bot ja criado e nenhuma pista do motivo. */}
+                {status && status.webhookAlcancavel === false && (
+                  <div className="rounded-lg border border-amber-200 bg-amber-50 p-4">
+                    <div className="flex items-start gap-2 text-amber-800">
+                      <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5" />
+                      <div className="text-sm">
+                        <p className="font-semibold mb-1">
+                          O Telegram ainda não consegue alcançar este servidor
+                        </p>
+                        <p className="mb-2">{status.webhookMotivo}</p>
+                        {status.urlPublica && (
+                          <p className="mb-2 text-xs">
+                            URL configurada agora:{" "}
+                            <code className="bg-amber-100 px-1 rounded">
+                              {status.urlPublica}
+                            </code>
+                          </p>
+                        )}
+                        <p className="text-xs leading-relaxed">
+                          Publique este servidor numa URL HTTPS pública (ou abra
+                          um túnel para ela), defina <code>PUBLIC_URL</code> com
+                          esse endereço e reinicie. O <strong>WhatsApp</strong> e o{" "}
+                          <strong>Simulador</strong> não dependem disso e
+                          funcionam agora.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 <ol className="text-sm text-slate-600 space-y-2 list-decimal list-inside">
                   <li>
                     No Telegram, abra{" "}

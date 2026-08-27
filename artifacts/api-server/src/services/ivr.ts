@@ -19,6 +19,7 @@ import {
 import { eq, and, asc, sql, isNull } from "drizzle-orm";
 import { sendText } from "./evolution";
 import {
+  ehContatoSimulado,
   entregaLocal,
   idSimulado,
   REMETENTE_SIMULADO,
@@ -383,7 +384,14 @@ export async function sendTenantMessage(
     // Modo simulacao: grava e emite sem chamar provedor nenhum. Sem isto as
     // falas do robo (menu, fora de horario, agradecimento) sao descartadas em
     // silencio pelo catch la embaixo, e a conversa aparece pela metade.
-    if (entregaLocal() && channel !== "telegram") {
+    //
+    // O contato do simulador entra aqui inclusive no Telegram: o chat_id dele
+    // e ficticio, e `sendMessage` devolveria erro do proprio Telegram. E o que
+    // permite demonstrar os dois canais na mesma fila sem bot configurado.
+    if (
+      ehContatoSimulado(destination) ||
+      (entregaLocal() && channel !== "telegram")
+    ) {
       messageId = idSimulado("out");
       fromIdentifier = from || REMETENTE_SIMULADO;
     } else if (channel === "telegram") {

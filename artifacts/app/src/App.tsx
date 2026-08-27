@@ -21,6 +21,7 @@ import ContactsPage from "@/pages/crm/contacts";
 import ContactDetailPage from "@/pages/crm/contact-detail";
 import KanbanPage from "@/pages/crm/kanban";
 import ReportsPage from "@/pages/reports";
+import SimuladorPage from "@/pages/simulador";
 import QrPublicPage from "@/pages/qr-public";
 import SetupPage from "@/pages/setup";
 import NoAccessPage from "@/pages/no-access";
@@ -222,6 +223,9 @@ function AppRoutes() {
         <ProtectedRoute component={ContactsPage} />
       </Route>
       <Route path="/qr/:token" component={QrPublicPage} />
+      <Route path="/simulador">
+        <ProtectedRoute component={SimuladorPage} />
+      </Route>
       <Route path="/relatorios">
         <ProtectedRoute component={ReportsPage} />
       </Route>

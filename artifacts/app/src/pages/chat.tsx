@@ -116,11 +116,21 @@ function ConversationItem({
           >
             {STATUS_LABELS[conv.status]}
           </Badge>
-          {conv.contact.channel === "telegram" && (
-            <Badge className="text-[10px] px-1.5 py-0 border-none rounded bg-[#229ED9]/20 text-[#5EC5F0]">
-              Telegram
-            </Badge>
-          )}
+          {/* O canal aparece nos DOIS casos, e nao so no Telegram.
+              A fila e a mesma para WhatsApp e Telegram — e esse e o ponto do
+              produto. Marcar so um dos dois deixava a lista parecendo
+              exclusivamente de WhatsApp com um intruso, em vez de um balcao
+              unico atendendo dois canais. */}
+          <Badge
+            className={cn(
+              "text-[10px] px-1.5 py-0 border-none rounded",
+              conv.contact.channel === "telegram"
+                ? "bg-[#229ED9]/20 text-[#5EC5F0]"
+                : "bg-[#25D366]/20 text-[#4ade80]",
+            )}
+          >
+            {conv.contact.channel === "telegram" ? "Telegram" : "WhatsApp"}
+          </Badge>
           {conv.departmentName && (
             <span className="text-xs text-[#8899A6] truncate">
               {conv.departmentName}

@@ -10,6 +10,15 @@ import { requireAuth, requireTenantAdmin } from "../middlewares/auth";
 
 const router: IRouter = Router();
 
+/**
+ * Meta de primeira resposta, em segundos.
+ *
+ * Tres minutos: e o tempo em que quem escreveu para um hospital ainda esta
+ * olhando a tela. Fixo por enquanto — quando cada central puder definir a
+ * propria meta, este valor passa a ser o padrao.
+ */
+const META_PRIMEIRA_RESPOSTA_SEGUNDOS = 180;
+
 interface Filters {
   tenantId: number;
   from: Date;
@@ -110,7 +119,21 @@ router.get(
           COUNT(*)::int AS total,
           COUNT(*) FILTER (WHERE status = 'closed')::int AS closed,
           ROUND(AVG(first_response_secs) FILTER (WHERE first_response_secs >= 0))::int AS avg_first_response_secs,
-          ROUND(AVG(resolution_secs))::int AS avg_resolution_secs
+          ROUND(AVG(resolution_secs))::int AS avg_resolution_secs,
+          ROUND(AVG(rating)::numeric, 2)::float AS avg_rating,
+          COUNT(rating)::int AS rating_count,
+          -- Cumprimento da meta de primeira resposta. Denominador e quem FOI
+          -- atendido: contar conversa que nunca recebeu resposta como "fora da
+          -- meta" misturaria duas coisas diferentes (demora e abandono), e a
+          -- fila cheia derrubaria o indicador de quem atende rapido.
+          COUNT(*) FILTER (
+            WHERE first_response_secs IS NOT NULL
+              AND first_response_secs >= 0
+              AND first_response_secs <= ${META_PRIMEIRA_RESPOSTA_SEGUNDOS}
+          )::int AS dentro_da_meta,
+          COUNT(*) FILTER (
+            WHERE first_response_secs IS NOT NULL AND first_response_secs >= 0
+          )::int AS com_resposta
         FROM conv
       `),
       // Live snapshot ignores the period — always "right now"
@@ -127,12 +150,22 @@ router.get(
 
     const p = periodAgg.rows[0] ?? {};
     const l = liveAgg.rows[0] ?? {};
+    const comResposta = Number(p["com_resposta"] ?? 0);
     res.json({
       period: {
         total: p["total"] ?? 0,
         closed: p["closed"] ?? 0,
         avgFirstResponseSecs: p["avg_first_response_secs"],
         avgResolutionSecs: p["avg_resolution_secs"],
+        avgRating: p["avg_rating"] ?? null,
+        ratingCount: p["rating_count"] ?? 0,
+        // null, e nao zero, quando ninguem foi atendido no periodo: "0% na
+        // meta" acusaria a equipe de um resultado que nao houve.
+        slaPct:
+          comResposta > 0
+            ? Math.round((Number(p["dentro_da_meta"] ?? 0) / comResposta) * 100)
+            : null,
+        slaTargetSecs: META_PRIMEIRA_RESPOSTA_SEGUNDOS,
       },
       live: {
         active: l["active"] ?? 0,

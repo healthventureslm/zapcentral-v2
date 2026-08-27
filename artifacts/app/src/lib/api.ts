@@ -187,6 +187,12 @@ export interface TelegramStatus {
   pendingUpdates?: number | null;
   /** true quando o webhook registrado no Telegram nao aponta mais para nos */
   webhookStale?: boolean;
+  /** false quando a URL pública deste servidor não é alcançável pelo Telegram */
+  webhookAlcancavel?: boolean;
+  /** Por que não é alcançável, em português, para mostrar na tela */
+  webhookMotivo?: string | null;
+  /** A URL pública que o servidor usaria para o webhook */
+  urlPublica?: string;
 }
 
 export const getTelegramStatus = (tenantId: number) =>
@@ -865,6 +871,12 @@ export interface ReportOverview {
     closed: number;
     avgFirstResponseSecs: number | null;
     avgResolutionSecs: number | null;
+    avgRating: number | null;
+    ratingCount: number;
+    /** % das conversas atendidas dentro da meta. null = ninguém foi atendido. */
+    slaPct: number | null;
+    /** A meta em segundos, para a tela poder dizer qual é. */
+    slaTargetSecs: number;
   };
   live: { active: number; waiting: number; inIvr: number; closedToday: number };
 }
@@ -951,3 +963,55 @@ export const getReportConversations = (
 
 export const reportConversationsCsvUrl = (tenantId: number, f: ReportFilters = {}) =>
   `${API_BASE}/tenants/${tenantId}/reports/conversations?${reportQs({ ...f, format: "csv" })}`;
+
+// ---------------------------------------------------------------------------
+// Simulador de atendimento — demonstrar o fluxo sem celular pareado.
+// A mensagem entra pelo mesmo caminho do webhook; ver routes/simulador.ts.
+// ---------------------------------------------------------------------------
+
+export interface SimuladorPersona {
+  id: string;
+  nome: string;
+  canal: ChannelType;
+  telefone: string;
+  descricao: string;
+}
+
+export interface SimuladorMensagem {
+  id: number;
+  direction: "inbound" | "outbound";
+  content: string | null;
+  timestamp: string;
+  sentBy: string | null;
+}
+
+export interface SimuladorConversa {
+  conversaId: number | null;
+  status: ConversationStatus | null;
+  departmentId?: number | null;
+  mensagens: SimuladorMensagem[];
+}
+
+export const listSimuladorPersonas = (tenantId: number) =>
+  apiFetch<SimuladorPersona[]>(`/tenants/${tenantId}/simulador/personas`);
+
+export const enviarMensagemSimulada = (
+  tenantId: number,
+  personaId: string,
+  texto: string,
+) =>
+  apiFetch<SimuladorConversa>(`/tenants/${tenantId}/simulador/mensagem`, {
+    method: "POST",
+    body: JSON.stringify({ personaId, texto }),
+  });
+
+export const getConversaSimulada = (tenantId: number, personaId: string) =>
+  apiFetch<SimuladorConversa>(
+    `/tenants/${tenantId}/simulador/conversa/${personaId}`,
+  );
+
+export const limparSimulador = (tenantId: number) =>
+  apiFetch<{ conversasApagadas: number }>(
+    `/tenants/${tenantId}/simulador/limpar`,
+    { method: "POST" },
+  );

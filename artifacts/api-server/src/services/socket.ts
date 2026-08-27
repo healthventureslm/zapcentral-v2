@@ -59,6 +59,18 @@ export function initSocket(httpServer: HttpServer): SocketIOServer {
     .filter(Boolean)
     .forEach((o) => trustedOrigins.push(o));
 
+  // A origem que serve o painel, quando e este processo que o serve. Mesma
+  // razao de app.ts: sem ela o painel abre e o tempo real morre calado, que e o
+  // pior modo de falha possivel para uma tela de atendimento.
+  if (process.env["SERVE_APP"] === "1" && process.env["PUBLIC_URL"]) {
+    try {
+      trustedOrigins.push(new URL(process.env["PUBLIC_URL"]).origin);
+    } catch {
+      // PUBLIC_URL invalida nao deve derrubar o servidor: o webhook do Telegram
+      // ja reclama dela em voz alta, e o painel local continua funcionando.
+    }
+  }
+
   if (
     process.env["NODE_ENV"] !== "production" &&
     process.env["REPLIT_DEV_DOMAIN"]

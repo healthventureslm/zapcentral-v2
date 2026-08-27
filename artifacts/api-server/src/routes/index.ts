@@ -20,6 +20,7 @@ import dealsRouter from "./deals";
 import customFieldsRouter from "./customFields";
 import reportsRouter from "./reports";
 import internalChatRouter from "./internalChat";
+import simuladorRouter from "./simulador";
 
 const router: IRouter = Router();
 
@@ -46,5 +47,6 @@ router.use(dealsRouter);
 router.use(customFieldsRouter);
 router.use(reportsRouter);
 router.use(internalChatRouter);
+router.use(simuladorRouter);
 
 export default router;
