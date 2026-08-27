@@ -46,7 +46,20 @@ export function PageShell({
     <div className="min-h-[100dvh] bg-background">
       <Sidebar />
       <main className="ml-64 p-8 print:ml-0">
-        <div className={width === "wide" ? "" : "max-w-5xl"}>
+        {/*
+         * Centralizado, e nao encostado a esquerda. Com a barra ocupando 16rem
+         * e um limite de largura no conteudo, o alinhamento a esquerda deixava
+         * uma faixa morta a direita que crescia com o monitor.
+         *
+         * `wide` tambem tem teto: sem ele, uma tabela de sete colunas se estica
+         * de ponta a ponta numa tela ultrawide e a linha fica impossivel de
+         * seguir com os olhos.
+         */}
+        <div
+          className={
+            width === "wide" ? "max-w-7xl mx-auto" : "max-w-5xl mx-auto"
+          }
+        >
           <PageHeader
             title={title}
             {...(subtitle ? { subtitle } : {})}
