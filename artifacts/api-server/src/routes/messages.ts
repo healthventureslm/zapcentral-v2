@@ -84,7 +84,7 @@ router.get(
       .limit(1);
 
     if (!conv) {
-      res.status(404).json({ error: "Conversation not found" });
+      res.status(404).json({ error: "Conversa não encontrada." });
       return;
     }
 
@@ -105,7 +105,7 @@ router.get(
     );
 
     if (!isAdminOrSupervisor && conv.assignedTo !== uid) {
-      res.status(403).json({ error: "Forbidden: not your conversation" });
+      res.status(403).json({ error: "Esta conversa não está atribuída a você." });
       return;
     }
 
@@ -218,12 +218,12 @@ router.post(
       .limit(1);
 
     if (!conv) {
-      res.status(404).json({ error: "Conversation not found" });
+      res.status(404).json({ error: "Conversa não encontrada." });
       return;
     }
 
     if (conv.status === "closed") {
-      res.status(400).json({ error: "Cannot send messages to a closed conversation" });
+      res.status(400).json({ error: "Não é possível responder a uma conversa encerrada." });
       return;
     }
 
@@ -244,7 +244,7 @@ router.post(
     );
 
     if (!isAdminOrSupervisor && conv.assignedTo !== uid) {
-      res.status(403).json({ error: "Forbidden: not your conversation" });
+      res.status(403).json({ error: "Esta conversa não está atribuída a você." });
       return;
     }
 
@@ -260,7 +260,7 @@ router.post(
       .limit(1);
 
     if (!contact) {
-      res.status(500).json({ error: "Contact not found" });
+      res.status(500).json({ error: "Contato não encontrado." });
       return;
     }
 
@@ -280,7 +280,7 @@ router.post(
       if (!bot) {
         res
           .status(503)
-          .json({ error: "Telegram is not connected for this tenant" });
+          .json({ error: "O Telegram não está conectado nesta central." });
         return;
       }
       fromIdentifier = bot.botId ?? bot.botUsername ?? "telegram-bot";
@@ -305,7 +305,7 @@ router.post(
         }
       } catch (err) {
         req.log.error({ err }, "Failed to send message via Telegram");
-        res.status(502).json({ error: "Failed to send message" });
+        res.status(502).json({ error: "Não foi possível enviar a mensagem." });
         return;
       }
     } else {
@@ -330,7 +330,7 @@ router.post(
       if (!instance) {
         res
           .status(503)
-          .json({ error: "WhatsApp is not connected for this tenant" });
+          .json({ error: "O WhatsApp não está conectado. Pareie um aparelho em Configurações › WhatsApp." });
         return;
       }
 
@@ -356,7 +356,7 @@ router.post(
         }
       } catch (err) {
         req.log.error({ err }, "Failed to send message via Evolution API");
-        res.status(502).json({ error: "Failed to send message" });
+        res.status(502).json({ error: "Não foi possível enviar a mensagem." });
         return;
       }
       }

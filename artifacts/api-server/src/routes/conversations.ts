@@ -216,7 +216,7 @@ router.get(
       );
 
     if (!result) {
-      res.status(404).json({ error: "Conversation not found" });
+      res.status(404).json({ error: "Conversa não encontrada." });
       return;
     }
 
@@ -240,7 +240,7 @@ router.get(
       !isAdminOrSupervisor &&
       result.conversation.assignedTo !== uid
     ) {
-      res.status(403).json({ error: "Forbidden: not your conversation" });
+      res.status(403).json({ error: "Esta conversa não está atribuída a você." });
       return;
     }
 
@@ -296,11 +296,11 @@ router.post(
     ]);
 
     if (!conv) {
-      res.status(404).json({ error: "Conversation not found" });
+      res.status(404).json({ error: "Conversa não encontrada." });
       return;
     }
     if (conv.status !== "waiting") {
-      res.status(400).json({ error: "Conversation is not in the queue" });
+      res.status(400).json({ error: "Esta conversa não está mais na fila." });
       return;
     }
 
@@ -323,7 +323,7 @@ router.post(
 
       if (!deptMember) {
         res.status(403).json({
-          error: "You are not a member of this conversation's department",
+          error: "Você não faz parte do ramal desta conversa.",
         });
         return;
       }
@@ -404,19 +404,19 @@ router.post(
     } catch (err: unknown) {
       const e = err as { message?: string; statusCode?: number };
       if (e.message === "NO_STATUS") {
-        res.status(400).json({ error: "Set your status to available before picking a conversation" });
+        res.status(400).json({ error: "Fique disponível antes de pegar uma conversa." });
         return;
       }
       if (e.message === "AGENT_OFFLINE") {
-        res.status(400).json({ error: "You must be available (not offline) to pick a conversation" });
+        res.status(400).json({ error: "Você precisa estar disponível para pegar uma conversa." });
         return;
       }
       if (e.message === "AGENT_AT_CAPACITY") {
-        res.status(400).json({ error: "You are at maximum conversation capacity" });
+        res.status(400).json({ error: "Você atingiu o limite de conversas simultâneas." });
         return;
       }
       if (e.message === "ALREADY_CLAIMED") {
-        res.status(409).json({ error: "Conversation was already claimed by another agent" });
+        res.status(409).json({ error: "Outro atendente pegou esta conversa primeiro." });
         return;
       }
       throw err;
@@ -460,7 +460,7 @@ router.post(
       .limit(1);
 
     if (!agent) {
-      res.status(400).json({ error: "Agent is not an active member of this tenant" });
+      res.status(400).json({ error: "O atendente não está ativo nesta central." });
       return;
     }
 
@@ -530,7 +530,7 @@ router.post(
     });
 
     if (notFound) {
-      res.status(404).json({ error: "Conversation not found" });
+      res.status(404).json({ error: "Conversa não encontrada." });
       return;
     }
 
@@ -578,7 +578,7 @@ router.post(
       .limit(1);
 
     if (!conv) {
-      res.status(404).json({ error: "Conversation not found" });
+      res.status(404).json({ error: "Conversa não encontrada." });
       return;
     }
 
@@ -817,7 +817,7 @@ router.post(
       .limit(1);
 
     if (!conv) {
-      res.status(404).json({ error: "Conversation not found" });
+      res.status(404).json({ error: "Conversa não encontrada." });
       return;
     }
 
@@ -836,12 +836,12 @@ router.post(
     const isAdminOrSupervisor = ["admin", "supervisor"].includes(membership?.role ?? "");
 
     if (!isAdminOrSupervisor && conv.assignedTo !== uid) {
-      res.status(403).json({ error: "Forbidden: can only close your own conversations" });
+      res.status(403).json({ error: "Você só pode encerrar conversas atribuídas a você." });
       return;
     }
 
     if (conv.status === "closed") {
-      res.status(400).json({ error: "Conversation is already closed" });
+      res.status(400).json({ error: "Esta conversa já foi encerrada." });
       return;
     }
 

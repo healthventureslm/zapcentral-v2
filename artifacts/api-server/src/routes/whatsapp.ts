@@ -263,7 +263,7 @@ router.get(
       .limit(1);
 
     if (!instance) {
-      res.status(404).json({ error: "No WhatsApp instance configured for this tenant" });
+      res.status(404).json({ error: "Nenhum aparelho de WhatsApp configurado nesta central." });
       return;
     }
 
@@ -321,7 +321,7 @@ router.delete(
       .limit(1);
 
     if (!instance) {
-      res.status(404).json({ error: "No WhatsApp instance found" });
+      res.status(404).json({ error: "Nenhum aparelho de WhatsApp encontrado." });
       return;
     }
 

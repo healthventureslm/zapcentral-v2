@@ -148,7 +148,7 @@ router.get(
       .groupBy(departmentsTable.id);
 
     if (!row) {
-      res.status(404).json({ error: "Department not found" });
+      res.status(404).json({ error: "Ramal não encontrado." });
       return;
     }
 
@@ -193,7 +193,7 @@ router.patch(
       .limit(1);
 
     if (!existing) {
-      res.status(404).json({ error: "Department not found" });
+      res.status(404).json({ error: "Ramal não encontrado." });
       return;
     }
 
@@ -264,7 +264,7 @@ router.delete(
       .limit(1);
 
     if (!existing) {
-      res.status(404).json({ error: "Department not found" });
+      res.status(404).json({ error: "Ramal não encontrado." });
       return;
     }
 
@@ -432,7 +432,7 @@ router.post(
     if (!member) {
       res
         .status(400)
-        .json({ error: "User is not an active member of this tenant" });
+        .json({ error: "Esta pessoa não está ativa nesta central." });
       return;
     }
 
