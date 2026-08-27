@@ -383,10 +383,10 @@ export default function ContactsPage() {
               </span>
               <div className="flex items-center gap-2">
                 {selectedIds.size === 2 && (
-                  <Button 
-                    variant="secondary" 
-                    size="sm" 
-                    className="bg-card border-primary/30 text-primary hover:bg-primary/10 hover:text-primary"
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    iconLeft={<UsersIcon className="w-4 h-4" />}
                     onClick={() => {
                       const ids = Array.from(selectedIds);
                       if (confirm("Deseja mesclar estes dois contatos? O primeiro selecionado será mantido como primário.")) {
@@ -402,7 +402,6 @@ export default function ContactsPage() {
                       }
                     }}
                   >
-                    <UsersIcon className="w-4 h-4 mr-2" />
                     Mesclar
                   </Button>
                 )}

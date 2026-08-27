@@ -167,8 +167,11 @@ export default function ContactDetailPage() {
             </div>
             
             <div className="flex items-center gap-2">
-              <Button variant="secondary" className="text-red-600 hover:text-red-700 hover:bg-red-50 border-transparent" onClick={handleDelete}>
-                <Trash2 className="w-4 h-4 mr-2" />
+              <Button
+                variant="danger"
+                iconLeft={<Trash2 className="w-4 h-4" />}
+                onClick={handleDelete}
+              >
                 Excluir
               </Button>
               {!isEditing ? (
@@ -178,8 +181,11 @@ export default function ContactDetailPage() {
               ) : (
                 <div className="flex gap-2">
                   <Button variant="secondary" onClick={() => setIsEditing(false)}>Cancelar</Button>
-                  <Button onClick={handleSaveBasic} className="bg-primary hover:bg-primary/90 text-white" disabled={updateContact.isPending}>
-                    {updateContact.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
+                  <Button
+                    onClick={handleSaveBasic}
+                    iconLeft={<Save className="w-4 h-4" />}
+                    loading={updateContact.isPending}
+                  >
                     Salvar
                   </Button>
                 </div>

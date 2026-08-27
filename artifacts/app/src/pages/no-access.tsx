@@ -26,10 +26,9 @@ export default function NoAccessPage() {
 
         <Button
           variant="secondary"
-          className="gap-2"
+          iconLeft={<LogOut className="w-4 h-4" />}
           onClick={() => void signOut()}
         >
-          <LogOut className="w-4 h-4" />
           Sair da conta
         </Button>
 

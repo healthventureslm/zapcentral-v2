@@ -7,7 +7,7 @@
  *   3. Adds the user as admin of that tenant
  */
 import { useEffect, useState } from "react";
-import { Loader2, ShieldCheck } from "lucide-react";
+import { ShieldCheck } from "lucide-react";
 import {
   Button,
   Card,
@@ -142,10 +142,10 @@ export default function SetupPage() {
 
               <Button
                 type="submit"
-                className="w-full bg-primary hover:bg-primary/90 text-white font-medium"
-                disabled={loading || !tenantName.trim() || !secret.trim()}
+                block
+                loading={loading}
+                disabled={!tenantName.trim() || !secret.trim()}
               >
-                {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                 Ativar plataforma
               </Button>
             </form>
