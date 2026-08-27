@@ -18,14 +18,18 @@ import {
   PlayCircle,
 } from "lucide-react";
 import { useInternalChatNotifications } from "@/hooks/useInternalChat";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Badge,
   PageHeader,
   Spinner,
   StatCard,
+  LineChart,
+  EmptyState,
+  Avatar,
+  Card,
+  CardBody,
+  CardHeader,
 } from "@healthventureslm/design-system";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useTenantId, useMyRole } from "@/hooks/useTenantId";
 import { useRamalDescoberto } from "@/hooks/useRamalDescoberto";
 import { cn } from "@/lib/utils";
@@ -41,15 +45,6 @@ import {
 } from "@/lib/api";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import {
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-} from "recharts";
 
 const navItems = [
   { name: "Dashboard", path: "/", icon: LayoutDashboard },
@@ -243,24 +238,19 @@ function OperacaoAgora({
 
   return (
     <Card className="mt-6">
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between gap-3">
-          <CardTitle className="text-base text-foreground">Operação agora</CardTitle>
-          {!carregando && (
-            <span
-              className={cn(
-                "text-xs font-medium",
-                descobertos > 0 ? "text-red-600" : "text-green-600",
-              )}
-            >
+      <CardHeader
+        title="Operação agora"
+        action={
+          !carregando ? (
+            <Badge variant={descobertos > 0 ? "danger" : "positive"}>
               {descobertos > 0
                 ? `${descobertos} ${plural(descobertos, "ramal com fila e sem ninguém disponível", "ramais com fila e sem ninguém disponível")}`
                 : "Todo ramal com fila tem alguém para atender"}
-            </span>
-          )}
-        </div>
-      </CardHeader>
-      <CardContent>
+            </Badge>
+          ) : undefined
+        }
+      />
+      <CardBody>
         {carregando ? (
           <div className="flex justify-center py-8">
             <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
@@ -317,7 +307,7 @@ function OperacaoAgora({
             })}
           </div>
         )}
-      </CardContent>
+      </CardBody>
     </Card>
   );
 }
@@ -576,105 +566,62 @@ export default function DashboardPage() {
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <Card className="lg:col-span-2">
-              <CardHeader>
-                <CardTitle className="text-base text-foreground">Volume de Conversas (Hoje)</CardTitle>
-              </CardHeader>
-              <CardContent>
+              <CardHeader title={<>Volume de Conversas (Hoje)</>} />
+              <CardBody>
                 <div className="h-[300px] w-full">
                   {volumeError ? (
-                    <div className="w-full h-full flex items-center justify-center text-red-500 text-sm">
-                      Erro ao carregar o gráfico. Tentando novamente...
-                    </div>
+                    <EmptyState
+                      size="sm"
+                      title="Não foi possível carregar o gráfico"
+                      description="Tentando novamente…"
+                    />
                   ) : !volume ? (
-                    <div className="w-full h-full flex items-center justify-center text-muted-foreground">
-                      <Loader2 className="w-8 h-8 animate-spin" />
-                    </div>
+                    <EmptyState size="sm" loading loadingLabel="Carregando o volume…" />
                   ) : volume.length === 0 ? (
-                    <div className="w-full h-full flex items-center justify-center text-muted-foreground text-sm">
-                      Sem dados para o período.
-                    </div>
+                    <EmptyState size="sm" title="Sem dados para o período." />
                   ) : (
-                    <ResponsiveContainer width="100%" height="100%">
-                      <AreaChart data={volume} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                        <defs>
-                          <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#25D366" stopOpacity={0.3} />
-                            <stop offset="95%" stopColor="#25D366" stopOpacity={0} />
-                          </linearGradient>
-                          <linearGradient id="colorClosed" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#6366F1" stopOpacity={0.3} />
-                            <stop offset="95%" stopColor="#6366F1" stopOpacity={0} />
-                          </linearGradient>
-                        </defs>
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
-                        <XAxis 
-                          dataKey="bucket" 
-                          tickFormatter={formatBucketTime} 
-                          axisLine={false} 
-                          tickLine={false} 
-                          tick={{ fontSize: 12, fill: '#6B7280' }} 
-                          dy={10}
-                        />
-                        <YAxis 
-                          axisLine={false} 
-                          tickLine={false} 
-                          tick={{ fontSize: 12, fill: '#6B7280' }} 
-                        />
-                        <Tooltip 
-                          labelFormatter={(label) => formatBucketTime(label as string)}
-                          contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                        />
-                        <Area 
-                          type="monotone" 
-                          dataKey="total" 
-                          name="Total" 
-                          stroke="#25D366" 
-                          strokeWidth={2}
-                          fillOpacity={1} 
-                          fill="url(#colorTotal)" 
-                        />
-                        <Area 
-                          type="monotone" 
-                          dataKey="closed" 
-                          name="Resolvidas" 
-                          stroke="#6366F1" 
-                          strokeWidth={2}
-                          fillOpacity={1} 
-                          fill="url(#colorClosed)" 
-                        />
-                      </AreaChart>
-                    </ResponsiveContainer>
+                    /* As cores vem do design system. Antes eram hex fixos de
+                       tema claro (#25D366 nas linhas, #E5E7EB na grade,
+                       #6B7280 nos rotulos) — no tema escuro o grafico
+                       simplesmente sumia. */
+                    <LineChart
+                      height={300}
+                      area
+                      showGrid
+                      legend
+                      labels={volume.map((v) => formatBucketTime(v.bucket))}
+                      series={[
+                        { name: "Total", data: volume.map((v) => v.total) },
+                        { name: "Resolvidas", data: volume.map((v) => v.closed) },
+                      ]}
+                    />
                   )}
                 </div>
-              </CardContent>
+              </CardBody>
             </Card>
 
             <Card className="flex flex-col">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base text-foreground">Maior Tempo de Espera</CardTitle>
-              </CardHeader>
-              <CardContent className="flex-1 overflow-auto">
+              <CardHeader title="Maior tempo de espera" />
+              <CardBody className="flex-1 overflow-auto">
                 {!waitingRes ? (
-                  <div className="flex justify-center py-8">
-                    <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
-                  </div>
+                  <EmptyState size="sm" loading />
                 ) : waitingConversations.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center h-full text-muted-foreground py-8">
-                    <CheckCircle2 className="w-10 h-10 text-green-400 mb-2" />
-                    <p className="text-sm font-medium">Nenhuma conversa aguardando.</p>
-                  </div>
+                  <EmptyState
+                    size="sm"
+                    icon={<CheckCircle2 className="w-8 h-8" />}
+                    title="Nenhuma conversa aguardando."
+                  />
                 ) : (
                   <div className="space-y-4">
                     {waitingConversations.map((conv) => (
                       <Link key={conv.id} href={`/atendimento?c=${conv.id}`} className="block">
                         <div className="flex items-center justify-between p-3 rounded-lg border border-border hover:border-green-200 hover:bg-green-50/50 transition-colors cursor-pointer mb-3 last:mb-0 group">
                           <div className="flex items-center gap-3">
-                            <Avatar className="h-9 w-9 border border-border">
-                              <AvatarImage src={conv.contact.avatarUrl || undefined} />
-                              <AvatarFallback className="bg-muted text-muted-foreground text-xs font-medium">
-                                {conv.contact.name ? conv.contact.name.substring(0, 2).toUpperCase() : "??"}
-                              </AvatarFallback>
-                            </Avatar>
+                            <Avatar
+                              size="md"
+                              src={conv.contact.avatarUrl ?? undefined}
+                              fromName={conv.contact.name ?? undefined}
+                            />
                             <div>
                               <p className="text-sm font-medium text-foreground group-hover:text-green-700 transition-colors">
                                 {conv.contact.name || conv.contact.phone}
@@ -697,7 +644,7 @@ export default function DashboardPage() {
                     ))}
                   </div>
                 )}
-              </CardContent>
+              </CardBody>
             </Card>
           </div>
 
