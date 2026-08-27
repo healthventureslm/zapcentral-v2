@@ -4,9 +4,9 @@
  */
 import { useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useAuth } from "@clerk/react";
+import { useAuth } from "@/lib/devAuth";
 import { useLocation } from "wouter";
-import { initSocket, getSocket } from "@/lib/socket";
+import { initSocket, getSocket, joinTenant } from "@/lib/socket";
 import { listInternalConversations, type InternalMessage } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 
@@ -77,7 +77,7 @@ export function useInternalChatNotifications(tenantId: number | null): number {
     void getToken().then((token) => {
       if (cancelled) return;
       const socket = initSocket(token);
-      socket.emit("join_tenant", tenantId);
+      joinTenant(socket, tenantId);
       socket.on("internal_message", handler);
     });
 

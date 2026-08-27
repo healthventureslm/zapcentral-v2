@@ -15,6 +15,8 @@
  * que o clerkMiddleware aceita igualmente.
  */
 
+import { DEV_AUTH_BYPASS, devAuthHeaders } from "./devUser";
+
 /** URL da API quando ela vive em outra origem. Vazio = mesma origem. */
 const EXTERNAL_API_URL = (import.meta.env.VITE_API_BASE_URL ?? "")
   .trim()
@@ -73,8 +75,17 @@ export const transportHeaders: Record<string, string> = isCrossOrigin
   ? { "ngrok-skip-browser-warning": "true" }
   : {};
 
-/** Headers de autenticacao e transporte a acrescentar em cada request. */
+/**
+ * Headers de autenticacao e transporte a acrescentar em cada request.
+ *
+ * No bypass de desenvolvimento nao ha cookie nem token do Clerk: a identidade
+ * vai no header `x-dev-user`, inclusive na mesma origem.
+ */
 export async function authHeaders(): Promise<Record<string, string>> {
+  if (DEV_AUTH_BYPASS) {
+    return { ...transportHeaders, ...devAuthHeaders() };
+  }
+
   const token = await getSessionToken();
   return {
     ...transportHeaders,

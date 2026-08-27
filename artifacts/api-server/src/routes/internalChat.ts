@@ -3,7 +3,7 @@
  * Messages live inside the platform only — they never touch WhatsApp.
  */
 import { Router } from "express";
-import { getAuth } from "@clerk/express";
+import { getAuth } from "../lib/devAuth";
 import { db } from "@workspace/db";
 import {
   internalConversationsTable,

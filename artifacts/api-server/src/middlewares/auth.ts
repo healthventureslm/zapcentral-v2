@@ -1,5 +1,5 @@
 import { type Request, type Response, type NextFunction } from "express";
-import { getAuth, clerkClient } from "@clerk/express";
+import { getAuth, clerkClient } from "../lib/devAuth";
 import { db } from "@workspace/db";
 import { tenantUsersTable } from "@workspace/db";
 import { eq, and } from "drizzle-orm";

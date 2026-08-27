@@ -3,7 +3,7 @@
  * notes, tags on contacts/conversations, custom field values, bulk actions.
  */
 import { Router, type IRouter } from "express";
-import { getAuth } from "@clerk/express";
+import { getAuth } from "../lib/devAuth";
 import {
   db,
   contactsTable,

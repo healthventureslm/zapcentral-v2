@@ -2,7 +2,7 @@
  * Agent status routes.
  */
 import { Router } from "express";
-import { getAuth } from "@clerk/express";
+import { getAuth } from "../lib/devAuth";
 import { db } from "@workspace/db";
 import { agentStatusesTable, tenantUsersTable, conversationsTable } from "@workspace/db";
 import { eq, and, sql } from "drizzle-orm";

@@ -1,4 +1,4 @@
-import { useUser } from "@clerk/react";
+import { useUser } from "@/lib/devAuth";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";

@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { getAuth } from "@clerk/express";
+import { getAuth } from "../lib/devAuth";
 import { db } from "@workspace/db";
 import {
   tenantsTable,

@@ -3,6 +3,7 @@ import cors, { type CorsOptions } from "cors";
 import pinoHttp from "pino-http";
 import { clerkMiddleware } from "@clerk/express";
 import { publishableKeyFromHost } from "@clerk/shared/keys";
+import { isDevAuthBypass } from "./lib/devAuth";
 import {
   CLERK_PROXY_PATH,
   clerkProxyMiddleware,
@@ -78,21 +79,27 @@ app.use(
 );
 
 // Clerk proxy must come before body parsers (streams raw bytes)
-app.use(CLERK_PROXY_PATH, clerkProxyMiddleware());
+if (!isDevAuthBypass) {
+  app.use(CLERK_PROXY_PATH, clerkProxyMiddleware());
+}
 
 app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Resolve publishable key from request host (supports multiple custom domains)
-app.use(
-  clerkMiddleware((req) => ({
-    publishableKey: publishableKeyFromHost(
-      getClerkProxyHost(req) ?? "",
-      process.env["CLERK_PUBLISHABLE_KEY"],
-    ),
-  })),
-);
+// Resolve publishable key from request host (supports multiple custom domains).
+// No bypass de desenvolvimento o middleware do Clerk fica de fora inteiro — com
+// chave invalida ele lanca em toda requisicao, inclusive no health check.
+if (!isDevAuthBypass) {
+  app.use(
+    clerkMiddleware((req) => ({
+      publishableKey: publishableKeyFromHost(
+        getClerkProxyHost(req) ?? "",
+        process.env["CLERK_PUBLISHABLE_KEY"],
+      ),
+    })),
+  );
+}
 
 app.use("/api", router);
 

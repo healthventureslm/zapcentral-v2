@@ -4,12 +4,12 @@
  */
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useUser, useAuth } from "@clerk/react";
+import { useUser, useAuth } from "@/lib/devAuth";
 import { Send, Loader2, MessageCircle, Headset } from "lucide-react";
 import { Sidebar } from "./dashboard";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { initSocket, getSocket } from "@/lib/socket";
+import { initSocket, getSocket, joinTenant } from "@/lib/socket";
 import {
   listAgentStatuses,
   listInternalConversations,
@@ -101,7 +101,7 @@ export default function InternalChatPage() {
     void getToken().then((token) => {
       if (cancelled) return;
       const socket = initSocket(token);
-      socket.emit("join_tenant", tenantId);
+      joinTenant(socket, tenantId);
       socket.on("internal_message", handler);
     });
 

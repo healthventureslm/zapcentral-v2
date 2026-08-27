@@ -2,7 +2,7 @@
  * Shown when a signed-in user has no tenant membership and the platform
  * has already been bootstrapped (i.e. they need to be invited by an admin).
  */
-import { useClerk } from "@clerk/react";
+import { useClerk } from "@/lib/devAuth";
 import { LogOut, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 

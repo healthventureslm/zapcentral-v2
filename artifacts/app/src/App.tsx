@@ -1,4 +1,4 @@
-import { ClerkProvider, useAuth } from "@clerk/react";
+import { ClerkProvider, useAuth } from "@/lib/devAuth";
 import { publishableKeyFromHost } from "@clerk/shared/keys";
 import { QueryClient, QueryClientProvider, useQuery } from "@tanstack/react-query";
 import { Route, Switch, useLocation, Router as WouterRouter } from "wouter";

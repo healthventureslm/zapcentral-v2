@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { getAuth, clerkClient } from "@clerk/express";
+import { getAuth, clerkClient } from "../lib/devAuth";
 import { db } from "@workspace/db";
 import { tenantUsersTable, tenantsTable } from "@workspace/db";
 import { eq, and, like } from "drizzle-orm";
