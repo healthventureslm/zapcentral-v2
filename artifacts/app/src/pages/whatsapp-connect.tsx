@@ -126,7 +126,13 @@ export default function WhatsAppConnectPage() {
   });
 
   const instance = statusData?.instance;
-  const status = instance?.status ?? "disconnected";
+  // Sem provedor configurado nao existe conexao possivel, por mais que reste
+  // uma instancia marcada como conectada no banco. Mostrar "Conectado" ao lado
+  // do aviso de "Evolution nao configurada" e contraditorio, e faz alguem
+  // confiar num canal que nao entrega nada.
+  const status = !statusData?.evolutionConfigured
+    ? "disconnected"
+    : (instance?.status ?? "disconnected");
 
   // Auto-refresh QR when connecting
   const pollQr = useCallback(async () => {
