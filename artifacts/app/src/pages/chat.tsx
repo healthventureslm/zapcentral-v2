@@ -2,6 +2,7 @@
  * Chat page — main agent interface.
  * Left panel: conversation list. Right panel: message thread + input.
  */
+import { Avatar, Badge } from "@healthventureslm/design-system";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/lib/devAuth";
@@ -10,8 +11,6 @@ import { avisarChamadoNovo, limparAvisos } from "@/lib/aviso";
 import { Send, Phone, X, ArrowRightLeft, Loader2, Wifi, WifiOff, ChevronDown, MessageCircle, PanelRightOpen, PanelRightClose } from "lucide-react";
 import { Sidebar } from "@/components/Sidebar";
 import { ContactPanel } from "@/components/ContactPanel";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   listConversations,
   listMessages,
@@ -101,11 +100,7 @@ function ConversationItem({
         naoVista && !active && "bg-primary/[0.06] border-l-2 border-l-primary",
       )}
     >
-      <Avatar className="h-10 w-10 shrink-0 mt-0.5">
-        <AvatarFallback className="bg-[#1A2B38] text-primary font-semibold text-sm">
-          {initials}
-        </AvatarFallback>
-      </Avatar>
+      <Avatar size="md" className="shrink-0 mt-0.5">{initials}</Avatar>
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between gap-2">
           <span className="font-medium text-white text-sm truncate">
@@ -577,15 +572,13 @@ export default function ChatPage() {
             {/* Chat header */}
             <div className="h-14 bg-[#0A1520] border-b border-white/5 flex items-center justify-between px-6">
               <div className="flex items-center gap-3">
-                <Avatar className="h-9 w-9">
-                  <AvatarFallback className="bg-[#1A2B38] text-primary font-semibold text-xs">
-                    {(selectedConv.contact.name ?? contactHandle(selectedConv.contact))
-                      .split(" ")
-                      .map((w) => w[0])
-                      .join("")
-                      .slice(0, 2)
-                      .toUpperCase()}
-                  </AvatarFallback>
+                <Avatar size="sm">
+                  {(selectedConv.contact.name ?? contactHandle(selectedConv.contact))
+                    .split(" ")
+                    .map((w) => w[0])
+                    .join("")
+                    .slice(0, 2)
+                    .toUpperCase()}
                 </Avatar>
                 <div>
                   <p className="text-sm font-semibold text-white">

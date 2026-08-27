@@ -5,11 +5,14 @@
  * para testar o produto sem Clerk e para alternar entre identidades — abra
  * numa janela anonima para simular dois atendentes ao mesmo tempo.
  */
+import {
+  Button,
+  Card,
+  CardBody,
+  Input,
+} from "@healthventureslm/design-system";
 import { useState } from "react";
 import { ShieldAlert } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent } from "@/components/ui/card";
 import { signInDevUser } from "@/lib/devUser";
 
 /**
@@ -53,7 +56,7 @@ export default function DevSignInPage() {
         </div>
 
         <Card className="border-[#2a3a4a] bg-[#0F1923]">
-          <CardContent className="pt-6 space-y-4">
+          <CardBody className="pt-6 space-y-4">
             <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-amber-200 text-xs leading-relaxed">
               <strong>DEV_AUTH_BYPASS está ativo.</strong> Qualquer identidade
               digitada aqui é aceita sem senha. Nunca use esta configuração em
@@ -113,7 +116,7 @@ export default function DevSignInPage() {
                 ))}
               </div>
             </div>
-          </CardContent>
+          </CardBody>
         </Card>
       </div>
     </div>

@@ -2,13 +2,12 @@
  * Internal chat page — 1:1 conversations between agents (ramal-to-ramal).
  * Left: colleagues with presence + my conversations. Right: message thread.
  */
+import { Avatar, Badge } from "@healthventureslm/design-system";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useUser, useAuth } from "@/lib/devAuth";
 import { Send, Loader2, MessageCircle, Headset } from "lucide-react";
 import { Sidebar } from "@/components/Sidebar";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import { initSocket, getSocket, joinTenant } from "@/lib/socket";
 import {
   listAgentStatuses,
@@ -177,11 +176,8 @@ export default function InternalChatPage() {
                   )}
                 >
                   <div className="relative shrink-0">
-                    <Avatar className="h-10 w-10">
-                      <AvatarImage src={c.peer.avatarUrl ?? undefined} />
-                      <AvatarFallback className="bg-[#1A2B38] text-primary font-semibold text-sm">
-                        {initialsOf(c.peer)}
-                      </AvatarFallback>
+                    <Avatar size="md" src={c.peer.avatarUrl ?? undefined}>
+                      {initialsOf(c.peer)}
                     </Avatar>
                     <span
                       className={cn(
@@ -224,11 +220,8 @@ export default function InternalChatPage() {
                     className="w-full flex items-center gap-3 px-4 py-2.5 text-left hover:bg-card/5 transition-colors"
                   >
                     <div className="relative shrink-0">
-                      <Avatar className="h-9 w-9">
-                        <AvatarImage src={c.avatarUrl ?? undefined} />
-                        <AvatarFallback className="bg-[#1A2B38] text-primary font-semibold text-xs">
-                          {initialsOf(c)}
-                        </AvatarFallback>
+                      <Avatar size="sm" src={c.avatarUrl ?? undefined}>
+                        {initialsOf(c)}
                       </Avatar>
                       <span
                         className={cn(
@@ -268,11 +261,8 @@ export default function InternalChatPage() {
           <>
             <div className="h-14 bg-[#0A1520] border-b border-white/5 flex items-center gap-3 px-6">
               <div className="relative">
-                <Avatar className="h-9 w-9">
-                  <AvatarImage src={selectedConv.peer.avatarUrl ?? undefined} />
-                  <AvatarFallback className="bg-[#1A2B38] text-primary font-semibold text-xs">
-                    {initialsOf(selectedConv.peer)}
-                  </AvatarFallback>
+                <Avatar size="sm" src={selectedConv.peer.avatarUrl ?? undefined}>
+                  {initialsOf(selectedConv.peer)}
                 </Avatar>
                 <span
                   className={cn(
