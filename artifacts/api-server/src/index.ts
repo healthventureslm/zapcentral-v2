@@ -1,6 +1,6 @@
 import { createServer } from "http";
 import app from "./app";
-import { initSocket } from "./services/socket";
+import { initSocket, reconciliarPresenca } from "./services/socket";
 import { logger } from "./lib/logger";
 
 const rawPort = process.env["PORT"];
@@ -26,4 +26,6 @@ httpServer.listen(port, (err?: Error) => {
     process.exit(1);
   }
   logger.info({ port }, "Server listening");
+  // Ninguem esta conectado agora: zera a presenca herdada da execucao anterior.
+  void reconciliarPresenca();
 });

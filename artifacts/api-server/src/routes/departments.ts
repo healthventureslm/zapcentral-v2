@@ -4,6 +4,7 @@ import {
   departmentsTable,
   departmentAgentsTable,
   tenantUsersTable,
+  agentStatusesTable,
   insertDepartmentSchema,
 } from "@workspace/db";
 import { eq, and, sql } from "drizzle-orm";
@@ -451,6 +452,20 @@ router.post(
             set: { isPrimary },
           })
           .returning();
+
+        // A distribuicao automatica so enxerga quem tem linha em
+        // `agent_statuses` (o tryAutoAssign faz innerJoin nela). Sem esta
+        // insercao, o agente recem-adicionado ao setor e invisivel para a fila
+        // ate trocar o proprio status na mao — e a conversa fica presa em
+        // 'waiting' sem ninguem perceber.
+        //
+        // Nasce 'offline' de proposito: quem decide que ele esta disponivel e a
+        // presenca no painel (ver services/socket.ts), nao o cadastro.
+        await tx
+          .insert(agentStatusesTable)
+          .values({ tenantId, clerkUserId, status: "offline" })
+          .onConflictDoNothing();
+
         return row;
       });
     } catch (err) {

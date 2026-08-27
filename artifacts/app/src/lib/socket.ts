@@ -39,7 +39,39 @@ export function initSocket(token: string | null): Socket {
     autoConnect: true,
   });
 
+  // Reconexao automatica do socket.io: refaz o join, senao o socket volta sem
+  // room nenhum e o agente some da central.
+  _socket.io.on("reconnect", entrarNaCentral);
+
   return _socket;
+}
+
+/**
+ * Entra na central e REENTRA a cada reconexao.
+ *
+ * O socket.io reconecta sozinho depois de uma queda de rede, mas com um id novo
+ * e sem nenhum room. Emitir `join_tenant` uma unica vez deixava o atendente
+ * fora da central apos qualquer oscilacao: o painel voltava a dizer "conectado"
+ * enquanto o servidor o tinha marcado offline, e a fila parava de lhe mandar
+ * conversas ate um F5.
+ *
+ * O ouvinte de reconexao fica no GERENCIADOR (`socket.io`), nao no socket: as
+ * telas chamam `socket.off("connect")` ao desmontar, o que apagaria um ouvinte
+ * registrado no socket — inclusive o de outra tela ainda montada.
+ */
+let _tenantId: number | null = null;
+
+function entrarNaCentral(): void {
+  if (_socket && _tenantId !== null) {
+    _socket.emit("join_tenant", _tenantId);
+    _socket.emit("join_agent");
+  }
+}
+
+export function joinTenant(socket: Socket, tenantId: number): void {
+  _tenantId = tenantId;
+  if (socket.connected) entrarNaCentral();
+  else socket.once("connect", entrarNaCentral);
 }
 
 /**
@@ -55,4 +87,5 @@ export function disconnectSocket(): void {
     _socket.disconnect();
     _socket = null;
   }
+  _tenantId = null;
 }

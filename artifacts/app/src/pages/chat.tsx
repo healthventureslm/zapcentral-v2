@@ -4,8 +4,8 @@
  */
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useAuth } from "@clerk/react";
-import { initSocket, getSocket } from "@/lib/socket";
+import { useAuth } from "@/lib/devAuth";
+import { initSocket, getSocket, joinTenant } from "@/lib/socket";
 import { Send, Phone, X, ArrowRightLeft, Loader2, Wifi, WifiOff, ChevronDown, MessageCircle, PanelRightOpen, PanelRightClose } from "lucide-react";
 import { Sidebar } from "./dashboard";
 import { ContactPanel } from "@/components/ContactPanel";
@@ -258,8 +258,7 @@ export default function ChatPage() {
       socket.on("disconnect", () => setIsConnected(false));
 
       // Server verifies tenant membership on join_tenant; join_agent uses server-derived userId
-      socket.emit("join_tenant", tenantId);
-      socket.emit("join_agent");
+      joinTenant(socket, tenantId);
 
       socket.on("new_message", (data: { conversationId: number }) => {
         void qc.invalidateQueries({ queryKey: ["messages", tenantId, data.conversationId] });

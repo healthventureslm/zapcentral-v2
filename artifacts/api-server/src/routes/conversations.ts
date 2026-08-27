@@ -2,7 +2,7 @@
  * Conversation management routes.
  */
 import { Router } from "express";
-import { getAuth } from "@clerk/express";
+import { getAuth } from "../lib/devAuth";
 import { db } from "@workspace/db";
 import {
   conversationsTable,
@@ -342,7 +342,6 @@ router.post(
           .update(agentStatusesTable)
           .set({
             activeConversations: sql`${agentStatusesTable.activeConversations} + 1`,
-            status: "busy",
             updatedAt: new Date(),
           })
           .where(
@@ -520,12 +519,11 @@ router.post(
       // Increment new agent's counter (upsert — agent may not have a status row yet)
       await tx
         .insert(agentStatusesTable)
-        .values({ clerkUserId: agentId, tenantId, activeConversations: 1, status: "busy" })
+        .values({ clerkUserId: agentId, tenantId, activeConversations: 1 })
         .onConflictDoUpdate({
           target: [agentStatusesTable.clerkUserId, agentStatusesTable.tenantId],
           set: {
             activeConversations: sql`${agentStatusesTable.activeConversations} + 1`,
-            status: "busy",
             updatedAt: new Date(),
           },
         });
@@ -728,7 +726,7 @@ router.post(
     if (toAgentId) {
       await db
         .insert(agentStatusesTable)
-        .values({ clerkUserId: toAgentId, tenantId, activeConversations: 1, status: "busy" })
+        .values({ clerkUserId: toAgentId, tenantId, activeConversations: 1 })
         .onConflictDoUpdate({
           target: [agentStatusesTable.clerkUserId, agentStatusesTable.tenantId],
           set: {

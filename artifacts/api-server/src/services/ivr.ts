@@ -18,6 +18,11 @@ import {
 } from "@workspace/db";
 import { eq, and, asc, sql, isNull } from "drizzle-orm";
 import { sendText } from "./evolution";
+import {
+  entregaLocal,
+  idSimulado,
+  REMETENTE_SIMULADO,
+} from "./simulado";
 import { sendMessage as sendTelegramMessage } from "./telegram";
 import {
   whatsappInstancesTable,
@@ -280,7 +285,13 @@ export async function sendTenantMessage(
     let messageId: string;
     let fromIdentifier = from;
 
-    if (channel === "telegram") {
+    // Modo simulacao: grava e emite sem chamar provedor nenhum. Sem isto as
+    // falas do robo (menu, fora de horario, agradecimento) sao descartadas em
+    // silencio pelo catch la embaixo, e a conversa aparece pela metade.
+    if (entregaLocal() && channel !== "telegram") {
+      messageId = idSimulado("out");
+      fromIdentifier = from || REMETENTE_SIMULADO;
+    } else if (channel === "telegram") {
       const bot = await getTenantTelegramBot(tenantId);
       if (!bot) return null;
       const sent = await sendTelegramMessage(bot.botToken, destination, text);
@@ -414,4 +425,86 @@ export async function tryAutoAssign(
   }
 
   return assigned;
+}
+
+/**
+ * Distribui as conversas que ficaram paradas na fila dos setores deste agente.
+ *
+ * Existe porque `tryAutoAssign` so e chamado quando chega mensagem nova. Uma
+ * conversa que caiu na fila sem ninguem conectado nunca mais seria oferecida:
+ * ela ja passou pelo IVR, entao mensagens seguintes do contato retornam `noop`.
+ *
+ * Chamado quando o agente fica disponivel. Nao garante que as conversas fiquem
+ * com ELE — o `tryAutoAssign` mantem o rodizio e as travas de capacidade, e
+ * pode entregar a outro agente do mesmo setor. O que importa e que a fila anda.
+ */
+export interface Atribuicao {
+  agente: string;
+  conversa: typeof conversationsTable.$inferSelect;
+}
+
+export async function distribuirFilaParada(
+  tenantId: number,
+  clerkUserId: string,
+): Promise<Atribuicao[]> {
+  const [settings] = await db
+    .select({ distributionMode: channelSettingsTable.distributionMode })
+    .from(channelSettingsTable)
+    .where(eq(channelSettingsTable.tenantId, tenantId))
+    .limit(1);
+
+  const mode = settings?.distributionMode ?? "manual";
+  if (mode === "manual") return [];
+
+  const paradas = await db
+    .select({
+      id: conversationsTable.id,
+      departmentId: conversationsTable.departmentId,
+    })
+    .from(conversationsTable)
+    .innerJoin(
+      departmentAgentsTable,
+      and(
+        eq(departmentAgentsTable.departmentId, conversationsTable.departmentId),
+        eq(departmentAgentsTable.tenantId, tenantId),
+        eq(departmentAgentsTable.clerkUserId, clerkUserId),
+      ),
+    )
+    .where(
+      and(
+        eq(conversationsTable.tenantId, tenantId),
+        eq(conversationsTable.status, "waiting"),
+        isNull(conversationsTable.assignedTo),
+      ),
+    )
+    // Mais antiga primeiro: quem esperou mais e atendido antes.
+    .orderBy(asc(conversationsTable.lastMessageAt))
+    // Teto de seguranca: um agente voltando nao deve disparar centenas de
+    // transacoes de uma vez. O resto sai na proxima mensagem ou na proxima
+    // conexao de alguem do setor.
+    .limit(20);
+
+  // Devolve as atribuicoes em vez de emitir aqui: quem emite e o socket, e
+  // importa-lo neste modulo fecharia um ciclo (socket.ts ja importa este).
+  const feitas: Atribuicao[] = [];
+  for (const conversa of paradas) {
+    if (!conversa.departmentId) continue;
+    const agente = await tryAutoAssign(
+      tenantId,
+      conversa.id,
+      conversa.departmentId,
+      mode,
+    );
+    if (!agente) continue;
+
+    const [atualizada] = await db
+      .select()
+      .from(conversationsTable)
+      .where(eq(conversationsTable.id, conversa.id))
+      .limit(1);
+
+    if (atualizada) feitas.push({ agente, conversa: atualizada });
+  }
+
+  return feitas;
 }

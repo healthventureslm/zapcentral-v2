@@ -14,12 +14,12 @@ import {
   QrCode,
   Copy,
 } from "lucide-react";
-import { useAuth } from "@clerk/react";
+import { useAuth } from "@/lib/devAuth";
 import { Sidebar } from "./dashboard";
 import { getWhatsAppStatus, connectWhatsApp, getWhatsAppQr, disconnectWhatsApp, getQrShareToken } from "@/lib/api";
 import { useTenantId } from "@/hooks/useTenantId";
 import { useToast } from "@/hooks/use-toast";
-import { initSocket, getSocket } from "@/lib/socket";
+import { initSocket, getSocket, joinTenant } from "@/lib/socket";
 
 function ShareQrCard({ tenantId }: { tenantId: number }) {
   const { toast } = useToast();
@@ -168,7 +168,7 @@ export default function WhatsAppConnectPage() {
     getToken().then((token) => {
       if (cancelled) return;
       const socket = initSocket(token);
-      socket.emit("join_tenant", tenantId);
+      joinTenant(socket, tenantId);
 
       socket.on("whatsapp_qr_updated", (data: { qrCode: string }) => {
         setQrCode(data.qrCode);
