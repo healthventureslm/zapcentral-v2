@@ -19,6 +19,7 @@ import {
   closeConversation,
   transferConversation,
   listDepartments,
+  listTenantUsers,
   updateMyStatus,
   getMyStatus,
   type Conversation,
@@ -131,7 +132,13 @@ function ConversationItem({
   );
 }
 
-function MessageBubble({ msg }: { msg: Message }) {
+function MessageBubble({
+  msg,
+  autor,
+}: {
+  msg: Message;
+  autor?: string | undefined;
+}) {
   const isOut = msg.direction === "outbound";
   return (
     <div className={cn("flex mb-3", isOut ? "justify-end" : "justify-start")}>
@@ -143,6 +150,14 @@ function MessageBubble({ msg }: { msg: Message }) {
             : "bg-white text-gray-900 rounded-bl-sm",
         )}
       >
+        {/* Quem respondeu. No WhatsApp do paciente esta informacao vai como
+            prefixo no texto (la nao ha interface para isso); aqui ela e um
+            rotulo. Os dois lados mostram a mesma coisa. */}
+        {isOut && autor && (
+          <p className="text-[11px] font-semibold text-white/80 mb-0.5">
+            {autor}
+          </p>
+        )}
         {msg.type === "image" && msg.mediaUrl && (
           <img
             src={msg.mediaUrl}
@@ -320,6 +335,12 @@ export default function ChatPage() {
   // Close conversation
   // Transferir entre ramais. O backend ja avisa o paciente da troca; aqui e so
   // escolher o destino.
+  const { data: equipe = [] } = useQuery({
+    queryKey: ["tenant-users", tenantId],
+    queryFn: () => listTenantUsers(tenantId!),
+    enabled: !!tenantId,
+  });
+
   const { data: setores = [] } = useQuery({
     queryKey: ["departments", tenantId],
     queryFn: () => listDepartments(tenantId!),
@@ -362,6 +383,14 @@ export default function ChatPage() {
 
   const [transferindo, setTransferindo] = useState(false);
   const selectedConv = conversations.find((c) => c.id === selectedId);
+
+  /** Nome de quem respondeu, para o rotulo na bolha. */
+  const nomeDoAutor = (clerkUserId: string | null | undefined) => {
+    if (!clerkUserId) return undefined;
+    const membro = equipe.find((m) => m.clerkUserId === clerkUserId);
+    const nome = [membro?.firstName, membro?.lastName].filter(Boolean).join(" ");
+    return nome || undefined;
+  };
 
   // Sem isto o menu de ramais fica flutuando sobre a conversa depois de um
   // clique em qualquer outro lugar, e reabre sozinho ao trocar de conversa —
@@ -615,7 +644,11 @@ export default function ChatPage() {
                 </div>
               ) : (
                 (messages ?? []).map((msg) => (
-                  <MessageBubble key={msg.id} msg={msg} />
+                  <MessageBubble
+                    key={msg.id}
+                    msg={msg}
+                    autor={nomeDoAutor(msg.sentBy)}
+                  />
                 ))
               )}
               <div ref={messagesEndRef} />
