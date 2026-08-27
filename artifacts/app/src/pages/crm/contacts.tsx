@@ -1,5 +1,14 @@
 import { useState } from "react";
 import { Link } from "wouter";
+import {
+  Avatar,
+  Badge,
+  Button,
+  Card,
+  CardBody,
+  Input,
+  Select,
+} from "@healthventureslm/design-system";
 import { PageShell } from "@/components/PageShell";
 import { CrmTabs } from "@/components/crm/crm-tabs";
 import { useCrmHooks, useContacts } from "@/hooks/use-crm";
@@ -17,11 +26,6 @@ import {
   Mail,
   Building2,
 } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { isValidCpf } from "@/lib/cpf";
 import {
@@ -30,13 +34,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   Dialog,
   DialogContent,
@@ -66,7 +63,7 @@ function ManageTagsDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="gap-2 bg-card">
+        <Button variant="secondary" className="gap-2 bg-card">
           <Tags className="w-4 h-4" />
           Tags
         </Button>
@@ -83,7 +80,7 @@ function ManageTagsDialog() {
                   <span className="w-3 h-3 rounded-full" style={{ backgroundColor: tag.color || "#ccc" }} />
                   <span className="text-sm font-medium">{tag.name}</span>
                 </div>
-                <Button variant="ghost" size="icon" className="h-6 w-6 text-red-500 hover:bg-red-50" onClick={() => {
+                <Button variant="ghost" size="sm" className="h-6 w-6 text-red-500 hover:bg-red-50" onClick={() => {
                   if(confirm("Excluir tag?")) {
                     deleteTag.mutate(tag.id, { onSuccess: () => toast({ title: "Tag excluída" }) });
                   }
@@ -140,7 +137,7 @@ function ManageCustomFieldsDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="gap-2 bg-card hidden md:flex">
+        <Button variant="secondary" className="gap-2 bg-card hidden md:flex">
           <MoreHorizontal className="w-4 h-4" />
           Campos Customizados
         </Button>
@@ -157,7 +154,7 @@ function ManageCustomFieldsDialog() {
                   <span className="text-sm font-medium">{field.name}</span>
                   <span className="text-xs text-muted-foreground ml-2">({field.type})</span>
                 </div>
-                <Button variant="ghost" size="icon" className="h-6 w-6 text-red-500 hover:bg-red-50" onClick={() => {
+                <Button variant="ghost" size="sm" className="h-6 w-6 text-red-500 hover:bg-red-50" onClick={() => {
                   if(confirm("Excluir campo?")) {
                     deleteCustomField.mutate(field.id, { onSuccess: () => toast({ title: "Campo excluído" }) });
                   }
@@ -174,15 +171,17 @@ function ManageCustomFieldsDialog() {
               onChange={e => setNewField({...newField, name: e.target.value})} 
             />
             <div className="flex gap-2">
-              <Select value={newField.type} onValueChange={(v: any) => setNewField({...newField, type: v})}>
-                <SelectTrigger className="w-32"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="text">Texto</SelectItem>
-                  <SelectItem value="number">Número</SelectItem>
-                  <SelectItem value="date">Data</SelectItem>
-                  <SelectItem value="select">Lista (Select)</SelectItem>
-                </SelectContent>
-              </Select>
+              <Select
+                className="w-32"
+                value={newField.type}
+                onChange={(v) => setNewField({ ...newField, type: v as typeof newField.type })}
+                options={[
+                  { value: "text", label: "Texto" },
+                  { value: "number", label: "Número" },
+                  { value: "date", label: "Data" },
+                  { value: "select", label: "Lista" },
+                ]}
+              />
               {newField.type === 'select' && (
                 <Input 
                   placeholder="Opções (separadas por vírgula)" 
@@ -301,57 +300,41 @@ export default function ContactsPage() {
             </div>
 
             <Select
+              className="w-[200px]"
+              placeholder="Filtrar por etiqueta"
               value={tagId ? String(tagId) : "all"}
-              onValueChange={(v) => {
+              onChange={(v) => {
                 setTagId(v === "all" ? undefined : Number(v));
                 setPage(1);
               }}
-            >
-              <SelectTrigger className="w-[200px]">
-                <div className="flex items-center gap-2">
-                  <Tags className="w-4 h-4 text-muted-foreground" />
-                  <SelectValue placeholder="Filtrar por Tag" />
-                </div>
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todas as tags</SelectItem>
-                {tags.data?.map((t) => (
-                  <SelectItem key={t.id} value={String(t.id)}>
-                    <div className="flex items-center gap-2">
-                      <span
-                        className="w-2 h-2 rounded-full"
-                        style={{ backgroundColor: t.color || "#ccc" }}
-                      />
-                      {t.name}
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              options={[
+                { value: "all", label: "Todas as etiquetas" },
+                ...(tags.data ?? []).map((et) => ({
+                  value: String(et.id),
+                  label: et.name,
+                })),
+              ]}
+            />
 
             <Select
+              className="w-[200px]"
+              placeholder="Responsável"
               value={assignedTo || "all"}
-              onValueChange={(v) => {
+              onChange={(v) => {
                 setAssignedTo(v === "all" ? undefined : v);
                 setPage(1);
               }}
-            >
-              <SelectTrigger className="w-[200px]">
-                <div className="flex items-center gap-2">
-                  <Filter className="w-4 h-4 text-muted-foreground" />
-                  <SelectValue placeholder="Responsável" />
-                </div>
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Qualquer responsável</SelectItem>
-                <SelectItem value="unassigned">Sem responsável</SelectItem>
-                {agents.data?.map((a) => (
-                  <SelectItem key={a.clerkUserId} value={a.clerkUserId}>
-                    {a.firstName ? `${a.firstName} ${a.lastName || ""}` : a.email}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              options={[
+                { value: "all", label: "Qualquer responsável" },
+                { value: "unassigned", label: "Sem responsável" },
+                ...(agents.data ?? []).map((a) => ({
+                  value: a.clerkUserId,
+                  label: a.firstName
+                    ? `${a.firstName} ${a.lastName || ""}`.trim()
+                    : a.email,
+                })),
+              ]}
+            />
           </div>
 
           {/* Bulk Actions */}
@@ -363,7 +346,7 @@ export default function ContactsPage() {
               <div className="flex items-center gap-2">
                 {selectedIds.size === 2 && (
                   <Button 
-                    variant="outline" 
+                    variant="secondary" 
                     size="sm" 
                     className="bg-card border-primary/30 text-primary hover:bg-primary/10 hover:text-primary"
                     onClick={() => {
@@ -387,7 +370,7 @@ export default function ContactsPage() {
                 )}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="sm" className="bg-card border-primary/30 text-primary hover:bg-primary/10 hover:text-primary">
+                    <Button variant="secondary" size="sm" className="bg-card border-primary/30 text-primary hover:bg-primary/10 hover:text-primary">
                       <Tags className="w-4 h-4 mr-2" />
                       Adicionar Tag
                     </Button>
@@ -410,7 +393,7 @@ export default function ContactsPage() {
 
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="sm" className="bg-card border-primary/30 text-primary hover:bg-primary/10 hover:text-primary">
+                    <Button variant="secondary" size="sm" className="bg-card border-primary/30 text-primary hover:bg-primary/10 hover:text-primary">
                       <UsersIcon className="w-4 h-4 mr-2" />
                       Atribuir Responsável
                     </Button>
@@ -491,12 +474,11 @@ export default function ContactsPage() {
                         <td className="px-6 py-4">
                           <Link href={`/crm/contatos/${contact.id}`}>
                             <div className="flex items-center gap-3 cursor-pointer">
-                              <Avatar className="h-10 w-10 border border-border">
-                                <AvatarImage src={contact.avatarUrl || undefined} />
-                                <AvatarFallback className="bg-muted text-muted-foreground font-medium">
-                                  {contact.name?.substring(0, 2).toUpperCase() || "??"}
-                                </AvatarFallback>
-                              </Avatar>
+                              <Avatar
+                                size="md"
+                                src={contact.avatarUrl ?? undefined}
+                                fromName={contact.name ?? undefined}
+                              />
                               <div>
                                 <p className="font-medium text-foreground group-hover:text-primary transition-colors">
                                   {contact.name || "Sem nome"}
@@ -530,7 +512,7 @@ export default function ContactsPage() {
                             {contact.tags.slice(0, 3).map((t) => (
                               <Badge
                                 key={t.id}
-                                variant="secondary"
+                                variant="neutral"
                                 className="border-none text-xs font-normal"
                                 style={{
                                   backgroundColor: `${t.color}20`,
@@ -541,7 +523,7 @@ export default function ContactsPage() {
                               </Badge>
                             ))}
                             {contact.tags.length > 3 && (
-                              <Badge variant="outline" className="text-xs font-normal">
+                              <Badge variant="neutral" className="text-xs font-normal">
                                 +{contact.tags.length - 3}
                               </Badge>
                             )}
@@ -552,12 +534,11 @@ export default function ContactsPage() {
                             const agent = agents.data?.find((a) => a.clerkUserId === contact.assignedTo);
                             return agent ? (
                               <div className="flex items-center gap-2">
-                                <Avatar className="h-6 w-6">
-                                  <AvatarImage src={agent.avatarUrl || undefined} />
-                                  <AvatarFallback className="bg-muted text-xs text-muted-foreground">
-                                    {agent.firstName?.[0] || agent.email[0].toUpperCase()}
-                                  </AvatarFallback>
-                                </Avatar>
+                                <Avatar
+                                  size="xs"
+                                  src={agent.avatarUrl ?? undefined}
+                                  fromName={agent.firstName ?? agent.email}
+                                />
                                 <span className="text-xs text-muted-foreground">
                                   {agent.firstName ? `${agent.firstName} ${agent.lastName || ""}` : agent.email}
                                 </span>
@@ -571,7 +552,7 @@ export default function ContactsPage() {
                         </td>
                         <td className="px-6 py-4 text-right">
                           <Link href={`/crm/contatos/${contact.id}`}>
-                            <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground">
+                            <Button variant="ghost" size="sm" className="h-8 w-8 text-muted-foreground hover:text-foreground">
                               <MoreHorizontal className="w-4 h-4" />
                             </Button>
                           </Link>
@@ -591,7 +572,7 @@ export default function ContactsPage() {
                 </span>
                 <div className="flex items-center gap-2">
                   <Button
-                    variant="outline"
+                    variant="secondary"
                     size="sm"
                     disabled={page === 1}
                     onClick={() => setPage(p => p - 1)}
@@ -599,7 +580,7 @@ export default function ContactsPage() {
                     Anterior
                   </Button>
                   <Button
-                    variant="outline"
+                    variant="secondary"
                     size="sm"
                     disabled={page * limit >= query.data.total}
                     onClick={() => setPage(p => p + 1)}
@@ -678,7 +659,7 @@ function CreateContactDialog() {
             <Input value={form.company} onChange={e => setForm({ ...form, company: e.target.value })} placeholder="Ex: Empresa S/A" />
           </div>
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
+            <Button type="button" variant="secondary" onClick={() => setOpen(false)}>Cancelar</Button>
             <Button type="submit" className="bg-primary hover:bg-primary/90 text-white" disabled={createContact.isPending}>
               {createContact.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
               Salvar
@@ -726,7 +707,7 @@ function ImportCsvDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="gap-2 bg-card">
+        <Button variant="secondary" className="gap-2 bg-card">
           <Upload className="w-4 h-4" />
           Importar
         </Button>
@@ -755,7 +736,7 @@ function ImportCsvDialog() {
           />
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
+          <Button variant="secondary" onClick={() => setOpen(false)}>Cancelar</Button>
           <Button onClick={onSubmit} className="bg-primary hover:bg-primary/90 text-white" disabled={importCsv.isPending || !csvText.trim()}>
             {importCsv.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
             Importar
