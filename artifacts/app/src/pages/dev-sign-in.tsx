@@ -12,15 +12,25 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { signInDevUser } from "@/lib/devUser";
 
+/**
+ * A equipe criada pelo seed (`lib/db/src/seedDemo.ts`).
+ *
+ * A identidade e derivada de e-mail E nome juntos, entao digitar o nome com um
+ * acento a menos gera outro usuario — sem vinculo com a central, e a pessoa cai
+ * em "Acesso pendente" sem entender por que. Clicar no nome elimina o erro de
+ * digitacao. Manter esta lista igual a do seed.
+ */
 const SUGGESTIONS = [
-  { email: "admin@dev.local", name: "Admin Dev" },
-  { email: "agente1@dev.local", name: "Agente Um" },
-  { email: "agente2@dev.local", name: "Agente Dois" },
+  { email: "marcelo@hospital.local", name: "Marcelo Kalichsztein", papel: "administrador" },
+  { email: "carla.nogueira@hospital.local", name: "Carla Nogueira", papel: "supervisora" },
+  { email: "ana.rocha@hospital.local", name: "Ana Beatriz Rocha", papel: "atendente" },
+  { email: "rafael.menezes@hospital.local", name: "Rafael Menezes", papel: "atendente" },
+  { email: "diego.ferraz@hospital.local", name: "Diego Ferraz", papel: "atendente" },
 ];
 
 export default function DevSignInPage() {
-  const [email, setEmail] = useState("admin@dev.local");
-  const [name, setName] = useState("Admin Dev");
+  const [email, setEmail] = useState(SUGGESTIONS[0]!.email);
+  const [name, setName] = useState(SUGGESTIONS[0]!.name);
 
   function enter(withEmail: string, withName: string) {
     signInDevUser(withEmail.trim(), withName.trim());
@@ -84,16 +94,21 @@ export default function DevSignInPage() {
             </form>
 
             <div className="pt-2 border-t border-[#2a3a4a] space-y-2">
-              <p className="text-xs text-[#8899A6]">Identidades rápidas:</p>
-              <div className="flex flex-wrap gap-2">
+              <p className="text-xs text-[#8899A6]">
+                Ou entre com um clique — a equipe da central:
+              </p>
+              <div className="space-y-1">
                 {SUGGESTIONS.map((s) => (
                   <button
                     key={s.email}
                     type="button"
                     onClick={() => enter(s.email, s.name)}
-                    className="text-xs px-2 py-1 rounded border border-[#2a3a4a] text-[#8899A6] hover:text-white hover:border-[#25D366] transition-colors"
+                    className="w-full text-left px-3 py-2 rounded border border-[#2a3a4a] hover:border-[#25D366] transition-colors group"
                   >
-                    {s.name}
+                    <span className="text-sm text-white group-hover:text-[#25D366]">
+                      {s.name}
+                    </span>
+                    <span className="text-xs text-[#8899A6] ml-2">{s.papel}</span>
                   </button>
                 ))}
               </div>
