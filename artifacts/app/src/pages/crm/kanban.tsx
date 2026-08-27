@@ -7,7 +7,7 @@ import {
   Menu,
   Select,
 } from "@healthventureslm/design-system";
-import { Sidebar } from "@/components/Sidebar";
+import { PageShell } from "@/components/PageShell";
 import { CrmTabs } from "@/components/crm/crm-tabs";
 import { useCrmHooks, useDeals, useContacts } from "@/hooks/use-crm";
 import {
@@ -65,24 +65,20 @@ export default function KanbanPage() {
   };
 
   return (
-    <div className="min-h-[100dvh] bg-background flex flex-col">
-      <Sidebar />
-      <div className="ml-64 flex flex-col flex-1 h-screen overflow-hidden">
-        <header className="bg-card shadow-sm z-10 flex-shrink-0">
-          <div className="h-16 flex items-center justify-between px-8">
-            <h1 className="text-xl font-semibold text-foreground flex items-center gap-2">
-              <KanbanSquare className="w-5 h-5 text-primary" />
-              Funil de Vendas
-            </h1>
-            <div className="flex items-center gap-3">
-              <ManageStagesDialog />
-              <CreateDealDialog />
-            </div>
+    <PageShell
+        title="Funil de vendas"
+        actions={
+          <div className="flex items-center gap-3">
+            <ManageStagesDialog />
+            <CreateDealDialog />
           </div>
-          <CrmTabs />
-        </header>
-
-        <main className="flex-1 overflow-x-auto overflow-y-hidden p-6">
+        }
+      >
+        <CrmTabs />
+        {/* O quadro rola na horizontal dentro da largura da pagina, em vez de
+            correr ate a borda da janela: assim ele fica alinhado com as demais
+            telas e o limite de leitura continua valendo. */}
+        <div className="overflow-x-auto pb-2">
           {dealStages.isLoading || dealsQuery.isLoading ? (
             <div className="h-full flex items-center justify-center">
               <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -170,9 +166,8 @@ export default function KanbanPage() {
               )}
             </div>
           )}
-        </main>
-      </div>
-    </div>
+        </div>
+      </PageShell>
   );
 }
 
