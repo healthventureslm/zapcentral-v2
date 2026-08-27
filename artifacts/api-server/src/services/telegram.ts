@@ -107,15 +107,77 @@ export interface TelegramSentMessage {
   date: number;
 }
 
+/** Um botao do menu: o rotulo que a pessoa ve e a opcao que ele representa. */
+export interface BotaoDoMenu {
+  rotulo: string;
+  /** O mesmo texto que a pessoa digitaria — "1", "2"... */
+  valor: string;
+}
+
 export async function sendMessage(
   token: string,
   chatId: string,
   text: string,
+  botoes?: BotaoDoMenu[],
 ): Promise<TelegramSentMessage> {
   return tgFetch<TelegramSentMessage>(token, "sendMessage", {
     chat_id: chatId,
     text,
+    // Um botao por linha: nome de setor de hospital e longo e, lado a lado,
+    // fica cortado no celular.
+    ...(botoes?.length
+      ? {
+          reply_markup: {
+            inline_keyboard: botoes.map((b) => [
+              { text: b.rotulo, callback_data: b.valor },
+            ]),
+          },
+        }
+      : {}),
   });
+}
+
+/**
+ * Confirma o toque no botao.
+ *
+ * O Telegram deixa o botao com um relogio girando ate a resposta chegar. Sem
+ * isto ele fica girando por 30 segundos e a pessoa acha que travou.
+ */
+export async function answerCallbackQuery(
+  token: string,
+  callbackQueryId: string,
+): Promise<void> {
+  try {
+    await tgFetch(token, "answerCallbackQuery", {
+      callback_query_id: callbackQueryId,
+    });
+  } catch {
+    // Confirmacao visual apenas — falhar aqui nao pode derrubar o
+    // processamento da escolha, que e o que realmente importa.
+  }
+}
+
+/**
+ * Remove os botoes de uma mensagem ja enviada.
+ *
+ * Depois de escolher um setor, o menu antigo continua tocavel no historico.
+ * Sem limpar, a pessoa rola a conversa e toca de novo num menu que nao vale
+ * mais.
+ */
+export async function removerBotoes(
+  token: string,
+  chatId: string,
+  messageId: number,
+): Promise<void> {
+  try {
+    await tgFetch(token, "editMessageReplyMarkup", {
+      chat_id: chatId,
+      message_id: messageId,
+      reply_markup: { inline_keyboard: [] },
+    });
+  } catch {
+    // Cosmetico.
+  }
 }
 
 /**

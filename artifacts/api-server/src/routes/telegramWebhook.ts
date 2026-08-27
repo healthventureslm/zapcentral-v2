@@ -14,7 +14,12 @@ import { db } from "@workspace/db";
 import { telegramBotsTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import { timingSafeEqual } from "crypto";
-import { getFileUrl, displayName } from "../services/telegram";
+import {
+  getFileUrl,
+  displayName,
+  answerCallbackQuery,
+  removerBotoes,
+} from "../services/telegram";
 import {
   handleInboundMessage,
   type InboundType,
@@ -55,10 +60,19 @@ interface TelegramMessage {
   location?: { latitude: number; longitude: number };
 }
 
+/** Toque num botao do menu. O valor escolhido vem em `data`. */
+interface TelegramCallbackQuery {
+  id: string;
+  from?: TelegramMessage["from"];
+  message?: { message_id: number; chat: { id: number } };
+  data?: string;
+}
+
 interface TelegramUpdate {
   update_id: number;
   message?: TelegramMessage;
   edited_message?: TelegramMessage;
+  callback_query?: TelegramCallbackQuery;
 }
 
 /** Comparacao de segredo resistente a timing attack. */
@@ -165,9 +179,53 @@ router.post("/webhooks/telegram/:botId", async (req, res): Promise<void> => {
   }
 
   const update = req.body as TelegramUpdate;
+
+  // -------------------------------------------------------------------------
+  // Toque num botao do menu.
+  //
+  // Chega como `callback_query`, nao como mensagem. O `data` do botao carrega
+  // exatamente o texto que a pessoa digitaria ("1", "2"...), entao a escolha
+  // entra pelo mesmo `handleInboundMessage` de sempre — o IVR nao sabe se veio
+  // de um toque ou de uma digitacao.
+  // -------------------------------------------------------------------------
+  const toque = update.callback_query;
+  if (toque?.data && toque.message?.chat?.id) {
+    const chatId = String(toque.message.chat.id);
+
+    // Antes de qualquer coisa: o Telegram deixa o botao com um relogio girando
+    // ate a confirmacao chegar.
+    await answerCallbackQuery(bot.botToken, toque.id);
+
+    // O menu antigo continua tocavel no historico. Sem limpar, a pessoa rola a
+    // conversa e escolhe de novo num menu que ja nao vale.
+    await removerBotoes(bot.botToken, chatId, toque.message.message_id);
+
+    try {
+      await handleInboundMessage({
+        tenantId: bot.tenantId,
+        channel: "telegram",
+        externalId: chatId,
+        phone: null,
+        displayName: toque.from ? displayName(toque.from) : null,
+        messageId: `tg_cb_${update.update_id}`,
+        timestamp: new Date(),
+        toIdentifier: bot.botId ?? bot.botUsername ?? "telegram-bot",
+        type: "text",
+        content: toque.data,
+      });
+    } catch (err) {
+      req.log.error({ err }, "Telegram callback processing error");
+      res.status(500).json({ error: "Processing failed" });
+      return;
+    }
+
+    res.status(200).json({ ok: true });
+    return;
+  }
+
   const message = update.message ?? update.edited_message;
 
-  // Updates que nao tratamos (join, callback, etc.) sao confirmados e
+  // Updates que nao tratamos (join, etc.) sao confirmados e
   // descartados — devolver erro faria o Telegram reenviar indefinidamente.
   if (!message?.chat?.id) {
     res.status(200).json({ ok: true });

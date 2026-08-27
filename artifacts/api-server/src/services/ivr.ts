@@ -23,7 +23,10 @@ import {
   idSimulado,
   REMETENTE_SIMULADO,
 } from "./simulado";
-import { sendMessage as sendTelegramMessage } from "./telegram";
+import {
+  sendMessage as sendTelegramMessage,
+  type BotaoDoMenu,
+} from "./telegram";
 import {
   whatsappInstancesTable,
   telegramBotsTable,
@@ -129,6 +132,8 @@ export async function processIvrMessage(
     | "noop";
   departmentId?: number;
   replyText?: string;
+  /** Opcoes do menu como botoes. O Telegram as exibe; o WhatsApp ignora. */
+  botoes?: BotaoDoMenu[];
 }> {
   const [conversation] = await db
     .select()
@@ -213,7 +218,11 @@ export async function processIvrMessage(
       settings.menuPrompt,
       vivas,
     );
-    return { action: "send_menu", replyText: menuText };
+    return {
+      action: "send_menu",
+      replyText: menuText,
+      botoes: vivas.map((o) => ({ rotulo: o.label, valor: o.key })),
+    };
   }
 
   // Conversation is in "ivr" state — customer is responding to menu
@@ -348,6 +357,8 @@ export async function sendTenantMessage(
   to: string | null,
   text: string,
   from: string,
+  /** Botoes do menu. So o Telegram os exibe; no WhatsApp sao ignorados. */
+  botoes?: BotaoDoMenu[],
 ): Promise<SentMessageRef | null> {
   const [target] = await db
     .select({
@@ -377,7 +388,12 @@ export async function sendTenantMessage(
     } else if (channel === "telegram") {
       const bot = await getTenantTelegramBot(tenantId);
       if (!bot) return null;
-      const sent = await sendTelegramMessage(bot.botToken, destination, text);
+      const sent = await sendTelegramMessage(
+        bot.botToken,
+        destination,
+        text,
+        botoes,
+      );
       messageId = String(sent.message_id);
       fromIdentifier = bot.botId ?? bot.botUsername ?? "telegram-bot";
     } else {

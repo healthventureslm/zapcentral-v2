@@ -310,6 +310,7 @@ export async function handleInboundMessage(msg: InboundMessage): Promise<void> {
         externalId,
         result.replyText ?? "",
         msg.toIdentifier,
+        result.botoes,
       );
       await db
         .update(conversationsTable)
@@ -401,6 +402,7 @@ export async function handleInboundMessage(msg: InboundMessage): Promise<void> {
         externalId,
         result.replyText ?? "",
         msg.toIdentifier,
+        result.botoes,
       );
       await db
         .update(conversationsTable)
