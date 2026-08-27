@@ -102,6 +102,27 @@ function atras(h: number): Date {
   return new Date(AGORA - h * HORA);
 }
 
+const MEIA_NOITE = (() => {
+  const d = new Date(AGORA);
+  d.setHours(0, 0, 0, 0);
+  return d.getTime();
+})();
+
+/**
+ * Distribui as conversas ao longo do dia de HOJE.
+ *
+ * O grafico do painel e recortado por "hoje". Espalhar por dias corridos deixa
+ * ele com um ponto so — o que parece defeito, e foi o que aconteceu rodando o
+ * seed de madrugada. Ancorando na meia-noite, a curva aparece com o dia ja
+ * comecado, seja qual for a hora da execucao.
+ *
+ * `fracao` vai de 0 (meia-noite) a 1 (agora).
+ */
+function hojeEm(fracao: number): Date {
+  const decorrido = AGORA - MEIA_NOITE;
+  return new Date(MEIA_NOITE + decorrido * fracao);
+}
+
 let seqMensagem = 0;
 function idMensagem(): string {
   seqMensagem += 1;
@@ -318,8 +339,9 @@ async function popular(): Promise<void> {
         phone: telefone,
         name: nome,
         origin: "organic",
-        firstContactAt: atras(i * 2 + 4),
-        lastContactAt: atras(i * 2),
+        createdAt: hojeEm(i / (PACIENTES.length + 1)),
+        firstContactAt: hojeEm(i / (PACIENTES.length + 1)),
+        lastContactAt: hojeEm((i + 0.5) / (PACIENTES.length + 1)),
       })
       .returning({ id: contactsTable.id });
 
@@ -327,16 +349,15 @@ async function popular(): Promise<void> {
     const encerrada = i < 8;
     const naFilaAgora = ficaNaFila;
 
-    // Concentradas nas ultimas ~26 horas, nao espalhadas por dias: o grafico
-    // de volume do painel e recortado por "hoje", e uma amostra esparsa o
-    // deixaria vazio — que e como o produto parece quebrado.
-    const abertura = atras(i * 2 + 1);
-    const primeiraResposta = new Date(
+    // Espalhadas ao longo do dia de hoje — ver `hojeEm`.
+    const abertura = hojeEm((i + 0.5) / (PACIENTES.length + 1));
+    // Tempos plausiveis, mas limitados a nao passar de agora: se o seed rodar
+    // as 00h10, somar 30 minutos jogaria o fechamento no futuro.
+    const limite = (t: number) => new Date(Math.min(t, AGORA - 60_000));
+    const primeiraResposta = limite(
       abertura.getTime() + (2 + (i % 7)) * 60_000,
     );
-    const fechamento = new Date(
-      abertura.getTime() + (14 + (i % 23)) * 60_000,
-    );
+    const fechamento = limite(abertura.getTime() + (14 + (i % 23)) * 60_000);
 
     const [conversa] = await db
       .insert(conversationsTable)
@@ -346,6 +367,11 @@ async function popular(): Promise<void> {
         departmentId: ramal.id,
         assignedTo: naFilaAgora ? null : (atendente?.id ?? null),
         status: encerrada ? "closed" : naFilaAgora ? "waiting" : "active",
+        // O grafico de volume agrupa por `created_at`. Sem definir aqui, a
+        // coluna cai no default do banco — o instante da insercao — e as doze
+        // conversas viram um pico unico numa hora so, em vez de uma curva.
+        createdAt: abertura,
+        updatedAt: encerrada ? fechamento : abertura,
         lastMessageAt: encerrada ? fechamento : abertura,
         firstResponseAt: naFilaAgora ? null : primeiraResposta,
         ...(encerrada
