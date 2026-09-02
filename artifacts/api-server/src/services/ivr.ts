@@ -53,6 +53,31 @@ export function buildMenuText(
   return lines.join("\n");
 }
 
+/**
+ * O mesmo menu, sem a lista numerada.
+ *
+ * No WhatsApp a lista E o menu: nao ha botao, entao a pessoa precisa ler
+ * "8 - UCI Medicos" para saber o que digitar. No Telegram os botoes ja dizem
+ * isso, e mandar os dois faz a pessoa ler a mesma coisa duas vezes e ficar
+ * na duvida sobre digitar ou tocar.
+ *
+ * As linhas sao removidas por igualdade exata com `${valor} - ${rotulo}`, que
+ * e como buildMenuText as escreveu — os dois lados saem da mesma opcao, entao
+ * nao ha texto do usuario sendo adivinhado aqui.
+ */
+export function semListaNumerada(
+  texto: string,
+  botoes: { rotulo: string; valor: string }[],
+): string {
+  const linhasDoMenu = new Set(botoes.map((b) => `${b.valor} - ${b.rotulo}`));
+  return texto
+    .split("\n")
+    .filter((l) => !linhasDoMenu.has(l.trim()))
+    .join("\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trimEnd();
+}
+
 /** Check if the current time is within working hours for the tenant. */
 export function isWithinWorkingHours(settings: {
   workingHoursEnabled: boolean;
@@ -380,6 +405,10 @@ export async function sendTenantMessage(
   try {
     let messageId: string;
     let fromIdentifier = from;
+    // O que o painel grava tem que ser o que a pessoa recebeu. No Telegram o
+    // menu sai sem a lista numerada, entao gravar `text` mostraria ao
+    // atendente uma mensagem que o cliente nunca viu.
+    let textoEnviado = text;
 
     // Modo simulacao: grava e emite sem chamar provedor nenhum. Sem isto as
     // falas do robo (menu, fora de horario, agradecimento) sao descartadas em
@@ -397,10 +426,11 @@ export async function sendTenantMessage(
     } else if (channel === "telegram") {
       const bot = await getTenantTelegramBot(tenantId);
       if (!bot) return null;
+      textoEnviado = botoes?.length ? semListaNumerada(text, botoes) : text;
       const sent = await sendTelegramMessage(
         bot.botToken,
         destination,
-        text,
+        textoEnviado,
         botoes,
       );
       messageId = String(sent.message_id);
@@ -419,7 +449,7 @@ export async function sendTenantMessage(
       fromPhone: fromIdentifier,
       toPhone: destination,
       type: "text",
-      content: text,
+      content: textoEnviado,
       direction: "outbound",
       status: "sent",
       timestamp: new Date(),
