@@ -14,8 +14,18 @@ import {
   QrCode,
   Copy,
 } from "lucide-react";
+import {
+  Badge,
+  Banner,
+  Button,
+  Card,
+  CardBody,
+  CardHeader,
+  EmptyState,
+  Input,
+} from "@healthventureslm/design-system";
 import { useAuth } from "@/lib/devAuth";
-import { Sidebar } from "./dashboard";
+import { PageShell } from "@/components/PageShell";
 import { getWhatsAppStatus, connectWhatsApp, getWhatsAppQr, disconnectWhatsApp, getQrShareToken } from "@/lib/api";
 import { useTenantId } from "@/hooks/useTenantId";
 import { useToast } from "@/hooks/use-toast";
@@ -38,75 +48,72 @@ function ShareQrCard({ tenantId }: { tenantId: number }) {
   if (!pageUrl) return null;
 
   return (
-    <div className="bg-white rounded-xl shadow-sm p-6 mt-6">
-      <h2 className="font-semibold text-gray-800 mb-1 flex items-center gap-2">
-        <QrCode className="w-4 h-4 text-[#25D366]" />
-        Divulgue sua central
-      </h2>
-      <p className="text-sm text-gray-500 mb-4">
-        Compartilhe ou imprima a página pública de QR code — quem escanear abre
-        uma conversa direto com o WhatsApp da central.
-      </p>
-
-      <label className="text-xs font-medium text-gray-600 block mb-1">
-        Mensagem inicial pré-preenchida (opcional)
-      </label>
-      <input
-        value={msg}
-        onChange={(e) => setMsg(e.target.value)}
-        maxLength={200}
-        className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mb-4 focus:outline-none focus:ring-2 focus:ring-[#25D366]/40"
-        placeholder="Ex: Olá! Gostaria de atendimento."
+    <Card>
+      <CardHeader
+        title={
+          <span className="flex items-center gap-2">
+            <QrCode className="w-4 h-4 text-primary" />
+            Divulgue sua central
+          </span>
+        }
+        subtitle="Compartilhe ou imprima a página pública de QR code — quem escanear abre uma conversa direto com o WhatsApp da central."
       />
+      <CardBody className="space-y-4">
+        <Input
+          label="Mensagem inicial pré-preenchida (opcional)"
+          value={msg}
+          onChange={(e) => setMsg(e.target.value)}
+          maxLength={200}
+          placeholder="Ex: Olá! Gostaria de atendimento."
+        />
 
-      <div className="flex flex-wrap gap-3">
-        <a
-          href={pageUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="bg-[#25D366] hover:bg-[#1ebe57] text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors"
-        >
-          <QrCode className="w-4 h-4" />
-          Abrir página do QR
-        </a>
-        <button
-          onClick={() => {
-            void navigator.clipboard.writeText(pageUrl);
-            toast({ title: "Link copiado!" });
-          }}
-          className="border border-gray-200 hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors"
-        >
-          <Copy className="w-4 h-4" />
-          Copiar link
-        </button>
-      </div>
-    </div>
+        <div className="flex flex-wrap gap-3">
+          {/*
+           * Abrir a pagina do QR e navegar, nao acionar: precisa continuar
+           * sendo <a> para abrir em outra aba e para o menu de contexto.
+           */}
+          <a href={pageUrl} target="_blank" rel="noopener noreferrer">
+            <Button iconLeft={<QrCode className="w-4 h-4" />}>Abrir página do QR</Button>
+          </a>
+          <Button
+            variant="secondary"
+            iconLeft={<Copy className="w-4 h-4" />}
+            onClick={() => {
+              void navigator.clipboard.writeText(pageUrl);
+              toast({ title: "Link copiado!" });
+            }}
+          >
+            Copiar link
+          </Button>
+        </div>
+      </CardBody>
+    </Card>
   );
 }
 
 const STATUS_INFO: Record<
   string,
-  { label: string; icon: React.ReactNode; color: string }
+  { label: string; icon: React.ReactNode; variant: "positive" | "warning" | "neutral" | "danger" }
 > = {
   connected: {
     label: "Conectado",
-    icon: <CheckCircle2 className="w-5 h-5" />,
-    color: "text-[#25D366]",
+    icon: <CheckCircle2 className="w-4 h-4" />,
+    variant: "positive",
   },
   connecting: {
     label: "Conectando...",
-    icon: <Loader2 className="w-5 h-5 animate-spin" />,
-    color: "text-amber-400",
+    icon: <Loader2 className="w-4 h-4 animate-spin" />,
+    variant: "warning",
   },
   disconnected: {
     label: "Desconectado",
-    icon: <WifiOff className="w-5 h-5" />,
-    color: "text-[#8899A6]",
+    icon: <WifiOff className="w-4 h-4" />,
+    variant: "neutral",
   },
   error: {
     label: "Erro de conexão",
-    icon: <AlertTriangle className="w-5 h-5" />,
-    color: "text-red-400",
+    icon: <AlertTriangle className="w-4 h-4" />,
+    variant: "danger",
   },
 };
 
@@ -226,137 +233,110 @@ export default function WhatsAppConnectPage() {
   const statusInfo = STATUS_INFO[status] ?? STATUS_INFO["disconnected"]!;
 
   return (
-    <div className="min-h-[100dvh] bg-[#F4F7F8]">
-      <Sidebar />
+    <PageShell title="WhatsApp" icon={<Smartphone />}>
+          <Card>
+            <CardHeader
+              title="Status da conexão"
+              {...(instance?.phoneNumber ? { subtitle: `Número: ${instance.phoneNumber}` } : {})}
+              action={
+                <Badge variant={statusInfo.variant} className="gap-1.5">
+                  {statusInfo.icon}
+                  {statusInfo.label}
+                </Badge>
+              }
+            />
+            <CardBody className="space-y-4">
+              {!statusData?.evolutionConfigured && (
+                <Banner
+                  variant="warning"
+                  icon={<AlertTriangle className="w-4 h-4" />}
+                  title="Evolution API não configurada"
+                  description={
+                    <>
+                      Configure as variáveis de ambiente <code className="font-mono">EVOLUTION_API_URL</code> e{" "}
+                      <code className="font-mono">EVOLUTION_API_KEY</code> para habilitar o WhatsApp.
+                    </>
+                  }
+                />
+              )}
 
-      <div className="ml-64 flex flex-col">
-        <header className="h-16 bg-white shadow-sm flex items-center justify-between px-8">
-          <h1 className="text-xl font-semibold text-gray-800 flex items-center gap-2">
-            <Smartphone className="w-5 h-5 text-[#25D366]" />
-            WhatsApp
-          </h1>
-        </header>
+              <div className="flex gap-3">
+                {status !== "connected" && (
+                  <Button
+                    iconLeft={<Smartphone className="w-4 h-4" />}
+                    loading={connectMutation.isPending}
+                    disabled={!statusData?.evolutionConfigured}
+                    onClick={() => connectMutation.mutate()}
+                  >
+                    Conectar WhatsApp
+                  </Button>
+                )}
 
-        <main className="p-8 max-w-2xl">
-          {/* Status Card */}
-          <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="font-semibold text-gray-800 mb-1">Status da Conexão</h2>
-                {instance?.phoneNumber && (
-                  <p className="text-sm text-gray-500">Número: {instance.phoneNumber}</p>
+                {status === "connected" && (
+                  <Button
+                    variant="danger"
+                    iconLeft={<X className="w-4 h-4" />}
+                    loading={disconnectMutation.isPending}
+                    onClick={() => disconnectMutation.mutate()}
+                  >
+                    Desconectar
+                  </Button>
+                )}
+
+                {(status === "connecting" || polling) && !qrCode && (
+                  <Button
+                    variant="secondary"
+                    iconLeft={<RefreshCw className="w-4 h-4" />}
+                    onClick={() => void pollQr()}
+                  >
+                    Atualizar QR
+                  </Button>
                 )}
               </div>
-              <div className={`flex items-center gap-2 font-medium ${statusInfo.color}`}>
-                {statusInfo.icon}
-                <span>{statusInfo.label}</span>
-              </div>
-            </div>
-
-            {!statusData?.evolutionConfigured && (
-              <div className="mt-4 flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-lg p-3">
-                <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
-                <div>
-                  <p className="text-sm font-medium text-amber-800">Evolution API não configurada</p>
-                  <p className="text-xs text-amber-700 mt-0.5">
-                    Configure as variáveis de ambiente <code className="font-mono bg-amber-100 px-1 rounded">EVOLUTION_API_URL</code> e{" "}
-                    <code className="font-mono bg-amber-100 px-1 rounded">EVOLUTION_API_KEY</code> para habilitar o WhatsApp.
-                  </p>
-                </div>
-              </div>
-            )}
-
-            <div className="flex gap-3 mt-6">
-              {status !== "connected" && (
-                <button
-                  onClick={() => connectMutation.mutate()}
-                  disabled={connectMutation.isPending || !statusData?.evolutionConfigured}
-                  className="bg-[#25D366] hover:bg-[#1ebe57] disabled:opacity-50 text-white px-5 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors"
-                >
-                  {connectMutation.isPending ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <Smartphone className="w-4 h-4" />
-                  )}
-                  Conectar WhatsApp
-                </button>
-              )}
-
-              {status === "connected" && (
-                <button
-                  onClick={() => disconnectMutation.mutate()}
-                  disabled={disconnectMutation.isPending}
-                  className="bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 px-5 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors"
-                >
-                  {disconnectMutation.isPending ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <X className="w-4 h-4" />
-                  )}
-                  Desconectar
-                </button>
-              )}
-
-              {(status === "connecting" || polling) && !qrCode && (
-                <button
-                  onClick={() => void pollQr()}
-                  className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 px-4 py-2 border rounded-lg"
-                >
-                  <RefreshCw className="w-4 h-4" />
-                  Atualizar QR
-                </button>
-              )}
-            </div>
-          </div>
+            </CardBody>
+          </Card>
 
           {/* QR Code */}
           {qrCode && status !== "connected" && (
-            <div className="bg-white rounded-xl shadow-sm p-6">
-              <h2 className="font-semibold text-gray-800 mb-1">
-                Escaneie o QR Code
-              </h2>
-              <p className="text-sm text-gray-500 mb-6">
-                Abra o WhatsApp no seu celular → Menu → Aparelhos Conectados → Conectar aparelho
-              </p>
-
-              <div className="flex justify-center">
-                <div className="p-4 bg-white border-2 border-gray-200 rounded-xl shadow-inner inline-block">
-                  {qrCode.startsWith("data:image") ? (
-                    <img src={qrCode} alt="QR Code" className="w-64 h-64" />
-                  ) : (
-                    <div className="w-64 h-64 flex items-center justify-center text-xs text-gray-400 break-all p-4 font-mono">
-                      {qrCode.slice(0, 100)}...
-                    </div>
-                  )}
+            <Card>
+              <CardHeader
+                title="Escaneie o QR Code"
+                subtitle="Abra o WhatsApp no seu celular → Menu → Aparelhos Conectados → Conectar aparelho"
+              />
+              <CardBody>
+                <div className="flex justify-center">
+                  <div className="p-4 bg-[var(--surface-canvas)] border-2 border-[var(--border-default)] rounded-xl inline-block">
+                    {qrCode.startsWith("data:image") ? (
+                      <img src={qrCode} alt="QR Code" className="w-64 h-64" />
+                    ) : (
+                      <div className="w-64 h-64 flex items-center justify-center text-xs text-muted-foreground break-all p-4 font-mono">
+                        {qrCode.slice(0, 100)}...
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
 
-              <p className="text-xs text-center text-gray-400 mt-4">
-                O QR code expira em 60 segundos. Atualizando automaticamente...
-              </p>
-            </div>
+                <p className="text-xs text-center text-muted-foreground mt-4">
+                  O QR code expira em 60 segundos. Atualizando automaticamente...
+                </p>
+              </CardBody>
+            </Card>
           )}
 
           {/* Connected state */}
           {status === "connected" && (
-            <div className="bg-white rounded-xl shadow-sm p-6">
-              <div className="flex flex-col items-center text-center py-4">
-                <div className="w-16 h-16 rounded-full bg-[#25D366]/10 flex items-center justify-center mb-4">
-                  <CheckCircle2 className="w-8 h-8 text-[#25D366]" />
-                </div>
-                <h2 className="font-semibold text-gray-800 mb-2">
-                  WhatsApp conectado com sucesso!
-                </h2>
-                <p className="text-sm text-gray-500">
-                  Seu número está ativo e pronto para receber mensagens.
-                </p>
-                {instance?.phoneNumber && (
-                  <span className="mt-3 text-[#25D366] font-semibold text-lg">
-                    {instance.phoneNumber}
-                  </span>
-                )}
-              </div>
-            </div>
+            <EmptyState
+              variant="card"
+              icon={<CheckCircle2 className="w-8 h-8" />}
+              title="WhatsApp conectado com sucesso!"
+              description="Seu número está ativo e pronto para receber mensagens."
+            >
+              {instance?.phoneNumber && (
+                <span className="text-[var(--petrol-700)] font-semibold text-lg">
+                  {instance.phoneNumber}
+                </span>
+              )}
+            </EmptyState>
           )}
 
           {/* Share QR page */}
@@ -366,9 +346,10 @@ export default function WhatsAppConnectPage() {
 
           {/* Instructions */}
           {status === "disconnected" && !qrCode && (
-            <div className="bg-white rounded-xl shadow-sm p-6">
-              <h2 className="font-semibold text-gray-800 mb-4">Como conectar</h2>
-              <ol className="space-y-3">
+            <Card>
+              <CardHeader title="Como conectar" />
+              <CardBody>
+                <ol className="space-y-3">
                 {[
                   'Clique em "Conectar WhatsApp"',
                   "Abra o WhatsApp no seu celular",
@@ -376,18 +357,17 @@ export default function WhatsAppConnectPage() {
                   'Toque em "Conectar aparelho"',
                   "Escaneie o QR Code exibido aqui",
                 ].map((step, i) => (
-                  <li key={i} className="flex items-start gap-3 text-sm text-gray-600">
-                    <span className="w-6 h-6 rounded-full bg-[#25D366]/10 text-[#25D366] font-semibold flex items-center justify-center text-xs shrink-0">
-                      {i + 1}
-                    </span>
-                    {step}
-                  </li>
-                ))}
-              </ol>
-            </div>
+                    <li key={i} className="flex items-start gap-3 text-sm text-muted-foreground">
+                      <span className="w-6 h-6 rounded-full bg-[var(--petrol-100)] text-[var(--petrol-700)] font-semibold flex items-center justify-center text-xs shrink-0">
+                        {i + 1}
+                      </span>
+                      {step}
+                    </li>
+                  ))}
+                </ol>
+              </CardBody>
+            </Card>
           )}
-        </main>
-      </div>
-    </div>
+    </PageShell>
   );
 }

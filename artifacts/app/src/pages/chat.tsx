@@ -2,16 +2,23 @@
  * Chat page — main agent interface.
  * Left panel: conversation list. Right panel: message thread + input.
  */
+import {
+  Avatar,
+  Badge,
+  Button,
+  IconButton,
+  StatusDot,
+  Tabs,
+  Textarea,
+} from "@healthventureslm/design-system";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/lib/devAuth";
 import { initSocket, getSocket, joinTenant } from "@/lib/socket";
 import { avisarChamadoNovo, limparAvisos } from "@/lib/aviso";
 import { Send, Phone, X, ArrowRightLeft, Loader2, Wifi, WifiOff, ChevronDown, MessageCircle, PanelRightOpen, PanelRightClose } from "lucide-react";
-import { Sidebar } from "./dashboard";
+import { Sidebar } from "@/components/Sidebar";
 import { ContactPanel } from "@/components/ContactPanel";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   listConversations,
   listMessages,
@@ -40,19 +47,22 @@ const STATUS_LABELS: Record<string, string> = {
   closed: "Fechado",
 };
 
-const STATUS_COLORS: Record<string, string> = {
-  new: "bg-blue-100 text-blue-700",
-  ivr: "bg-purple-100 text-purple-700",
-  waiting: "bg-amber-100 text-amber-700",
-  active: "bg-green-100 text-green-700",
-  closed: "bg-gray-100 text-gray-600",
+type Variante = "neutral" | "positive" | "warning" | "danger" | "info" | "brand";
+
+const STATUS_VARIANTS: Record<string, Variante> = {
+  new: "info",
+  ivr: "brand",
+  waiting: "warning",
+  active: "positive",
+  closed: "neutral",
 };
 
-const AGENT_STATUS_COLORS: Record<string, string> = {
-  available: "bg-green-500",
-  busy: "bg-amber-500",
-  away: "bg-yellow-400",
-  offline: "bg-gray-400",
+/** O ponto ao lado do proprio status do agente. */
+const AGENT_STATUS_DOT: Record<string, "positive" | "warning" | "neutral"> = {
+  available: "positive",
+  busy: "warning",
+  away: "warning",
+  offline: "neutral",
 };
 
 const AGENT_STATUS_LABELS: Record<string, string> = {
@@ -85,43 +95,40 @@ function ConversationItem({
   naoVista: boolean;
   onClick: () => void;
 }) {
-  const initials = conv.contact.name
-    ? conv.contact.name.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase()
-    : contactHandle(conv.contact).slice(-2);
-
   return (
     <button
       onClick={onClick}
       className={cn(
         "w-full flex items-start gap-3 px-4 py-3 text-left hover:bg-white/5 transition-colors border-b border-white/5",
-        active && "bg-[#25D366]/10",
+        active && "bg-primary/10",
         // A barra na lateral marca a linha sem mexer no layout: pintar o fundo
         // brigaria com o destaque da conversa aberta, e as duas coisas podem
         // valer ao mesmo tempo.
-        naoVista && !active && "bg-[#25D366]/[0.06] border-l-2 border-l-[#25D366]",
+        naoVista && !active && "bg-primary/[0.06] border-l-2 border-l-primary",
       )}
     >
-      <Avatar className="h-10 w-10 shrink-0 mt-0.5">
-        <AvatarFallback className="bg-[#1A2B38] text-[#25D366] font-semibold text-sm">
-          {initials}
-        </AvatarFallback>
-      </Avatar>
+      {/*
+        O Avatar do design system descarta filhos: as iniciais saem de
+        `fromName`, e o gradiente de fundo tambem — mesmo nome, mesma cor,
+        sempre. Passar as iniciais prontas dava "?" em todo mundo.
+      */}
+      <Avatar
+        size="md"
+        className="shrink-0 mt-0.5"
+        src={conv.contact.avatarUrl ?? undefined}
+        fromName={conv.contact.name ?? contactHandle(conv.contact)}
+      />
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between gap-2">
-          <span className="font-medium text-white text-sm truncate">
+          <span className="font-medium text-[var(--text-strong)] text-sm truncate">
             {conv.contact.name ?? contactHandle(conv.contact)}
           </span>
-          <span className="text-xs text-[#8899A6] shrink-0">
+          <span className="text-xs text-muted-foreground shrink-0">
             {formatTime(conv.lastMessageAt)}
           </span>
         </div>
         <div className="flex items-center gap-2 mt-0.5">
-          <Badge
-            className={cn(
-              "text-[10px] px-1.5 py-0 border-none rounded",
-              STATUS_COLORS[conv.status],
-            )}
-          >
+          <Badge variant={STATUS_VARIANTS[conv.status] ?? "neutral"}>
             {STATUS_LABELS[conv.status]}
           </Badge>
           {/* O canal aparece nos DOIS casos, e nao so no Telegram.
@@ -129,18 +136,11 @@ function ConversationItem({
               produto. Marcar so um dos dois deixava a lista parecendo
               exclusivamente de WhatsApp com um intruso, em vez de um balcao
               unico atendendo dois canais. */}
-          <Badge
-            className={cn(
-              "text-[10px] px-1.5 py-0 border-none rounded",
-              conv.contact.channel === "telegram"
-                ? "bg-[#229ED9]/20 text-[#5EC5F0]"
-                : "bg-[#25D366]/20 text-[#4ade80]",
-            )}
-          >
+          <Badge outline variant={conv.contact.channel === "telegram" ? "info" : "positive"}>
             {conv.contact.channel === "telegram" ? "Telegram" : "WhatsApp"}
           </Badge>
           {conv.departmentName && (
-            <span className="text-xs text-[#8899A6] truncate">
+            <span className="text-xs text-muted-foreground truncate">
               {conv.departmentName}
             </span>
           )}
@@ -164,8 +164,8 @@ function MessageBubble({
         className={cn(
           "max-w-[70%] rounded-xl px-4 py-2.5 shadow-sm",
           isOut
-            ? "bg-[#25D366] text-white rounded-br-sm"
-            : "bg-white text-gray-900 rounded-bl-sm",
+            ? "bg-primary text-white rounded-br-sm"
+            : "bg-card text-foreground rounded-bl-sm",
         )}
       >
         {/* Quem respondeu. No WhatsApp do paciente esta informacao vai como
@@ -476,29 +476,38 @@ export default function ChatPage() {
   };
 
   return (
-    <div className="flex h-[100dvh] bg-[#0F1923]">
+    <div className="sala-escura flex h-[100dvh] bg-background">
       <Sidebar />
 
       {/* Conversation list */}
       <div className="ml-64 flex flex-col w-80 shrink-0 border-r border-white/5 h-full">
-        {/* Agent status bar */}
-        <div className="h-14 flex items-center justify-between px-4 border-b border-white/5 bg-[#0A1520]">
+        {/*
+          A tela se nomeia, como as outras onze.
+          O PageShell nao serve aqui — o painel ocupa a altura toda e nao cabe
+          um cabecalho de pagina — mas o icone e o nome vindos do menu sao o
+          que faz a tela e o item da barra lerem como o mesmo lugar. Sem isso
+          Atendimento era a unica que nao dizia onde voce estava.
+        */}
+        <div className="h-14 flex items-center gap-2 px-4 border-b border-white/5 bg-[var(--surface-sunken)]">
+          <MessageCircle className="w-4 h-4 text-primary shrink-0" />
+          <span className="text-sm font-semibold text-[var(--text-strong)]">
+            Atendimento
+          </span>
+        </div>
+
+        {/* Situacao do agente */}
+        <div className="h-11 flex items-center justify-between px-4 border-b border-white/5">
           <div className="relative">
             <button
               onClick={() => setShowStatusMenu(!showStatusMenu)}
-              className="flex items-center gap-2 text-sm text-white/80 hover:text-white"
+              className="flex items-center gap-2 text-sm text-foreground hover:text-[var(--text-strong)]"
             >
-              <span
-                className={cn(
-                  "w-2.5 h-2.5 rounded-full",
-                  AGENT_STATUS_COLORS[agentStatus],
-                )}
-              />
+              <StatusDot status={AGENT_STATUS_DOT[agentStatus] ?? "neutral"} />
               {AGENT_STATUS_LABELS[agentStatus]}
               <ChevronDown className="w-3.5 h-3.5 opacity-60" />
             </button>
             {showStatusMenu && (
-              <div className="absolute top-8 left-0 bg-[#1A2B38] border border-white/10 rounded-lg shadow-xl z-50 py-1 w-40">
+              <div className="absolute top-8 left-0 bg-[var(--surface-raised)] border border-white/10 rounded-lg shadow-xl z-50 py-1 w-40">
                 {(["available", "busy", "away", "offline"] as const).map((s) => (
                   <button
                     key={s}
@@ -506,9 +515,9 @@ export default function ChatPage() {
                       statusMutation.mutate(s);
                       setShowStatusMenu(false);
                     }}
-                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-white hover:bg-white/5"
+                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--text-strong)] hover:bg-white/5"
                   >
-                    <span className={cn("w-2 h-2 rounded-full", AGENT_STATUS_COLORS[s])} />
+                    <StatusDot status={AGENT_STATUS_DOT[s] ?? "neutral"} />
                     {AGENT_STATUS_LABELS[s]}
                   </button>
                 ))}
@@ -516,38 +525,31 @@ export default function ChatPage() {
             )}
           </div>
           {isConnected ? (
-            <Wifi className="w-3.5 h-3.5 text-[#25D366]" />
+            <Wifi className="w-3.5 h-3.5 text-primary" />
           ) : (
             <WifiOff className="w-3.5 h-3.5 text-red-400" />
           )}
         </div>
 
         {/* Tabs */}
-        <div className="flex border-b border-white/5">
-          {(["all", "mine", "queue"] as FilterTab[]).map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={cn(
-                "flex-1 py-2.5 text-xs font-medium transition-colors",
-                activeTab === tab
-                  ? "text-[#25D366] border-b-2 border-[#25D366]"
-                  : "text-[#8899A6] hover:text-white",
-              )}
-            >
-              {tab === "all" ? "Todos" : tab === "mine" ? "Minhas" : "Fila"}
-            </button>
-          ))}
-        </div>
+        <Tabs
+          value={activeTab}
+          onChange={(v) => setActiveTab(v as FilterTab)}
+          items={[
+            { value: "all", label: "Todos" },
+            { value: "mine", label: "Minhas" },
+            { value: "queue", label: "Fila" },
+          ]}
+        />
 
         {/* Conversation list */}
         <div className="flex-1 overflow-y-auto">
           {convsLoading ? (
             <div className="flex items-center justify-center h-32">
-              <Loader2 className="w-5 h-5 text-[#25D366] animate-spin" />
+              <Loader2 className="w-5 h-5 text-primary animate-spin" />
             </div>
           ) : conversations.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-32 text-[#8899A6] text-sm gap-2">
+            <div className="flex flex-col items-center justify-center h-32 text-muted-foreground text-sm gap-2">
               <MessageCircle className="w-6 h-6" />
               <span>Nenhuma conversa</span>
             </div>
@@ -568,30 +570,25 @@ export default function ChatPage() {
       {/* Chat panel */}
       <div className="flex-1 flex flex-col h-full min-w-0">
         {!selectedConv ? (
-          <div className="flex-1 flex flex-col items-center justify-center text-[#8899A6] gap-3">
+          <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground gap-3">
             <MessageCircle className="w-12 h-12 opacity-30" />
             <span className="text-sm">Selecione uma conversa</span>
           </div>
         ) : (
           <>
             {/* Chat header */}
-            <div className="h-14 bg-[#0A1520] border-b border-white/5 flex items-center justify-between px-6">
+            <div className="h-14 bg-[var(--surface-sunken)] border-b border-white/5 flex items-center justify-between px-6">
               <div className="flex items-center gap-3">
-                <Avatar className="h-9 w-9">
-                  <AvatarFallback className="bg-[#1A2B38] text-[#25D366] font-semibold text-xs">
-                    {(selectedConv.contact.name ?? contactHandle(selectedConv.contact))
-                      .split(" ")
-                      .map((w) => w[0])
-                      .join("")
-                      .slice(0, 2)
-                      .toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
+                <Avatar
+                  size="sm"
+                  src={selectedConv.contact.avatarUrl ?? undefined}
+                  fromName={selectedConv.contact.name ?? contactHandle(selectedConv.contact)}
+                />
                 <div>
-                  <p className="text-sm font-semibold text-white">
+                  <p className="text-sm font-semibold text-[var(--text-strong)]">
                     {selectedConv.contact.name ?? contactHandle(selectedConv.contact)}
                   </p>
-                  <p className="text-xs text-[#8899A6]">
+                  <p className="text-xs text-muted-foreground">
                     {selectedConv.contact.phone}
                     {selectedConv.contact.cpf && ` · CPF: ${formatCpf(selectedConv.contact.cpf)}`}
                     {selectedConv.departmentName && ` · ${selectedConv.departmentName}`}
@@ -600,35 +597,31 @@ export default function ChatPage() {
               </div>
 
               <div className="flex items-center gap-2">
-                <Badge className={cn("text-xs border-none", STATUS_COLORS[selectedConv.status])}>
+                <Badge variant={STATUS_VARIANTS[selectedConv.status] ?? "neutral"}>
                   {STATUS_LABELS[selectedConv.status]}
                 </Badge>
 
-                <button
+                <IconButton
+                  size="sm"
+                  label={showContactPanel ? "Ocultar dados do contato" : "Mostrar dados do contato"}
                   onClick={() => setShowContactPanel((v) => !v)}
-                  className="text-[#8899A6] hover:text-white p-1.5 rounded-md hover:bg-white/5 transition-colors"
-                  title={showContactPanel ? "Ocultar dados do contato" : "Mostrar dados do contato"}
                 >
                   {showContactPanel ? (
                     <PanelRightClose className="w-4 h-4" />
                   ) : (
                     <PanelRightOpen className="w-4 h-4" />
                   )}
-                </button>
+                </IconButton>
 
                 {selectedConv.status === "waiting" && (
-                  <button
+                  <Button
+                    size="sm"
+                    iconLeft={<Phone className="w-3.5 h-3.5" />}
+                    loading={pickMutation.isPending}
                     onClick={() => pickMutation.mutate(selectedConv.id)}
-                    disabled={pickMutation.isPending}
-                    className="text-xs bg-[#25D366] hover:bg-[#1ebe57] text-white px-3 py-1.5 rounded-md transition-colors flex items-center gap-1.5"
                   >
-                    {pickMutation.isPending ? (
-                      <Loader2 className="w-3 h-3 animate-spin" />
-                    ) : (
-                      <Phone className="w-3 h-3" />
-                    )}
                     Pegar
-                  </button>
+                  </Button>
                 )}
 
                 {["active", "waiting"].includes(selectedConv.status) && (
@@ -636,17 +629,18 @@ export default function ChatPage() {
                     className="relative"
                     onMouseDown={(e) => e.stopPropagation()}
                   >
-                    <button
+                    <Button
+                      variant="quiet"
+                      size="sm"
+                      iconLeft={<ArrowRightLeft className="w-3.5 h-3.5" />}
                       onClick={() => setTransferindo((v) => !v)}
-                      className="text-xs bg-white/5 hover:bg-white/10 text-gray-300 px-3 py-1.5 rounded-md transition-colors flex items-center gap-1.5"
                     >
-                      <ArrowRightLeft className="w-3 h-3" />
                       Transferir
-                    </button>
+                    </Button>
 
                     {transferindo && (
-                      <div className="absolute right-0 top-full mt-1 w-56 bg-[#1a2735] border border-white/10 rounded-lg shadow-xl z-20 py-1">
-                        <p className="px-3 py-1.5 text-[11px] text-gray-400 uppercase tracking-wide">
+                      <div className="absolute right-0 top-full mt-1 w-56 bg-[var(--surface-raised)] border border-white/10 rounded-lg shadow-xl z-20 py-1">
+                        <p className="px-3 py-1.5 text-[11px] text-muted-foreground uppercase tracking-wide">
                           Transferir para o ramal
                         </p>
                         {setores.filter(
@@ -654,7 +648,7 @@ export default function ChatPage() {
                             d.id !== selectedConv.departmentId &&
                             d.status === "active",
                         ).length === 0 && (
-                          <p className="px-3 py-2 text-xs text-gray-500">
+                          <p className="px-3 py-2 text-xs text-muted-foreground">
                             Não há outro ramal cadastrado.
                           </p>
                         )}
@@ -669,7 +663,7 @@ export default function ChatPage() {
                               key={d.id}
                               onClick={() => transferMutation.mutate(d.id)}
                               disabled={transferMutation.isPending}
-                              className="w-full text-left px-3 py-2 text-sm text-gray-200 hover:bg-white/5 transition-colors"
+                              className="w-full text-left px-3 py-2 text-sm text-foreground hover:bg-white/5 transition-colors"
                             >
                               {d.name}
                             </button>
@@ -680,26 +674,27 @@ export default function ChatPage() {
                 )}
 
                 {["active", "waiting"].includes(selectedConv.status) && (
-                  <button
+                  <Button
+                    variant="danger"
+                    size="sm"
+                    iconLeft={<X className="w-3.5 h-3.5" />}
+                    loading={closeMutation.isPending}
                     onClick={() => closeMutation.mutate()}
-                    disabled={closeMutation.isPending}
-                    className="text-xs bg-red-500/10 hover:bg-red-500/20 text-red-400 px-3 py-1.5 rounded-md transition-colors flex items-center gap-1.5"
                   >
-                    <X className="w-3 h-3" />
                     Fechar
-                  </button>
+                  </Button>
                 )}
               </div>
             </div>
 
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto px-6 py-4 bg-[#111E28]">
+            <div className="flex-1 overflow-y-auto px-6 py-4 bg-background">
               {msgsLoading ? (
                 <div className="flex justify-center py-8">
-                  <Loader2 className="w-5 h-5 text-[#25D366] animate-spin" />
+                  <Loader2 className="w-5 h-5 text-primary animate-spin" />
                 </div>
               ) : (messages ?? []).length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-full text-[#8899A6] text-sm gap-2">
+                <div className="flex flex-col items-center justify-center h-full text-muted-foreground text-sm gap-2">
                   <MessageCircle className="w-6 h-6 opacity-40" />
                   <span>Nenhuma mensagem ainda</span>
                 </div>
@@ -717,32 +712,32 @@ export default function ChatPage() {
 
             {/* Input */}
             {selectedConv.status === "active" && (
-              <div className="bg-[#0A1520] border-t border-white/5 px-4 py-3 flex items-end gap-3">
-                <textarea
+              <div className="bg-[var(--surface-sunken)] border-t border-white/5 px-4 py-3 flex items-end gap-3">
+                <Textarea
                   value={inputText}
                   onChange={(e) => setInputText(e.target.value)}
                   onKeyDown={handleKeyDown}
                   placeholder="Digite uma mensagem... (Enter para enviar)"
                   rows={1}
-                  className="flex-1 bg-[#1A2B38] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-[#8899A6] resize-none focus:outline-none focus:border-[#25D366]/50 transition-colors min-h-[40px] max-h-32"
-                  style={{ resize: "none" }}
+                  className="flex-1 max-h-32"
                 />
-                <button
-                  onClick={handleSend}
+                <IconButton
+                  variant="solid"
+                  label="Enviar mensagem"
                   disabled={!inputText.trim() || sendMutation.isPending}
-                  className="bg-[#25D366] hover:bg-[#1ebe57] disabled:opacity-40 text-white p-2.5 rounded-xl transition-colors shrink-0"
+                  onClick={handleSend}
                 >
                   {sendMutation.isPending ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
                   ) : (
                     <Send className="w-4 h-4" />
                   )}
-                </button>
+                </IconButton>
               </div>
             )}
 
             {selectedConv.status !== "active" && (
-              <div className="bg-[#0A1520] border-t border-white/5 px-6 py-3 text-xs text-[#8899A6] text-center">
+              <div className="bg-[var(--surface-sunken)] border-t border-white/5 px-6 py-3 text-xs text-muted-foreground text-center">
                 {selectedConv.status === "waiting"
                   ? "Pegue a conversa para começar a atender"
                   : selectedConv.status === "closed"

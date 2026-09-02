@@ -1,36 +1,36 @@
-import { Link, useLocation } from "wouter";
+import { useLocation } from "wouter";
 import { Users, KanbanSquare } from "lucide-react";
+import { Tabs } from "@healthventureslm/design-system";
 
+/**
+ * Alternancia entre Contatos e Funil.
+ *
+ * Usa o Tabs do design system, que e so a barra: a navegacao continua com o
+ * roteador, e nao com estado local — cada aba e uma rota propria.
+ *
+ * O componente anterior tinha `px-8` e `bg-card` porque vivia num cabecalho de
+ * largura total. Dentro da moldura de pagina isso virava recuo em cima de
+ * recuo, e a barra nao alinhava com o conteudo abaixo dela.
+ */
 export function CrmTabs() {
-  const [location] = useLocation();
-  const isKanban = location === "/crm/funil";
+  const [location, setLocation] = useLocation();
 
   return (
-    <div className="flex border-b border-gray-200 bg-white px-8">
-      <Link href="/crm">
-        <div
-          className={`flex items-center gap-2 px-4 py-4 border-b-2 font-medium text-sm cursor-pointer transition-colors ${
-            !isKanban
-              ? "border-[#25D366] text-[#25D366]"
-              : "border-transparent text-gray-500 hover:text-gray-900"
-          }`}
-        >
-          <Users className="w-4 h-4" />
-          Contatos
-        </div>
-      </Link>
-      <Link href="/crm/funil">
-        <div
-          className={`flex items-center gap-2 px-4 py-4 border-b-2 font-medium text-sm cursor-pointer transition-colors ${
-            isKanban
-              ? "border-[#25D366] text-[#25D366]"
-              : "border-transparent text-gray-500 hover:text-gray-900"
-          }`}
-        >
-          <KanbanSquare className="w-4 h-4" />
-          Funil de Vendas
-        </div>
-      </Link>
-    </div>
+    <Tabs
+      value={location === "/crm/funil" ? "funil" : "contatos"}
+      onChange={(v) => setLocation(v === "funil" ? "/crm/funil" : "/crm")}
+      items={[
+        {
+          value: "contatos",
+          label: "Contatos",
+          icon: <Users className="w-4 h-4" />,
+        },
+        {
+          value: "funil",
+          label: "Funil de vendas",
+          icon: <KanbanSquare className="w-4 h-4" />,
+        },
+      ]}
+    />
   );
 }

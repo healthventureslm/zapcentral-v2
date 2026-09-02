@@ -21,19 +21,19 @@ import {
   UserMinus,
   UserPlus,
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
+  Avatar,
+  Badge,
+  Button,
+  Card,
+  CardBody,
+  CardHeader,
+  Checkbox,
   Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+  IconButton,
+  Input,
+  Select,
+} from "@healthventureslm/design-system";
 import { useToast } from "@/hooks/use-toast";
 import {
   listTenantUsers,
@@ -57,10 +57,10 @@ const ROLE_LABEL: Record<string, string> = {
   agent: "Agente",
 };
 
-const STATUS_LABEL: Record<string, { label: string; cls: string }> = {
-  active: { label: "Ativo", cls: "bg-green-100 text-green-700" },
-  invited: { label: "Convidado", cls: "bg-blue-100 text-blue-700" },
-  suspended: { label: "Suspenso", cls: "bg-red-100 text-red-700" },
+const STATUS_LABEL: Record<string, { label: string; variant: "positive" | "info" | "danger" }> = {
+  active: { label: "Ativo", variant: "positive" },
+  invited: { label: "Convidado", variant: "info" },
+  suspended: { label: "Suspenso", variant: "danger" },
 };
 
 function displayName(u: { firstName: string | null; lastName: string | null; email: string }) {
@@ -150,24 +150,20 @@ export function TeamSection({ tenantId, myUserId }: { tenantId: number; myUserId
 
   return (
     <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle className="flex items-center gap-2">
-              <UsersIcon className="w-4 h-4 text-[#25D366]" /> Equipe
-            </CardTitle>
-            <CardDescription>
-              Convide usuários, defina acesso contínuo ou temporário e revogue quando precisar.
-            </CardDescription>
-          </div>
-          <InviteDialog tenantId={tenantId} onDone={invalidate} />
-        </div>
-      </CardHeader>
-      <CardContent>
+      <CardHeader
+        title={
+          <span className="flex items-center gap-2">
+            <UsersIcon className="w-4 h-4 text-primary" /> Equipe
+          </span>
+        }
+        subtitle="Convide usuários, defina acesso contínuo ou temporário e revogue quando precisar."
+        action={<InviteDialog tenantId={tenantId} onDone={invalidate} />}
+      />
+      <CardBody>
         {isLoading ? (
-          <div className="py-8 flex justify-center"><Loader2 className="w-5 h-5 animate-spin text-[#25D366]" /></div>
+          <div className="py-8 flex justify-center"><Loader2 className="w-5 h-5 animate-spin text-primary" /></div>
         ) : !users?.length ? (
-          <p className="text-sm text-gray-500 py-4">Nenhum usuário ainda. Convide o primeiro.</p>
+          <p className="text-sm text-muted-foreground py-4">Nenhum usuário ainda. Convide o primeiro.</p>
         ) : (
           <div className="divide-y">
             {users.map((u) => {
@@ -175,26 +171,23 @@ export function TeamSection({ tenantId, myUserId }: { tenantId: number; myUserId
               const isSelf = u.clerkUserId === myUserId;
               return (
                 <div key={u.clerkUserId} className="py-3 flex items-center gap-3">
-                  <Avatar className="w-9 h-9">
-                    <AvatarImage src={u.avatarUrl ?? undefined} />
-                    <AvatarFallback>{displayName(u).slice(0, 2).toUpperCase()}</AvatarFallback>
-                  </Avatar>
+                  <Avatar size="sm" src={u.avatarUrl ?? undefined} fromName={displayName(u)} />
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900 truncate">
+                    <p className="text-sm font-medium text-foreground truncate">
                       {displayName(u)}
-                      {isSelf && <span className="text-xs text-gray-400"> (você)</span>}
+                      {isSelf && <span className="text-xs text-muted-foreground"> (você)</span>}
                     </p>
-                    <p className="text-xs text-gray-500 truncate">
+                    <p className="text-xs text-muted-foreground truncate">
                       {u.email}
                       {u.departments.length > 0 && ` · ${u.departments.join(", ")}`}
                     </p>
                   </div>
-                  <Badge variant="outline" className="text-xs">{ROLE_LABEL[u.role] ?? u.role}</Badge>
-                  <Badge className={`text-xs border-none ${STATUS_LABEL[u.status]?.cls ?? ""}`}>
+                  <Badge outline>{ROLE_LABEL[u.role] ?? u.role}</Badge>
+                  <Badge variant={STATUS_LABEL[u.status]?.variant ?? "neutral"}>
                     {STATUS_LABEL[u.status]?.label ?? u.status}
                   </Badge>
                   <span
-                    className={`text-xs flex items-center gap-1 w-36 ${acc.expired ? "text-red-600 font-medium" : "text-gray-500"}`}
+                    className={`text-xs flex items-center gap-1 w-36 ${acc.expired ? "text-red-600 font-medium" : "text-muted-foreground"}`}
                     title="Tipo de acesso"
                   >
                     {u.accessExpiresAt ? <Clock className="w-3 h-3" /> : <InfinityIcon className="w-3 h-3" />}
@@ -202,30 +195,28 @@ export function TeamSection({ tenantId, myUserId }: { tenantId: number; myUserId
                   </span>
                   {!isSelf && (
                     <div className="flex items-center gap-1">
-                      <Button
-                        variant="ghost"
+                      <IconButton
                         size="sm"
-                        className="h-7 px-2 text-xs"
-                        title="Definir validade do acesso"
+                        label="Definir validade do acesso"
                         onClick={() => {
                           setExpiryFor(expiryFor === u.clerkUserId ? null : u.clerkUserId);
                           setExpiryValue("");
                         }}
                       >
                         <Clock className="w-3.5 h-3.5" />
-                      </Button>
+                      </IconButton>
                       {u.status === "suspended" ? (
-                        <Button
-                          variant="ghost" size="sm" className="h-7 px-2 text-xs text-green-700"
-                          title="Reativar acesso"
+                        <IconButton
+                          size="sm"
+                          label="Reativar acesso"
                           onClick={() => patchM.mutate({ userId: u.clerkUserId, body: { status: "active" } })}
                         >
                           <ShieldCheck className="w-3.5 h-3.5" />
-                        </Button>
+                        </IconButton>
                       ) : (
-                        <Button
-                          variant="ghost" size="sm" className="h-7 px-2 text-xs text-amber-700"
-                          title="Revogar acesso (suspender)"
+                        <IconButton
+                          size="sm"
+                          label="Revogar acesso (suspender)"
                           onClick={() => {
                             if (confirmAdminAccessChange(u, "suspender")) {
                               patchM.mutate({ userId: u.clerkUserId, body: { status: "suspended" } });
@@ -233,11 +224,12 @@ export function TeamSection({ tenantId, myUserId }: { tenantId: number; myUserId
                           }}
                         >
                           <ShieldOff className="w-3.5 h-3.5" />
-                        </Button>
+                        </IconButton>
                       )}
-                      <Button
-                        variant="ghost" size="sm" className="h-7 px-2 text-xs text-red-600"
-                        title="Remover da central"
+                      <IconButton
+                        size="sm"
+                        className="text-[var(--coral-600)]"
+                        label="Remover da central"
                         onClick={() => {
                           const confirmed = isUsableActiveAdmin(u)
                             ? confirmAdminAccessChange(u, "remover")
@@ -249,19 +241,19 @@ export function TeamSection({ tenantId, myUserId }: { tenantId: number; myUserId
                         }}
                       >
                         <Trash2 className="w-3.5 h-3.5" />
-                      </Button>
+                      </IconButton>
                     </div>
                   )}
                   {expiryFor === u.clerkUserId && (
                     <div className="flex items-center gap-2">
                       <Input
                         type="datetime-local"
-                        className="h-8 text-xs w-48"
+                        className="w-48"
                         value={expiryValue}
                         onChange={(e) => setExpiryValue(e.target.value)}
                       />
                       <Button
-                        size="sm" className="h-8 text-xs bg-[#25D366] hover:bg-[#1ebe57] text-white"
+                        size="sm"
                         disabled={!expiryValue || patchM.isPending}
                         onClick={() => {
                           patchM.mutate(
@@ -274,7 +266,7 @@ export function TeamSection({ tenantId, myUserId }: { tenantId: number; myUserId
                       </Button>
                       {u.accessExpiresAt && (
                         <Button
-                          size="sm" variant="outline" className="h-8 text-xs"
+                          size="sm" variant="secondary"
                           onClick={() => {
                             patchM.mutate(
                               { userId: u.clerkUserId, body: { accessExpiresAt: null } },
@@ -292,7 +284,7 @@ export function TeamSection({ tenantId, myUserId }: { tenantId: number; myUserId
             })}
           </div>
         )}
-      </CardContent>
+      </CardBody>
     </Card>
   );
 }
@@ -321,16 +313,35 @@ function InviteDialog({ tenantId, onDone }: { tenantId: number; onDone: () => vo
     onError: (e: Error) => toast({ title: "Erro ao convidar", description: e.message, variant: "destructive" }),
   });
 
+  /*
+   * O Dialog do design system nao tem gatilho nem rodape dentro do conteudo:
+   * a visibilidade vem de `open` e o rodape e uma prop. Como os botoes ficam
+   * fora do <form>, o de enviar aponta para ele pelo atributo `form`.
+   */
+  const idForm = "convidar-usuario";
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button className="bg-[#25D366] hover:bg-[#1ebe57] text-white gap-2" size="sm">
-          <Plus className="w-4 h-4" /> Convidar
-        </Button>
-      </DialogTrigger>
-      <DialogContent>
-        <DialogHeader><DialogTitle>Convidar usuário</DialogTitle></DialogHeader>
+    <>
+      <Button size="sm" iconLeft={<Plus className="w-4 h-4" />} onClick={() => setOpen(true)}>
+        Convidar
+      </Button>
+      <Dialog
+        open={open}
+        onClose={() => setOpen(false)}
+        title="Convidar usuário"
+        footer={
+          <>
+            <Button type="button" variant="secondary" onClick={() => setOpen(false)}>
+              Cancelar
+            </Button>
+            <Button type="submit" form={idForm} loading={inviteM.isPending}>
+              Enviar convite
+            </Button>
+          </>
+        }
+      >
         <form
+          id={idForm}
           className="space-y-4 py-2"
           onSubmit={(e) => {
             e.preventDefault();
@@ -342,41 +353,37 @@ function InviteDialog({ tenantId, onDone }: { tenantId: number; onDone: () => vo
             inviteM.mutate();
           }}
         >
+          <Input
+            label="E-mail"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="pessoa@empresa.com"
+            required
+          />
+          <Select
+            label="Papel"
+            value={role}
+            onChange={(v) => setRole(v as TenantUserRow["role"])}
+            options={[
+              { value: "agent", label: "Agente" },
+              { value: "supervisor", label: "Supervisor" },
+              { value: "admin", label: "Admin" },
+            ]}
+          />
           <div className="space-y-2">
-            <label className="text-sm font-medium">E-mail</label>
-            <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="pessoa@empresa.com" required />
-          </div>
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Papel</label>
-            <select
-              className="w-full border rounded-md h-9 px-2 text-sm"
-              value={role}
-              onChange={(e) => setRole(e.target.value as TenantUserRow["role"])}
-            >
-              <option value="agent">Agente</option>
-              <option value="supervisor">Supervisor</option>
-              <option value="admin">Admin</option>
-            </select>
-          </div>
-          <div className="space-y-2">
-            <label className="text-sm font-medium flex items-center gap-2">
-              <input type="checkbox" checked={temporary} onChange={(e) => setTemporary(e.target.checked)} />
-              Acesso temporário (expira automaticamente)
-            </label>
+            <Checkbox
+              label="Acesso temporário (expira automaticamente)"
+              checked={temporary}
+              onChange={(e) => setTemporary(e.target.checked)}
+            />
             {temporary && (
               <Input type="datetime-local" value={expiry} onChange={(e) => setExpiry(e.target.value)} />
             )}
           </div>
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
-            <Button type="submit" className="bg-[#25D366] hover:bg-[#1ebe57] text-white" disabled={inviteM.isPending}>
-              {inviteM.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-              Enviar convite
-            </Button>
-          </DialogFooter>
         </form>
-      </DialogContent>
-    </Dialog>
+      </Dialog>
+    </>
   );
 }
 
@@ -405,15 +412,15 @@ export function DepartmentsSection({ tenantId }: { tenantId: number }) {
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <DoorOpen className="w-4 h-4 text-[#25D366]" /> Setores (ramais)
-        </CardTitle>
-        <CardDescription>
-          Cada setor funciona como um quarto de hotel: tem nome e lotação máxima de agentes.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
+      <CardHeader
+        title={
+          <span className="flex items-center gap-2">
+            <DoorOpen className="w-4 h-4 text-primary" /> Setores (ramais)
+          </span>
+        }
+        subtitle="Cada setor funciona como um quarto de hotel: tem nome e lotação máxima de agentes."
+      />
+      <CardBody className="space-y-4">
         <form
           className="flex gap-2"
           onSubmit={(e) => {
@@ -427,15 +434,15 @@ export function DepartmentsSection({ tenantId }: { tenantId: number }) {
         >
           <Input value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="Nome do setor (ex: Financeiro)" className="flex-1" />
           <Input value={newMax} onChange={(e) => setNewMax(e.target.value.replace(/\D/g, ""))} placeholder="Lotação máx." className="w-32" />
-          <Button type="submit" className="bg-[#25D366] hover:bg-[#1ebe57] text-white" disabled={createM.isPending}>
-            <Plus className="w-4 h-4" />
+          <Button type="submit" loading={createM.isPending} iconLeft={<Plus className="w-4 h-4" />}>
+            Criar
           </Button>
         </form>
 
         {isLoading ? (
-          <div className="py-8 flex justify-center"><Loader2 className="w-5 h-5 animate-spin text-[#25D366]" /></div>
+          <div className="py-8 flex justify-center"><Loader2 className="w-5 h-5 animate-spin text-primary" /></div>
         ) : !departments?.length ? (
-          <p className="text-sm text-gray-500">Nenhum setor criado ainda.</p>
+          <p className="text-sm text-muted-foreground">Nenhum setor criado ainda.</p>
         ) : (
           <div className="space-y-3">
             {departments.map((d) => (
@@ -443,7 +450,7 @@ export function DepartmentsSection({ tenantId }: { tenantId: number }) {
             ))}
           </div>
         )}
-      </CardContent>
+      </CardBody>
     </Card>
   );
 }
@@ -501,38 +508,39 @@ function DepartmentCard({ tenantId, dept, onChanged }: { tenantId: number; dept:
       <div className="flex items-center gap-3">
         <span className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: dept.color }} />
         <button className="flex-1 text-left" onClick={() => setExpanded(!expanded)}>
-          <span className="font-medium text-gray-900">{dept.name}</span>
+          <span className="font-medium text-foreground">{dept.name}</span>
           {dept.status === "inactive" && (
-            <Badge variant="outline" className="ml-2 text-xs">Inativo</Badge>
+            <Badge outline className="ml-2">Inativo</Badge>
           )}
         </button>
-        <Badge className={`border-none text-xs ${full ? "bg-red-100 text-red-700" : "bg-gray-100 text-gray-600"}`}>
+        <Badge variant={full ? "danger" : "neutral"}>
           {dept.agentCount}{dept.maxAgents !== null ? ` / ${dept.maxAgents}` : ""}
           {dept.maxAgents === null && dept.agentCount === 1 ? " agente" : " agentes"}
           {full && " · lotado"}
         </Badge>
-        <Button
-          variant="ghost" size="sm" className="h-7 px-2 text-red-600"
-          title="Excluir setor"
+        <IconButton
+          size="sm"
+          className="text-[var(--coral-600)]"
+          label="Excluir setor"
           onClick={() => { if (confirm(`Excluir o setor ${dept.name}?`)) deleteM.mutate(); }}
         >
           <Trash2 className="w-3.5 h-3.5" />
-        </Button>
+        </IconButton>
       </div>
 
       {expanded && (
         <div className="mt-4 space-y-4 pl-6">
           <div className="flex items-center gap-2">
-            <label className="text-xs text-gray-600">Lotação máxima:</label>
+            <label className="text-xs text-muted-foreground">Lotação máxima:</label>
             <Input
-              className="h-8 w-24 text-xs"
+              className="w-28"
               value={maxEdit}
               onChange={(e) => setMaxEdit(e.target.value.replace(/\D/g, ""))}
               placeholder="Ilimitada"
             />
             <Button
-              size="sm" variant="outline" className="h-8 text-xs"
-              disabled={updateM.isPending}
+              size="sm" variant="secondary"
+              loading={updateM.isPending}
               onClick={() => updateM.mutate({ maxAgents: maxEdit ? Number(maxEdit) : null })}
             >
               Salvar
@@ -540,25 +548,23 @@ function DepartmentCard({ tenantId, dept, onChanged }: { tenantId: number; dept:
           </div>
 
           <div>
-            <p className="text-xs font-medium text-gray-600 mb-2">Agentes neste setor</p>
+            <p className="text-xs font-medium text-muted-foreground mb-2">Agentes neste setor</p>
             {!agents?.length ? (
-              <p className="text-xs text-gray-400">Nenhum agente ainda.</p>
+              <p className="text-xs text-muted-foreground">Nenhum agente ainda.</p>
             ) : (
               <div className="space-y-1">
                 {agents.map((a) => (
                   <div key={a.clerkUserId} className="flex items-center gap-2 text-sm">
-                    <Avatar className="w-6 h-6">
-                      <AvatarImage src={a.avatarUrl ?? undefined} />
-                      <AvatarFallback className="text-[10px]">{displayName(a).slice(0, 2).toUpperCase()}</AvatarFallback>
-                    </Avatar>
+                    <Avatar size="xs" src={a.avatarUrl ?? undefined} fromName={displayName(a)} />
                     <span className="flex-1 truncate">{displayName(a)}</span>
-                    <Button
-                      variant="ghost" size="sm" className="h-6 px-1.5 text-red-600"
-                      title="Remover do setor"
+                    <IconButton
+                      size="sm"
+                      className="text-[var(--coral-600)]"
+                      label="Remover do setor"
                       onClick={() => removeAgentM.mutate(a.clerkUserId)}
                     >
                       <UserMinus className="w-3.5 h-3.5" />
-                    </Button>
+                    </IconButton>
                   </div>
                 ))}
               </div>
@@ -567,22 +573,23 @@ function DepartmentCard({ tenantId, dept, onChanged }: { tenantId: number; dept:
 
           {candidates.length > 0 && (
             <div>
-              <p className="text-xs font-medium text-gray-600 mb-2">Adicionar agente</p>
+              <p className="text-xs font-medium text-muted-foreground mb-2">Adicionar agente</p>
               <div className="flex flex-wrap gap-2">
                 {candidates.map((u) => (
                   <Button
                     key={u.clerkUserId}
-                    variant="outline" size="sm" className="h-7 text-xs gap-1"
+                    variant="secondary" size="sm"
+                    iconLeft={<UserPlus className="w-3 h-3" />}
                     disabled={addAgentM.isPending || full}
                     title={full ? "Setor lotado" : undefined}
                     onClick={() => addAgentM.mutate(u.clerkUserId)}
                   >
-                    <UserPlus className="w-3 h-3" /> {displayName(u)}
+                    {displayName(u)}
                   </Button>
                 ))}
               </div>
               {full && (
-                <p className="text-xs text-red-600 mt-1">Setor lotado — aumente a lotação máxima para adicionar mais agentes.</p>
+                <p className="text-xs text-[var(--coral-600)] mt-1">Setor lotado — aumente a lotação máxima para adicionar mais agentes.</p>
               )}
             </div>
           )}

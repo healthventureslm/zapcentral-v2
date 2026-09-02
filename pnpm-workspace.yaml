@@ -38,6 +38,9 @@ minimumReleaseAge: 1440
 
 minimumReleaseAgeExclude:
   - '@replit/*'
+  # Pacote proprio da casa: a espera de 24h protege contra publicacao
+  # maliciosa de terceiros, risco que nao se aplica aqui.
+  - '@healthventureslm/*'
   - stripe-replit-sync
 
 onlyBuiltDependencies:

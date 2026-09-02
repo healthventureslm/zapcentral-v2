@@ -3,12 +3,18 @@
  */
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Settings, Plus, Trash2, Loader2, Save } from "lucide-react";
-import { Sidebar } from "./dashboard";
+import { Settings, Plus, Trash2, Loader2, Save, ListTree } from "lucide-react";
+import {
+  Button,
+  Card,
+  CardBody,
+  EmptyState,
+} from "@healthventureslm/design-system";
+import { PageShell } from "@/components/PageShell";
 import { getChannelSettings, updateChannelSettings, type ChannelSettings } from "@/lib/api";
 import { useTenantId } from "@/hooks/useTenantId";
 import { useToast } from "@/hooks/use-toast";
-import { Card, CardContent } from "@/components/ui/card";
+
 
 const DAYS = [
   { key: "monday", label: "Segunda" },
@@ -38,8 +44,8 @@ function FormField({
 }) {
   return (
     <div className="space-y-1">
-      <label className="text-sm font-medium text-gray-700">{label}</label>
-      {description && <p className="text-xs text-gray-500">{description}</p>}
+      <label className="text-sm font-medium text-foreground">{label}</label>
+      {description && <p className="text-xs text-muted-foreground">{description}</p>}
       {children}
     </div>
   );
@@ -92,44 +98,31 @@ export default function ChannelSettingsPage() {
 
   if (isLoading || !tenantId) {
     return (
-      <div className="min-h-[100dvh] bg-[#F4F7F8]">
-        <Sidebar />
-        <div className="ml-64 flex items-center justify-center h-screen">
-          <Loader2 className="w-6 h-6 text-[#25D366] animate-spin" />
-        </div>
-      </div>
+      <PageShell title="Configurações do canal" icon={<ListTree />}>
+        <EmptyState loading />
+      </PageShell>
     );
   }
 
   return (
-    <div className="min-h-[100dvh] bg-[#F4F7F8]">
-      <Sidebar />
-
-      <div className="ml-64 flex flex-col">
-        <header className="h-16 bg-white shadow-sm flex items-center justify-between px-8">
-          <h1 className="text-xl font-semibold text-gray-800 flex items-center gap-2">
-            <Settings className="w-5 h-5 text-[#25D366]" />
-            Configurações do Canal
-          </h1>
-          <button
-            onClick={() => saveMutation.mutate()}
-            disabled={saveMutation.isPending}
-            className="bg-[#25D366] hover:bg-[#1ebe57] disabled:opacity-60 text-white px-5 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors"
-          >
-            {saveMutation.isPending ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <Save className="w-4 h-4" />
-            )}
-            Salvar
-          </button>
-        </header>
-
-        <main className="p-8 max-w-3xl space-y-6">
+    <PageShell
+      icon={<ListTree />}
+      title="Configurações do canal"
+      actions={
+        <Button
+          variant="primary"
+          loading={saveMutation.isPending}
+          iconLeft={<Save className="w-4 h-4" />}
+          onClick={() => saveMutation.mutate()}
+        >
+          Salvar
+        </Button>
+      }
+    >
           {/* Messages */}
           <Card>
-            <CardContent className="p-6 space-y-4">
-              <h2 className="font-semibold text-gray-800">Mensagens Automáticas</h2>
+            <CardBody className="p-6 space-y-4">
+              <h2 className="font-semibold text-foreground">Mensagens Automáticas</h2>
 
               <FormField
                 label="Mensagem de boas-vindas"
@@ -138,7 +131,7 @@ export default function ChannelSettingsPage() {
                 <textarea
                   {...field("welcomeMessage")}
                   rows={3}
-                  className="w-full mt-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#25D366] resize-none"
+                  className="w-full mt-1 border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary resize-none"
                   placeholder="Olá! Seja bem-vindo ao nosso atendimento. Como podemos ajudá-lo?"
                 />
               </FormField>
@@ -147,7 +140,7 @@ export default function ChannelSettingsPage() {
                 <input
                   type="text"
                   {...field("menuPrompt")}
-                  className="w-full mt-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#25D366]"
+                  className="w-full mt-1 border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary"
                   placeholder="Por favor, escolha uma opção:"
                 />
               </FormField>
@@ -159,7 +152,7 @@ export default function ChannelSettingsPage() {
                 <textarea
                   {...field("offHoursMessage")}
                   rows={2}
-                  className="w-full mt-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#25D366] resize-none"
+                  className="w-full mt-1 border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary resize-none"
                   placeholder="No momento estamos fora do horário de atendimento. Retornaremos em breve!"
                 />
               </FormField>
@@ -171,18 +164,18 @@ export default function ChannelSettingsPage() {
                 <textarea
                   {...field("closingMessage")}
                   rows={2}
-                  className="w-full mt-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#25D366] resize-none"
+                  className="w-full mt-1 border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary resize-none"
                   placeholder="Obrigado pelo contato! Se precisar de mais ajuda, estamos à disposição."
                 />
               </FormField>
-            </CardContent>
+            </CardBody>
           </Card>
 
           {/* IVR Menu Options */}
           <Card>
-            <CardContent className="p-6 space-y-4">
+            <CardBody className="p-6 space-y-4">
               <div className="flex items-center justify-between">
-                <h2 className="font-semibold text-gray-800">Opções do Menu IVR</h2>
+                <h2 className="font-semibold text-foreground">Opções do Menu IVR</h2>
                 <button
                   onClick={() =>
                     setMenuOptions((prev) => [
@@ -190,7 +183,7 @@ export default function ChannelSettingsPage() {
                       { key: String(prev.length + 1), label: "", departmentId: 0 },
                     ])
                   }
-                  className="text-sm text-[#25D366] hover:text-[#1ebe57] flex items-center gap-1"
+                  className="text-sm text-primary hover:text-primary/90 flex items-center gap-1"
                 >
                   <Plus className="w-4 h-4" />
                   Adicionar opção
@@ -198,7 +191,7 @@ export default function ChannelSettingsPage() {
               </div>
 
               {menuOptions.length === 0 ? (
-                <p className="text-sm text-gray-400 text-center py-4">
+                <p className="text-sm text-muted-foreground text-center py-4">
                   Nenhuma opção configurada. Sem IVR, as conversas vão direto para a fila.
                 </p>
               ) : (
@@ -214,7 +207,7 @@ export default function ChannelSettingsPage() {
                           setMenuOptions(next);
                         }}
                         placeholder="1"
-                        className="w-14 border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-center focus:outline-none focus:border-[#25D366]"
+                        className="w-14 border border-border rounded-lg px-2 py-1.5 text-sm text-center focus:outline-none focus:border-primary"
                       />
                       <input
                         type="text"
@@ -225,7 +218,7 @@ export default function ChannelSettingsPage() {
                           setMenuOptions(next);
                         }}
                         placeholder="Vendas"
-                        className="flex-1 border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-[#25D366]"
+                        className="flex-1 border border-border rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-primary"
                       />
                       <input
                         type="number"
@@ -236,7 +229,7 @@ export default function ChannelSettingsPage() {
                           setMenuOptions(next);
                         }}
                         placeholder="ID Depto"
-                        className="w-24 border border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:border-[#25D366]"
+                        className="w-24 border border-border rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:border-primary"
                       />
                       <button
                         onClick={() => setMenuOptions((prev) => prev.filter((_, i) => i !== idx))}
@@ -248,13 +241,13 @@ export default function ChannelSettingsPage() {
                   ))}
                 </div>
               )}
-            </CardContent>
+            </CardBody>
           </Card>
 
           {/* Distribution & Timing */}
           <Card>
-            <CardContent className="p-6 space-y-4">
-              <h2 className="font-semibold text-gray-800">Distribuição e Tempo</h2>
+            <CardBody className="p-6 space-y-4">
+              <h2 className="font-semibold text-foreground">Distribuição e Tempo</h2>
 
               <FormField label="Modo de distribuição">
                 <select
@@ -265,7 +258,7 @@ export default function ChannelSettingsPage() {
                       distributionMode: e.target.value as "manual" | "round_robin" | "least_load",
                     }))
                   }
-                  className="w-full mt-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#25D366]"
+                  className="w-full mt-1 border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary"
                 >
                   <option value="manual">Manual — agente escolhe da fila</option>
                   <option value="round_robin">Round Robin — distribuição circular</option>
@@ -289,37 +282,37 @@ export default function ChannelSettingsPage() {
                         inactivityTimeoutMinutes: Number(e.target.value),
                       }))
                     }
-                    className="w-24 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#25D366]"
+                    className="w-24 border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary"
                   />
-                  <label className="flex items-center gap-2 text-sm text-gray-600">
+                  <label className="flex items-center gap-2 text-sm text-muted-foreground">
                     <input
                       type="checkbox"
                       checked={form.autoCloseEnabled ?? false}
                       onChange={(e) =>
                         setForm((prev) => ({ ...prev, autoCloseEnabled: e.target.checked }))
                       }
-                      className="w-4 h-4 accent-[#25D366]"
+                      className="w-4 h-4 accent-primary"
                     />
                     Fechar automaticamente
                   </label>
                 </div>
               </FormField>
-            </CardContent>
+            </CardBody>
           </Card>
 
           {/* Working Hours */}
           <Card>
-            <CardContent className="p-6 space-y-4">
+            <CardBody className="p-6 space-y-4">
               <div className="flex items-center justify-between">
-                <h2 className="font-semibold text-gray-800">Horário de Atendimento</h2>
-                <label className="flex items-center gap-2 text-sm text-gray-600">
+                <h2 className="font-semibold text-foreground">Horário de Atendimento</h2>
+                <label className="flex items-center gap-2 text-sm text-muted-foreground">
                   <input
                     type="checkbox"
                     checked={form.workingHoursEnabled ?? false}
                     onChange={(e) =>
                       setForm((prev) => ({ ...prev, workingHoursEnabled: e.target.checked }))
                     }
-                    className="w-4 h-4 accent-[#25D366]"
+                    className="w-4 h-4 accent-primary"
                   />
                   Habilitar
                 </label>
@@ -344,9 +337,9 @@ export default function ChannelSettingsPage() {
                                 },
                               }))
                             }
-                            className="w-4 h-4 accent-[#25D366]"
+                            className="w-4 h-4 accent-primary"
                           />
-                          <span className={dayConfig.active ? "text-gray-800" : "text-gray-400"}>
+                          <span className={dayConfig.active ? "text-foreground" : "text-muted-foreground"}>
                             {day.label}
                           </span>
                         </label>
@@ -364,9 +357,9 @@ export default function ChannelSettingsPage() {
                                   },
                                 }))
                               }
-                              className="border border-gray-200 rounded px-2 py-1 text-sm focus:outline-none focus:border-[#25D366]"
+                              className="border border-border rounded px-2 py-1 text-sm focus:outline-none focus:border-primary"
                             />
-                            <span className="text-gray-400 text-sm">até</span>
+                            <span className="text-muted-foreground text-sm">até</span>
                             <input
                               type="time"
                               value={dayConfig.end}
@@ -379,7 +372,7 @@ export default function ChannelSettingsPage() {
                                   },
                                 }))
                               }
-                              className="border border-gray-200 rounded px-2 py-1 text-sm focus:outline-none focus:border-[#25D366]"
+                              className="border border-border rounded px-2 py-1 text-sm focus:outline-none focus:border-primary"
                             />
                           </div>
                         )}
@@ -388,10 +381,8 @@ export default function ChannelSettingsPage() {
                   })}
                 </div>
               )}
-            </CardContent>
+            </CardBody>
           </Card>
-        </main>
-      </div>
-    </div>
+    </PageShell>
   );
 }

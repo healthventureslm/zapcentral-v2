@@ -1,5 +1,13 @@
 import { useState } from "react";
-import { Sidebar } from "../dashboard";
+import {
+  Avatar,
+  Button,
+  Dialog,
+  Input,
+  Menu,
+  Select,
+} from "@healthventureslm/design-system";
+import { PageShell } from "@/components/PageShell";
 import { CrmTabs } from "@/components/crm/crm-tabs";
 import { useCrmHooks, useDeals, useContacts } from "@/hooks/use-crm";
 import {
@@ -12,30 +20,6 @@ import {
   GripHorizontal,
   Settings2
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { Link } from "wouter";
@@ -81,27 +65,24 @@ export default function KanbanPage() {
   };
 
   return (
-    <div className="min-h-[100dvh] bg-[#F4F7F8] flex flex-col">
-      <Sidebar />
-      <div className="ml-64 flex flex-col flex-1 h-screen overflow-hidden">
-        <header className="bg-white shadow-sm z-10 flex-shrink-0">
-          <div className="h-16 flex items-center justify-between px-8">
-            <h1 className="text-xl font-semibold text-gray-800 flex items-center gap-2">
-              <KanbanSquare className="w-5 h-5 text-[#25D366]" />
-              Funil de Vendas
-            </h1>
-            <div className="flex items-center gap-3">
-              <ManageStagesDialog />
-              <CreateDealDialog />
-            </div>
+    <PageShell
+      icon={<KanbanSquare />}
+        title="Funil de vendas"
+        actions={
+          <div className="flex items-center gap-3">
+            <ManageStagesDialog />
+            <CreateDealDialog />
           </div>
-          <CrmTabs />
-        </header>
-
-        <main className="flex-1 overflow-x-auto overflow-y-hidden p-6">
+        }
+      >
+        <CrmTabs />
+        {/* O quadro rola na horizontal dentro da largura da pagina, em vez de
+            correr ate a borda da janela: assim ele fica alinhado com as demais
+            telas e o limite de leitura continua valendo. */}
+        <div className="overflow-x-auto pb-2">
           {dealStages.isLoading || dealsQuery.isLoading ? (
             <div className="h-full flex items-center justify-center">
-              <Loader2 className="w-8 h-8 animate-spin text-[#25D366]" />
+              <Loader2 className="w-8 h-8 animate-spin text-primary" />
             </div>
           ) : (
             <div className="flex h-full gap-6 items-start">
@@ -112,21 +93,21 @@ export default function KanbanPage() {
                 return (
                   <div
                     key={stage.id}
-                    className="flex-shrink-0 w-80 max-h-full flex flex-col bg-gray-100/50 rounded-xl border border-gray-200/60"
+                    className="flex-shrink-0 w-80 max-h-full flex flex-col bg-muted/50 rounded-xl border border-border/60"
                     onDragOver={handleDragOver}
                     onDrop={(e) => handleDrop(e, stage.id)}
                   >
-                    <div className="p-3 border-b border-gray-200/60">
+                    <div className="p-3 border-b border-border/60">
                       <div className="flex items-center justify-between mb-1">
-                        <h3 className="font-semibold text-gray-800 flex items-center gap-2">
+                        <h3 className="font-semibold text-foreground flex items-center gap-2">
                           <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: stage.color || "#ccc" }} />
                           {stage.name}
                         </h3>
-                        <span className="text-xs font-medium bg-white px-2 py-0.5 rounded-full text-gray-500 shadow-sm border border-gray-100">
+                        <span className="text-xs font-medium bg-card px-2 py-0.5 rounded-full text-muted-foreground shadow-sm border border-border">
                           {stageDeals.length}
                         </span>
                       </div>
-                      <div className="text-xs font-medium text-gray-500 pl-4.5">
+                      <div className="text-xs font-medium text-muted-foreground pl-4.5">
                         {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(stageTotal)}
                       </div>
                     </div>
@@ -139,41 +120,39 @@ export default function KanbanPage() {
                           draggable
                           onDragStart={(e) => handleDragStart(e, deal.id)}
                           onDragEnd={(e) => handleDragEnd(e, deal.id)}
-                          className="bg-white rounded-lg shadow-sm border border-gray-200 p-3.5 cursor-grab active:cursor-grabbing hover:border-[#25D366]/50 transition-colors group relative"
+                          className="bg-card rounded-lg shadow-sm border border-border p-3.5 cursor-grab active:cursor-grabbing hover:border-primary/50 transition-colors group relative"
                         >
                           <div className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity">
                             <DealActionsMenu deal={deal} />
                           </div>
                           
-                          <h4 className="font-medium text-gray-900 text-sm mb-1 pr-6">{deal.title}</h4>
+                          <h4 className="font-medium text-foreground text-sm mb-1 pr-6">{deal.title}</h4>
                           
                           <Link href={`/crm/contatos/${deal.contactId}`}>
                             <p className="text-xs text-blue-600 hover:underline mb-3">{deal.contactName}</p>
                           </Link>
 
-                          <div className="flex items-center justify-between mt-auto pt-2 border-t border-gray-50">
+                          <div className="flex items-center justify-between mt-auto pt-2 border-t border-border">
                             {deal.value ? (
-                              <span className="text-xs font-semibold text-gray-700 flex items-center">
+                              <span className="text-xs font-semibold text-foreground flex items-center">
                                 <DollarSign className="w-3 h-3 text-green-600 mr-0.5" />
                                 {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(deal.value))}
                               </span>
                             ) : <span />}
                             
-                            {deal.assignedTo && (
-                              <Avatar className="h-5 w-5 border border-gray-100">
-                                {(() => {
-                                  const agent = agents.data?.find(a => a.clerkUserId === deal.assignedTo);
-                                  return (
-                                    <>
-                                      <AvatarImage src={agent?.avatarUrl || undefined} />
-                                      <AvatarFallback className="bg-gray-100 text-[10px] font-medium text-gray-600">
-                                        {agent?.firstName?.[0] || agent?.email[0].toUpperCase() || "?"}
-                                      </AvatarFallback>
-                                    </>
-                                  );
-                                })()}
-                              </Avatar>
-                            )}
+                            {deal.assignedTo &&
+                              (() => {
+                                const agent = agents.data?.find(
+                                  (a) => a.clerkUserId === deal.assignedTo,
+                                );
+                                return (
+                                  <Avatar
+                                    size="xs"
+                                    src={agent?.avatarUrl ?? undefined}
+                                    fromName={agent?.firstName ?? agent?.email}
+                                  />
+                                );
+                              })()}
                           </div>
                         </div>
                       ))}
@@ -182,15 +161,14 @@ export default function KanbanPage() {
                 );
               })}
               {dealStages.data?.length === 0 && (
-                <div className="w-full text-center py-20 text-gray-500">
+                <div className="w-full text-center py-20 text-muted-foreground">
                   Nenhuma etapa de funil configurada. Crie as etapas em "Gerenciar Etapas".
                 </div>
               )}
             </div>
           )}
-        </main>
-      </div>
-    </div>
+        </div>
+      </PageShell>
   );
 }
 
@@ -223,28 +201,27 @@ function ManageStagesDialog() {
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button variant="outline" className="bg-white border-gray-200 text-gray-700">
-          <Settings2 className="w-4 h-4 mr-2" />
-          Gerenciar Etapas
-        </Button>
-      </DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Etapas do Funil</DialogTitle>
-        </DialogHeader>
-        <div className="space-y-4 py-2">
+    <>
+      <Button
+        variant="secondary"
+        iconLeft={<Settings2 className="w-4 h-4" />}
+        onClick={() => setOpen(true)}
+      >
+        Gerenciar etapas
+      </Button>
+
+      <Dialog open={open} onClose={() => setOpen(false)} title="Etapas do funil">
+        <div className="space-y-4">
           <ul className="space-y-2 max-h-60 overflow-y-auto pr-2">
             {dealStages.data?.sort((a,b) => a.position - b.position).map(stage => (
-              <li key={stage.id} className="flex items-center justify-between p-2 border rounded-md bg-gray-50">
+              <li key={stage.id} className="flex items-center justify-between p-2 border rounded-md bg-muted">
                 <div className="flex items-center gap-2">
-                  <GripHorizontal className="w-4 h-4 text-gray-400 cursor-move" />
+                  <GripHorizontal className="w-4 h-4 text-muted-foreground cursor-move" />
                   <input type="color" value={stage.color || "#000"} disabled className="w-6 h-6 p-0 border-0 rounded cursor-default" />
                   <span className="text-sm font-medium">{stage.name}</span>
                 </div>
-                <Button variant="ghost" size="icon" className="h-6 w-6 text-red-500 hover:bg-red-50" onClick={() => handleDelete(stage.id)}>
-                  &times;
+                <Button variant="quiet" size="sm" onClick={() => handleDelete(stage.id)}>
+                  Excluir
                 </Button>
               </li>
             ))}
@@ -263,11 +240,18 @@ function ManageStagesDialog() {
               onChange={e => setNewStage({...newStage, name: e.target.value})} 
               onKeyDown={e => e.key === 'Enter' && handleAdd()}
             />
-            <Button onClick={handleAdd} disabled={createDealStage.isPending || !newStage.name}>Adicionar</Button>
+            <Button
+              variant="primary"
+              loading={createDealStage.isPending}
+              disabled={!newStage.name}
+              onClick={handleAdd}
+            >
+              Adicionar
+            </Button>
           </div>
         </div>
-      </DialogContent>
-    </Dialog>
+      </Dialog>
+    </>
   );
 }
 
@@ -309,18 +293,17 @@ function CreateDealDialog() {
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button className="bg-[#25D366] hover:bg-[#1ebe57] text-white">
-          <Plus className="w-4 h-4 mr-2" />
-          Novo Negócio
-        </Button>
-      </DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Criar Negócio</DialogTitle>
-        </DialogHeader>
-        <form onSubmit={onSubmit} className="space-y-4 py-2">
+    <>
+      <Button
+        variant="primary"
+        iconLeft={<Plus className="w-4 h-4" />}
+        onClick={() => setOpen(true)}
+      >
+        Novo negócio
+      </Button>
+
+      <Dialog open={open} onClose={() => setOpen(false)} title="Criar negócio">
+        <form onSubmit={onSubmit} className="space-y-4">
           <div className="space-y-2">
             <label className="text-sm font-medium">Título (Obrigatório)</label>
             <Input value={form.title} onChange={e => setForm({...form, title: e.target.value})} placeholder="Ex: Projeto XPTO" />
@@ -328,25 +311,27 @@ function CreateDealDialog() {
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className="text-sm font-medium">Contato (Obrigatório)</label>
-              <Select value={form.contactId} onValueChange={v => setForm({...form, contactId: v})}>
-                <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
-                <SelectContent>
-                  {contactsQuery.data?.contacts.map(c => (
-                    <SelectItem key={c.id} value={String(c.id)}>{c.name || c.phone}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Select
+                placeholder="Selecione…"
+                value={form.contactId}
+                onChange={(v) => setForm({ ...form, contactId: v })}
+                options={(contactsQuery.data?.contacts ?? []).map((c) => ({
+                  value: String(c.id),
+                  label: c.name || c.phone,
+                }))}
+              />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium">Etapa (Obrigatório)</label>
-              <Select value={form.stageId} onValueChange={v => setForm({...form, stageId: v})}>
-                <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
-                <SelectContent>
-                  {dealStages.data?.map(s => (
-                    <SelectItem key={s.id} value={String(s.id)}>{s.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Select
+                placeholder="Selecione…"
+                value={form.stageId}
+                onChange={(v) => setForm({ ...form, stageId: v })}
+                options={(dealStages.data ?? []).map((s) => ({
+                  value: String(s.id),
+                  label: s.name,
+                }))}
+              />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
@@ -356,29 +341,33 @@ function CreateDealDialog() {
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium">Responsável</label>
-              <Select value={form.assignedTo} onValueChange={v => setForm({...form, assignedTo: v})}>
-                <SelectTrigger><SelectValue placeholder="Responsável..." /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="unassigned">Sem responsável</SelectItem>
-                  {agents.data?.map(a => (
-                    <SelectItem key={a.clerkUserId} value={a.clerkUserId}>
-                      {a.firstName ? `${a.firstName} ${a.lastName || ""}` : a.email}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Select
+                placeholder="Responsável…"
+                value={form.assignedTo}
+                onChange={(v) => setForm({ ...form, assignedTo: v })}
+                options={[
+                  { value: "unassigned", label: "Sem responsável" },
+                  ...(agents.data ?? []).map((a) => ({
+                    value: a.clerkUserId,
+                    label: a.firstName
+                      ? `${a.firstName} ${a.lastName || ""}`.trim()
+                      : a.email,
+                  })),
+                ]}
+              />
             </div>
           </div>
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
-            <Button type="submit" className="bg-[#25D366] hover:bg-[#1ebe57] text-white" disabled={createDeal.isPending}>
-              {createDeal.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
+          <div className="flex justify-end gap-2 pt-2">
+            <Button type="button" variant="secondary" onClick={() => setOpen(false)}>
+              Cancelar
+            </Button>
+            <Button type="submit" variant="primary" loading={createDeal.isPending}>
               Salvar
             </Button>
-          </DialogFooter>
+          </div>
         </form>
-      </DialogContent>
-    </Dialog>
+      </Dialog>
+    </>
   );
 }
 
@@ -401,23 +390,19 @@ function DealActionsMenu({ deal }: { deal: any }) {
   };
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="h-6 w-6 bg-white/80 hover:bg-white shadow-sm border border-gray-100">
-          <MoreVertical className="w-3 h-3 text-gray-500" />
+    <Menu
+      align="end"
+      trigger={
+        <Button variant="quiet" size="sm">
+          <MoreVertical className="w-3 h-3" />
         </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-40">
-        <DropdownMenuItem onClick={() => handleStatus("won")} className="text-green-600 font-medium focus:text-green-700">
-          Marcar como Ganho
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => handleStatus("lost")} className="text-red-600 font-medium focus:text-red-700">
-          Marcar como Perdido
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={handleDelete} className="text-gray-500 mt-2 border-t">
-          Excluir negócio
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+      }
+      items={[
+        { id: "won", label: "Marcar como ganho", onSelect: () => handleStatus("won") },
+        { id: "lost", label: "Marcar como perdido", onSelect: () => handleStatus("lost") },
+        { type: "separator" },
+        { id: "delete", label: "Excluir negócio", danger: true, onSelect: handleDelete },
+      ]}
+    />
   );
 }

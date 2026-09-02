@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { UserButton, useUser } from "@/lib/devAuth";
+import { useClerk, useUser } from "@/lib/devAuth";
 import { Link, useLocation } from "wouter";
 import {
   LayoutDashboard,
@@ -16,11 +16,23 @@ import {
   Headset,
   ListTree,
   PlayCircle,
+  LogOut,
 } from "lucide-react";
 import { useInternalChatNotifications } from "@/hooks/useInternalChat";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  Badge,
+  PageHeader,
+  Spinner,
+  StatCard,
+  LineChart,
+  EmptyState,
+  Avatar,
+  Card,
+  CardBody,
+  CardHeader,
+  Table,
+  SidebarNav,
+} from "@healthventureslm/design-system";
 import { useTenantId, useMyRole } from "@/hooks/useTenantId";
 import { useRamalDescoberto } from "@/hooks/useRamalDescoberto";
 import { cn } from "@/lib/utils";
@@ -33,88 +45,12 @@ import {
   type AgentStatus,
   type DepartmentRow,
   type Conversation,
+  contactHandle,
 } from "@/lib/api";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import {
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-} from "recharts";
 
-const navItems = [
-  { name: "Dashboard", path: "/", icon: LayoutDashboard },
-  { name: "Atendimento", path: "/atendimento", icon: MessageCircle },
-  { name: "Equipe", path: "/equipe", icon: Headset },
-  { name: "WhatsApp", path: "/whatsapp", icon: Smartphone },
-  { name: "Telegram", path: "/telegram", icon: Send },
-  { name: "Atendimento automático", path: "/configuracoes-canal", icon: ListTree },
-  { name: "Simulador", path: "/simulador", icon: PlayCircle },
-  { name: "Contatos", path: "/crm", icon: Users },
-  { name: "Relatórios", path: "/relatorios", icon: BarChart3 },
-  { name: "Configurações", path: "/settings", icon: Settings },
-];
-
-export function Sidebar() {
-  const [location] = useLocation();
-  const tenantId = useTenantId();
-  const internalUnread = useInternalChatNotifications(tenantId);
-  const { user } = useUser();
-
-  return (
-    <div className="fixed inset-y-0 left-0 w-64 bg-[#0F1923] flex flex-col z-10 sidebar-transition print:hidden">
-      <div className="h-16 flex items-center px-6 border-b border-white/5">
-        <MessageCircle className="w-6 h-6 text-[#25D366] mr-2" />
-        <span className="text-white font-semibold text-lg tracking-wide">
-          ZapCentral
-        </span>
-      </div>
-
-      <div className="flex-1 py-6 px-3 space-y-1">
-        {navItems.map((item) => {
-          const isActive = location === item.path || location.startsWith(item.path + "/");
-          const isExact = location === item.path;
-          const active = isActive && (item.path !== "/" || isExact);
-          const Icon = item.icon;
-
-          return (
-            <Link key={item.path} href={item.path}>
-              <div
-                className={`flex items-center px-3 py-2.5 rounded-md cursor-pointer transition-colors ${
-                  active
-                    ? "bg-[#25D366]/10 text-[#25D366] border-r-2 border-[#25D366]"
-                    : "text-[#8899A6] hover:text-white hover:bg-white/5"
-                }`}
-              >
-                <Icon className="w-5 h-5 mr-3" />
-                <span className="font-medium text-sm">{item.name}</span>
-                {item.path === "/equipe" && internalUnread > 0 && (
-                  <span className="ml-auto bg-[#25D366] text-white text-[10px] font-semibold rounded-full px-1.5 py-0.5 min-w-[18px] text-center">
-                    {internalUnread > 99 ? "99+" : internalUnread}
-                  </span>
-                )}
-              </div>
-            </Link>
-          );
-        })}
-      </div>
-
-      <div className="p-4 border-t border-white/5 flex items-center gap-3">
-        <UserButton />
-        {/* O nome de quem esta logado, e nao "Minha Conta": numa demonstracao
-            com duas telas lado a lado, saber quem e cada janela e o que faz a
-            transferencia entre atendentes ficar legivel. */}
-        <span className="text-sm text-[#8899A6] font-medium truncate">
-          {user?.fullName ?? "Minha conta"}
-        </span>
-      </div>
-    </div>
-  );
-}
+import { PageShell } from "@/components/PageShell";
 
 
 /**
@@ -144,11 +80,15 @@ function duracaoHumana(segundos: number | null | undefined): string {
 
 type Julgamento = "bom" | "atencao" | "ruim" | "neutro";
 
-const CORES_DO_JULGAMENTO: Record<Julgamento, string> = {
-  bom: "text-emerald-600",
-  atencao: "text-amber-600",
-  ruim: "text-red-600",
-  neutro: "text-gray-400",
+/** O acento do StatCard e semantico: o design system escolhe a cor. */
+const ACENTO_DO_JULGAMENTO: Record<
+  Julgamento,
+  "petrol" | "emerald" | "amber" | "coral" | "crimson"
+> = {
+  bom: "emerald",
+  atencao: "amber",
+  ruim: "crimson",
+  neutro: "petrol",
 };
 
 /**
@@ -175,27 +115,13 @@ function IndicadorComVeredito({
   explicacao: string;
 }) {
   return (
-    <Card>
-      <CardContent className="p-5">
-        <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
-          {titulo}
-        </p>
-        <div className="flex items-baseline gap-1 mt-2">
-          <span className="text-3xl font-bold text-gray-900">{valor}</span>
-          {unidade && (
-            <span className="text-sm font-medium text-gray-500">{unidade}</span>
-          )}
-        </div>
-        <p
-          className={`text-xs font-semibold mt-1 ${CORES_DO_JULGAMENTO[julgamento]}`}
-        >
-          {veredito}
-        </p>
-        <p className="text-[11px] text-gray-400 mt-2 leading-snug">
-          {explicacao}
-        </p>
-      </CardContent>
-    </Card>
+    <StatCard
+      label={titulo}
+      value={unidade ? `${valor} ${unidade}` : valor}
+      hint={explicacao}
+      trend={{ value: veredito, positive: julgamento === "bom" }}
+      accent={ACENTO_DO_JULGAMENTO[julgamento]}
+    />
   );
 }
 
@@ -248,81 +174,89 @@ function OperacaoAgora({
 
   return (
     <Card className="mt-6">
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between gap-3">
-          <CardTitle className="text-base text-gray-800">Operação agora</CardTitle>
-          {!carregando && (
-            <span
-              className={cn(
-                "text-xs font-medium",
-                descobertos > 0 ? "text-red-600" : "text-green-600",
-              )}
-            >
+      <CardHeader
+        title="Operação agora"
+        action={
+          !carregando ? (
+            <Badge variant={descobertos > 0 ? "danger" : "positive"}>
               {descobertos > 0
                 ? `${descobertos} ${plural(descobertos, "ramal com fila e sem ninguém disponível", "ramais com fila e sem ninguém disponível")}`
                 : "Todo ramal com fila tem alguém para atender"}
-            </span>
-          )}
-        </div>
-      </CardHeader>
-      <CardContent>
+            </Badge>
+          ) : undefined
+        }
+      />
+      <CardBody>
         {carregando ? (
-          <div className="flex justify-center py-8">
-            <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
-          </div>
-        ) : linhas.length === 0 ? (
-          <p className="text-sm text-gray-500 py-4">Nenhum ramal ativo.</p>
+          <EmptyState size="sm" loading />
         ) : (
-          <div className="divide-y divide-gray-100">
-            {linhas.map(({ ramal, disponiveis, online, fila }) => {
-              const descoberto = fila > 0 && disponiveis.length === 0;
-              return (
-                <div
-                  key={ramal.id}
-                  className="flex items-center justify-between gap-4 py-2.5"
-                >
-                  <div className="flex items-center gap-2.5 min-w-0">
+          /* Tabela, e nao divs empilhadas: a coluna da direita nao se explicava
+             sozinha. Com cabecalho, "Disponiveis" diz o que aquele texto e — e
+             no celular o proprio componente vira lista de cards, em vez de
+             espremer nome de agente contra nome de ramal. */
+          <Table
+            sortable
+            rowKey="id"
+            emptyText="Nenhum ramal ativo."
+            data={linhas.map(({ ramal, disponiveis, online, fila }) => ({
+              id: ramal.id,
+              ramal,
+              fila,
+              disponiveis,
+              online,
+              descoberto: fila > 0 && disponiveis.length === 0,
+            }))}
+            columns={[
+              {
+                key: "ramal",
+                header: "Ramal",
+                sortAccessor: (l) => l.ramal.name,
+                render: (l) => (
+                  <span className="inline-flex items-center gap-2.5">
                     <span
                       className="w-2 h-2 rounded-full shrink-0"
-                      style={{ backgroundColor: ramal.color }}
+                      style={{ backgroundColor: l.ramal.color }}
                     />
-                    <span className="text-sm font-medium text-gray-800 truncate">
-                      {ramal.name}
+                    <span className="font-medium">{l.ramal.name}</span>
+                  </span>
+                ),
+              },
+              {
+                key: "fila",
+                header: "Fila",
+                align: "right",
+                mono: true,
+                render: (l) =>
+                  l.fila > 0 ? (
+                    <Badge variant={l.descoberto ? "danger" : "warning"}>
+                      {l.fila}
+                    </Badge>
+                  ) : (
+                    <span className="text-[var(--text-subtle)]">—</span>
+                  ),
+              },
+              {
+                key: "disponiveis",
+                header: "Disponíveis",
+                align: "right",
+                sortAccessor: (l) => l.disponiveis.length,
+                render: (l) =>
+                  l.disponiveis.length > 0 ? (
+                    <span className="text-xs text-[var(--text-muted)]">
+                      {l.disponiveis.map(nomeDe).join(", ")}
                     </span>
-                    {fila > 0 && (
-                      <Badge
-                        className={cn(
-                          "text-[10px] px-1.5 py-0 h-4 border-none",
-                          descoberto
-                            ? "bg-red-100 text-red-700"
-                            : "bg-amber-100 text-amber-700",
-                        )}
-                      >
-                        {fila} na fila
-                      </Badge>
-                    )}
-                  </div>
-                  <div className="text-right shrink-0">
-                    {disponiveis.length > 0 ? (
-                      <p className="text-xs text-gray-600 truncate max-w-[22rem]">
-                        {disponiveis.map(nomeDe).join(", ")}
-                      </p>
-                    ) : descoberto ? (
-                      <p className="text-xs font-medium text-red-600">
-                        Ninguém disponível
-                      </p>
-                    ) : (
-                      <p className="text-xs text-gray-400">
-                        {online.length > 0 ? "Sem vaga livre" : "Ninguém online"}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+                  ) : l.descoberto ? (
+                    <Badge variant="danger">Ninguém disponível</Badge>
+                  ) : (
+                    <span className="text-xs text-[var(--text-muted)]">
+                      {l.online.length > 0 ? "Sem vaga livre" : "Ninguém online"}
+                    </span>
+                  ),
+              },
+            ]}
+          />
         )}
-      </CardContent>
+      </CardBody>
     </Card>
   );
 }
@@ -467,20 +401,11 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="min-h-[100dvh] bg-[#F4F7F8]">
-      <Sidebar />
-
-      <div className="ml-64 flex flex-col print:ml-0">
-        <header className="h-16 bg-white shadow-sm flex items-center justify-between px-8 z-0 print:hidden">
-          <h1 className="text-xl font-semibold text-gray-800">
-            Painel Principal
-          </h1>
-          <Badge variant="outline" className="text-xs font-medium bg-gray-50">
-            Tenant: {tenantId || "..."}
-          </Badge>
-        </header>
-
-        <main className="flex-1 p-8">
+    <PageShell
+      icon={<LayoutDashboard />}
+      title="Painel principal"
+      actions={<Badge variant="neutral">Central {tenantId ?? "…"}</Badge>}
+    >
           {noReportAccess && (
             <div className="mb-6 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
               As métricas do painel estão disponíveis apenas para administradores e
@@ -491,102 +416,49 @@ export default function DashboardPage() {
               Sem isto, quem abre a tela precisa somar cinco numeros de cabeca
               para saber se a central esta bem ou mal AGORA. */}
           {!noReportAccess && overview && (
-            <p className="text-sm text-gray-600 mb-6 leading-relaxed max-w-3xl">
+            <p className="text-sm text-muted-foreground mb-6 leading-relaxed max-w-3xl">
               {resumoAgora}
             </p>
           )}
 
+          {/* Os cinco indicadores do agora. Dirigidos por dados em vez de cinco
+              blocos repetidos: o acento e semantico (o design system escolhe a
+              cor), nao um circulo pastel escrito na mao. */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
-            <Card>
-              <CardContent className="p-6 flex items-center">
-                <div className="p-3 rounded-full bg-green-100 text-green-600 mr-4">
-                  <MessageCircle className="w-6 h-6" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-500">
-                    Ativas
-                  </p>
-                  <h3 className="text-2xl font-bold text-gray-900">
-                    {loadingOverview ? <Loader2 className="w-5 h-5 animate-spin mt-1" /> : overview?.live.active ?? 0}
-                  </h3>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-6 flex items-center">
-                <div className="p-3 rounded-full bg-amber-100 text-amber-600 mr-4">
-                  <Clock className="w-6 h-6" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-500">
-                    Aguardando
-                  </p>
-                  <h3 className="text-2xl font-bold text-gray-900">
-                    {loadingOverview ? <Loader2 className="w-5 h-5 animate-spin mt-1" /> : overview?.live.waiting ?? 0}
-                  </h3>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-6 flex items-center">
-                <div className="p-3 rounded-full bg-blue-100 text-blue-600 mr-4">
-                  <PhoneCall className="w-6 h-6" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-500">
-                    No Robô (IVR)
-                  </p>
-                  <h3 className="text-2xl font-bold text-gray-900">
-                    {loadingOverview ? <Loader2 className="w-5 h-5 animate-spin mt-1" /> : overview?.live.inIvr ?? 0}
-                  </h3>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-6 flex items-center">
-                <div className="p-3 rounded-full bg-indigo-100 text-indigo-600 mr-4">
-                  <Users className="w-6 h-6" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-500">
-                    Agentes Online
-                  </p>
-                  <h3 className="text-2xl font-bold text-gray-900">
-                    {agents ? onlineAgents : <Loader2 className="w-5 h-5 animate-spin mt-1" />}
-                  </h3>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-6 flex items-center">
-                <div className="p-3 rounded-full bg-purple-100 text-purple-600 mr-4">
-                  <CheckCircle2 className="w-6 h-6" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-500">
-                    Resolvidos Hoje
-                  </p>
-                  <h3 className="text-2xl font-bold text-gray-900">
-                    {loadingOverview ? <Loader2 className="w-5 h-5 animate-spin mt-1" /> : overview?.live.closedToday ?? 0}
-                  </h3>
-                </div>
-              </CardContent>
-            </Card>
+            {(
+              [
+                { rotulo: "Ativas", icone: <MessageCircle className="w-5 h-5" />, valor: overview?.live.active, acento: "petrol" },
+                { rotulo: "Aguardando", icone: <Clock className="w-5 h-5" />, valor: overview?.live.waiting, acento: "amber" },
+                { rotulo: "No robô (IVR)", icone: <PhoneCall className="w-5 h-5" />, valor: overview?.live.inIvr, acento: "petrol" },
+                { rotulo: "Agentes online", icone: <Users className="w-5 h-5" />, valor: agents ? onlineAgents : undefined, acento: "emerald" },
+                { rotulo: "Resolvidos hoje", icone: <CheckCircle2 className="w-5 h-5" />, valor: overview?.live.closedToday, acento: "emerald" },
+              ] as const
+            ).map((c) => (
+              <StatCard
+                key={c.rotulo}
+                icon={c.icone}
+                label={c.rotulo}
+                accent={c.acento}
+                value={
+                  c.valor === undefined ? (
+                    <Spinner size="sm" />
+                  ) : (
+                    c.valor
+                  )
+                }
+              />
+            ))}
           </div>
 
           {!noReportAccess && (
             <div className="mb-8">
               <div className="flex items-baseline justify-between mb-3">
-                <h2 className="text-sm font-semibold text-gray-700">
+                <h2 className="text-sm font-semibold text-foreground">
                   Como a central atendeu nos últimos 30 dias
                 </h2>
                 <Link
                   href="/relatorios"
-                  className="text-xs font-medium text-[#25D366] hover:underline"
+                  className="text-xs font-medium text-primary hover:underline"
                 >
                   Ver o relatório completo
                 </Link>
@@ -636,111 +508,73 @@ export default function DashboardPage() {
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <Card className="lg:col-span-2">
-              <CardHeader>
-                <CardTitle className="text-base text-gray-800">Volume de Conversas (Hoje)</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="h-[300px] w-full">
+              <CardHeader title={<>Volume de Conversas (Hoje)</>} />
+              <CardBody>
+                {/* Altura minima, nao fixa. A legenda do LineChart renderiza
+                    ABAIXO da area do grafico: um contentor de 300px com um
+                    grafico de 300px deixa a legenda para fora. O minimo mantem
+                    o cartao estavel nos estados de carregando e sem dados, sem
+                    limitar o que o grafico precisa. */}
+                <div className="min-h-[300px] w-full">
                   {volumeError ? (
-                    <div className="w-full h-full flex items-center justify-center text-red-500 text-sm">
-                      Erro ao carregar o gráfico. Tentando novamente...
-                    </div>
+                    <EmptyState
+                      size="sm"
+                      title="Não foi possível carregar o gráfico"
+                      description="Tentando novamente…"
+                    />
                   ) : !volume ? (
-                    <div className="w-full h-full flex items-center justify-center text-gray-400">
-                      <Loader2 className="w-8 h-8 animate-spin" />
-                    </div>
+                    <EmptyState size="sm" loading loadingLabel="Carregando o volume…" />
                   ) : volume.length === 0 ? (
-                    <div className="w-full h-full flex items-center justify-center text-gray-500 text-sm">
-                      Sem dados para o período.
-                    </div>
+                    <EmptyState size="sm" title="Sem dados para o período." />
                   ) : (
-                    <ResponsiveContainer width="100%" height="100%">
-                      <AreaChart data={volume} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                        <defs>
-                          <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#25D366" stopOpacity={0.3} />
-                            <stop offset="95%" stopColor="#25D366" stopOpacity={0} />
-                          </linearGradient>
-                          <linearGradient id="colorClosed" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#6366F1" stopOpacity={0.3} />
-                            <stop offset="95%" stopColor="#6366F1" stopOpacity={0} />
-                          </linearGradient>
-                        </defs>
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
-                        <XAxis 
-                          dataKey="bucket" 
-                          tickFormatter={formatBucketTime} 
-                          axisLine={false} 
-                          tickLine={false} 
-                          tick={{ fontSize: 12, fill: '#6B7280' }} 
-                          dy={10}
-                        />
-                        <YAxis 
-                          axisLine={false} 
-                          tickLine={false} 
-                          tick={{ fontSize: 12, fill: '#6B7280' }} 
-                        />
-                        <Tooltip 
-                          labelFormatter={(label) => formatBucketTime(label as string)}
-                          contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                        />
-                        <Area 
-                          type="monotone" 
-                          dataKey="total" 
-                          name="Total" 
-                          stroke="#25D366" 
-                          strokeWidth={2}
-                          fillOpacity={1} 
-                          fill="url(#colorTotal)" 
-                        />
-                        <Area 
-                          type="monotone" 
-                          dataKey="closed" 
-                          name="Resolvidas" 
-                          stroke="#6366F1" 
-                          strokeWidth={2}
-                          fillOpacity={1} 
-                          fill="url(#colorClosed)" 
-                        />
-                      </AreaChart>
-                    </ResponsiveContainer>
+                    /* As cores vem do design system. Antes eram hex fixos de
+                       tema claro (#25D366 nas linhas, #E5E7EB na grade,
+                       #6B7280 nos rotulos) — no tema escuro o grafico
+                       simplesmente sumia. */
+                    <LineChart
+                      height={300}
+                      area
+                      showGrid
+                      legend
+                      labels={volume.map((v) => formatBucketTime(v.bucket))}
+                      series={[
+                        { name: "Total", data: volume.map((v) => v.total) },
+                        { name: "Resolvidas", data: volume.map((v) => v.closed) },
+                      ]}
+                    />
                   )}
                 </div>
-              </CardContent>
+              </CardBody>
             </Card>
 
             <Card className="flex flex-col">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base text-gray-800">Maior Tempo de Espera</CardTitle>
-              </CardHeader>
-              <CardContent className="flex-1 overflow-auto">
+              <CardHeader title="Maior tempo de espera" />
+              <CardBody className="flex-1 overflow-auto">
                 {!waitingRes ? (
-                  <div className="flex justify-center py-8">
-                    <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
-                  </div>
+                  <EmptyState size="sm" loading />
                 ) : waitingConversations.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center h-full text-gray-500 py-8">
-                    <CheckCircle2 className="w-10 h-10 text-green-400 mb-2" />
-                    <p className="text-sm font-medium">Nenhuma conversa aguardando.</p>
-                  </div>
+                  <EmptyState
+                    size="sm"
+                    icon={<CheckCircle2 className="w-8 h-8" />}
+                    title="Nenhuma conversa aguardando."
+                  />
                 ) : (
                   <div className="space-y-4">
                     {waitingConversations.map((conv) => (
                       <Link key={conv.id} href={`/atendimento?c=${conv.id}`} className="block">
-                        <div className="flex items-center justify-between p-3 rounded-lg border border-gray-100 hover:border-green-200 hover:bg-green-50/50 transition-colors cursor-pointer mb-3 last:mb-0 group">
+                        <div className="flex items-center justify-between p-3 rounded-lg border border-border hover:border-green-200 hover:bg-green-50/50 transition-colors cursor-pointer mb-3 last:mb-0 group">
                           <div className="flex items-center gap-3">
-                            <Avatar className="h-9 w-9 border border-gray-100">
-                              <AvatarImage src={conv.contact.avatarUrl || undefined} />
-                              <AvatarFallback className="bg-gray-50 text-gray-600 text-xs font-medium">
-                                {conv.contact.name ? conv.contact.name.substring(0, 2).toUpperCase() : "??"}
-                              </AvatarFallback>
-                            </Avatar>
+                            <Avatar
+                              size="md"
+                              src={conv.contact.avatarUrl ?? undefined}
+                              fromName={conv.contact.name ?? contactHandle(conv.contact)}
+                            />
                             <div>
-                              <p className="text-sm font-medium text-gray-900 group-hover:text-green-700 transition-colors">
+                              <p className="text-sm font-medium text-foreground group-hover:text-green-700 transition-colors">
                                 {conv.contact.name || conv.contact.phone}
                               </p>
                               {conv.departmentName && (
-                                <Badge variant="secondary" className="mt-1 text-[10px] px-1.5 py-0 h-4 border-none bg-gray-100 text-gray-600">
+                                <Badge variant="neutral" className="mt-1">
                                   {conv.departmentName}
                                 </Badge>
                               )}
@@ -757,7 +591,7 @@ export default function DashboardPage() {
                     ))}
                   </div>
                 )}
-              </CardContent>
+              </CardBody>
             </Card>
           </div>
 
@@ -767,8 +601,6 @@ export default function DashboardPage() {
             naFila={waitingRes?.conversations ?? []}
             carregando={!ramais || !agents}
           />
-        </main>
-      </div>
-    </div>
+    </PageShell>
   );
 }

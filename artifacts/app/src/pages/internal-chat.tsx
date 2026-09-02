@@ -2,13 +2,12 @@
  * Internal chat page — 1:1 conversations between agents (ramal-to-ramal).
  * Left: colleagues with presence + my conversations. Right: message thread.
  */
+import { Avatar, Badge, IconButton, Textarea } from "@healthventureslm/design-system";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useUser, useAuth } from "@/lib/devAuth";
 import { Send, Loader2, MessageCircle, Headset } from "lucide-react";
-import { Sidebar } from "./dashboard";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
+import { Sidebar } from "@/components/Sidebar";
 import { initSocket, getSocket, joinTenant } from "@/lib/socket";
 import {
   listAgentStatuses,
@@ -38,10 +37,6 @@ const PRESENCE_LABELS: Record<string, string> = {
 
 function nameOf(p: { firstName: string | null; lastName: string | null; email: string }) {
   return p.firstName ? `${p.firstName} ${p.lastName ?? ""}`.trim() : p.email;
-}
-
-function initialsOf(p: { firstName: string | null; lastName: string | null; email: string }) {
-  return nameOf(p).slice(0, 2).toUpperCase();
 }
 
 export default function InternalChatPage() {
@@ -148,21 +143,21 @@ export default function InternalChatPage() {
   const convPeerIds = new Set((convs ?? []).map((c) => c.peer.clerkUserId));
 
   return (
-    <div className="flex h-[100dvh] bg-[#0F1923]">
+    <div className="sala-escura flex h-[100dvh] bg-background">
       <Sidebar />
 
       {/* Left panel */}
       <div className="ml-64 flex flex-col w-80 shrink-0 border-r border-white/5 h-full">
-        <div className="h-14 flex items-center gap-2 px-4 border-b border-white/5 bg-[#0A1520]">
-          <Headset className="w-4 h-4 text-[#25D366]" />
-          <span className="text-sm font-semibold text-white">Chat interno</span>
+        <div className="h-14 flex items-center gap-2 px-4 border-b border-white/5 bg-[var(--surface-sunken)]">
+          <Headset className="w-4 h-4 text-primary" />
+          <span className="text-sm font-semibold text-[var(--text-strong)]">Equipe</span>
         </div>
 
         <div className="flex-1 overflow-y-auto">
           {/* Existing conversations */}
           {convsLoading ? (
             <div className="flex justify-center py-8">
-              <Loader2 className="w-5 h-5 text-[#25D366] animate-spin" />
+              <Loader2 className="w-5 h-5 text-primary animate-spin" />
             </div>
           ) : (
             (convs ?? []).map((c) => {
@@ -173,33 +168,28 @@ export default function InternalChatPage() {
                   onClick={() => setSelectedConvId(c.id)}
                   className={cn(
                     "w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-white/5 transition-colors border-b border-white/5",
-                    c.id === selectedConvId && "bg-[#25D366]/10",
+                    c.id === selectedConvId && "bg-primary/10",
                   )}
                 >
                   <div className="relative shrink-0">
-                    <Avatar className="h-10 w-10">
-                      <AvatarImage src={c.peer.avatarUrl ?? undefined} />
-                      <AvatarFallback className="bg-[#1A2B38] text-[#25D366] font-semibold text-sm">
-                        {initialsOf(c.peer)}
-                      </AvatarFallback>
-                    </Avatar>
+                    <Avatar size="md" src={c.peer.avatarUrl ?? undefined} fromName={nameOf(c.peer)} />
                     <span
                       className={cn(
-                        "absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-[#0F1923]",
+                        "absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-[var(--surface-canvas)]",
                         PRESENCE_COLORS[presence],
                       )}
                     />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-white truncate">{nameOf(c.peer)}</p>
-                    <p className="text-xs text-[#8899A6] truncate">
+                    <p className="text-sm font-medium text-[var(--text-strong)] truncate">{nameOf(c.peer)}</p>
+                    <p className="text-xs text-muted-foreground truncate">
                       {c.lastMessage
                         ? (c.lastMessage.senderId === myId ? "Você: " : "") + c.lastMessage.content
                         : "Sem mensagens"}
                     </p>
                   </div>
                   {c.unreadCount > 0 && (
-                    <Badge className="bg-[#25D366] text-white border-none text-[10px] px-1.5">
+                    <Badge variant="brand">
                       {c.unreadCount}
                     </Badge>
                   )}
@@ -211,7 +201,7 @@ export default function InternalChatPage() {
           {/* Colleagues without a conversation yet */}
           {others.filter((c) => !convPeerIds.has(c.clerkUserId)).length > 0 && (
             <>
-              <p className="px-4 pt-4 pb-2 text-[10px] font-semibold uppercase tracking-wider text-[#8899A6]">
+              <p className="px-4 pt-4 pb-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
                 Colegas
               </p>
               {others
@@ -224,22 +214,17 @@ export default function InternalChatPage() {
                     className="w-full flex items-center gap-3 px-4 py-2.5 text-left hover:bg-white/5 transition-colors"
                   >
                     <div className="relative shrink-0">
-                      <Avatar className="h-9 w-9">
-                        <AvatarImage src={c.avatarUrl ?? undefined} />
-                        <AvatarFallback className="bg-[#1A2B38] text-[#25D366] font-semibold text-xs">
-                          {initialsOf(c)}
-                        </AvatarFallback>
-                      </Avatar>
+                      <Avatar size="sm" src={c.avatarUrl ?? undefined} fromName={nameOf(c)} />
                       <span
                         className={cn(
-                          "absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2 border-[#0F1923]",
+                          "absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2 border-[var(--surface-canvas)]",
                           PRESENCE_COLORS[c.status] ?? PRESENCE_COLORS["offline"],
                         )}
                       />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm text-white truncate">{nameOf(c)}</p>
-                      <p className="text-xs text-[#8899A6]">
+                      <p className="text-sm text-[var(--text-strong)] truncate">{nameOf(c)}</p>
+                      <p className="text-xs text-muted-foreground">
                         {PRESENCE_LABELS[c.status] ?? "Offline"}
                       </p>
                     </div>
@@ -249,7 +234,7 @@ export default function InternalChatPage() {
           )}
 
           {!convsLoading && !others.length && !(convs ?? []).length && (
-            <div className="flex flex-col items-center justify-center py-16 text-[#8899A6] text-sm gap-2">
+            <div className="flex flex-col items-center justify-center py-16 text-muted-foreground text-sm gap-2">
               <MessageCircle className="w-6 h-6" />
               <span>Nenhum colega nesta central ainda</span>
             </div>
@@ -260,39 +245,34 @@ export default function InternalChatPage() {
       {/* Thread */}
       <div className="flex-1 flex flex-col h-full min-w-0">
         {!selectedConv ? (
-          <div className="flex-1 flex flex-col items-center justify-center text-[#8899A6] gap-3">
+          <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground gap-3">
             <Headset className="w-12 h-12 opacity-30" />
             <span className="text-sm">Selecione um colega para conversar</span>
           </div>
         ) : (
           <>
-            <div className="h-14 bg-[#0A1520] border-b border-white/5 flex items-center gap-3 px-6">
+            <div className="h-14 bg-[var(--surface-sunken)] border-b border-white/5 flex items-center gap-3 px-6">
               <div className="relative">
-                <Avatar className="h-9 w-9">
-                  <AvatarImage src={selectedConv.peer.avatarUrl ?? undefined} />
-                  <AvatarFallback className="bg-[#1A2B38] text-[#25D366] font-semibold text-xs">
-                    {initialsOf(selectedConv.peer)}
-                  </AvatarFallback>
-                </Avatar>
+                <Avatar size="sm" src={selectedConv.peer.avatarUrl ?? undefined} fromName={nameOf(selectedConv.peer)} />
                 <span
                   className={cn(
-                    "absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2 border-[#0A1520]",
+                    "absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2 border-[var(--surface-sunken)]",
                     PRESENCE_COLORS[presenceOf(selectedConv.peer.clerkUserId)],
                   )}
                 />
               </div>
               <div>
-                <p className="text-sm font-semibold text-white">{nameOf(selectedConv.peer)}</p>
-                <p className="text-xs text-[#8899A6]">
+                <p className="text-sm font-semibold text-[var(--text-strong)]">{nameOf(selectedConv.peer)}</p>
+                <p className="text-xs text-muted-foreground">
                   {PRESENCE_LABELS[presenceOf(selectedConv.peer.clerkUserId)]}
                 </p>
               </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto px-6 py-4 bg-[#0F1923]">
+            <div className="flex-1 overflow-y-auto px-6 py-4 bg-[var(--surface-canvas)]">
               {msgsLoading ? (
                 <div className="flex justify-center py-8">
-                  <Loader2 className="w-5 h-5 text-[#25D366] animate-spin" />
+                  <Loader2 className="w-5 h-5 text-primary animate-spin" />
                 </div>
               ) : (
                 (messages ?? []).map((m) => {
@@ -303,8 +283,8 @@ export default function InternalChatPage() {
                         className={cn(
                           "max-w-[70%] rounded-xl px-4 py-2.5 shadow-sm",
                           mine
-                            ? "bg-[#25D366] text-white rounded-br-sm"
-                            : "bg-white text-gray-900 rounded-bl-sm",
+                            ? "bg-primary text-white rounded-br-sm"
+                            : "bg-card text-foreground rounded-bl-sm",
                         )}
                       >
                         <p className="text-sm leading-relaxed whitespace-pre-wrap">{m.content}</p>
@@ -322,9 +302,9 @@ export default function InternalChatPage() {
               <div ref={endRef} />
             </div>
 
-            <div className="p-4 bg-[#0A1520] border-t border-white/5">
+            <div className="p-4 bg-[var(--surface-sunken)] border-t border-white/5">
               <div className="flex items-end gap-3">
-                <textarea
+                <Textarea
                   value={inputText}
                   onChange={(e) => setInputText(e.target.value)}
                   onKeyDown={(e) => {
@@ -335,19 +315,20 @@ export default function InternalChatPage() {
                   }}
                   rows={1}
                   placeholder="Mensagem interna (não vai para o WhatsApp)"
-                  className="flex-1 resize-none bg-[#1A2B38] text-white text-sm rounded-lg px-4 py-3 outline-none placeholder:text-[#8899A6] focus:ring-1 focus:ring-[#25D366]/50"
+                  className="flex-1"
                 />
-                <button
-                  onClick={handleSend}
+                <IconButton
+                  variant="solid"
+                  label="Enviar mensagem interna"
                   disabled={!inputText.trim() || sendMutation.isPending}
-                  className="bg-[#25D366] hover:bg-[#1ebe57] disabled:opacity-40 text-white p-3 rounded-lg transition-colors"
+                  onClick={handleSend}
                 >
                   {sendMutation.isPending ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
                   ) : (
                     <Send className="w-4 h-4" />
                   )}
-                </button>
+                </IconButton>
               </div>
             </div>
           </>

@@ -16,8 +16,10 @@ import {
   Send,
   Smartphone,
   ArrowRight,
+  PlayCircle,
 } from "lucide-react";
-import { Sidebar } from "./dashboard";
+import { Badge, Button } from "@healthventureslm/design-system";
+import { PageShell } from "@/components/PageShell";
 import { useTenantId } from "@/hooks/useTenantId";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -30,12 +32,20 @@ import {
 } from "@/lib/api";
 
 /** Rotulo humano do estado da conversa, na linguagem do produto. */
-const ESTADO: Record<string, { texto: string; cor: string }> = {
-  new: { texto: "Chegou agora", cor: "bg-gray-100 text-gray-700" },
-  ivr: { texto: "No robô, escolhendo o ramal", cor: "bg-blue-100 text-blue-700" },
-  waiting: { texto: "Na fila do ramal", cor: "bg-amber-100 text-amber-700" },
-  active: { texto: "Em atendimento", cor: "bg-green-100 text-green-700" },
-  closed: { texto: "Encerrada", cor: "bg-gray-100 text-gray-600" },
+/*
+ * Mesmos estados que o Atendimento mostra, com as mesmas variantes: a
+ * conversa que o simulador cria e a que aparece la, e duas cores para o
+ * mesmo estado fazem parecer que sao coisas diferentes.
+ */
+const ESTADO: Record<
+  string,
+  { texto: string; variante: "neutral" | "info" | "brand" | "warning" | "positive" }
+> = {
+  new: { texto: "Chegou agora", variante: "info" },
+  ivr: { texto: "No robô, escolhendo o ramal", variante: "brand" },
+  waiting: { texto: "Na fila do ramal", variante: "warning" },
+  active: { texto: "Em atendimento", variante: "positive" },
+  closed: { texto: "Encerrada", variante: "neutral" },
 };
 
 /**
@@ -66,12 +76,12 @@ function Passo({
   children: React.ReactNode;
 }) {
   return (
-    <div className="bg-white rounded-xl shadow-sm p-5">
+    <div className="bg-card rounded-xl shadow-sm p-5">
       <div className="flex items-center gap-2 mb-3">
-        <span className="w-6 h-6 rounded-full bg-[#25D366] text-white text-xs font-bold flex items-center justify-center shrink-0">
+        <span className="w-6 h-6 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center shrink-0">
           {numero}
         </span>
-        <h2 className="font-semibold text-gray-800 text-sm">{titulo}</h2>
+        <h2 className="font-semibold text-foreground text-sm">{titulo}</h2>
       </div>
       {children}
     </div>
@@ -157,42 +167,29 @@ export default function SimuladorPage() {
   }
 
   return (
-    <div className="min-h-[100dvh] bg-[#F4F7F8]">
-      <Sidebar />
-
-      <div className="ml-64 flex flex-col">
-        <header className="h-16 bg-white shadow-sm flex items-center justify-between px-8">
-          <div>
-            <h1 className="text-xl font-semibold text-gray-800">
-              Simulador de atendimento
-            </h1>
-            <p className="text-xs text-gray-500">
-              Escreva como um paciente e veja a central responder — sem precisar
-              de celular pareado.
-            </p>
-          </div>
-          <button
-            onClick={() => limpar.mutate()}
-            disabled={limpar.isPending}
-            className="border border-gray-200 hover:bg-gray-50 text-gray-700 px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-2 disabled:opacity-50"
-          >
-            {limpar.isPending ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <RotateCcw className="w-4 h-4" />
-            )}
-            Zerar demonstração
-          </button>
-        </header>
-
-        <main className="flex-1 p-8">
+    <PageShell
+      icon={<PlayCircle />}
+      title="Simulador de atendimento"
+      subtitle="Escreva como um paciente e veja a central responder — sem precisar de celular pareado."
+      actions={
+        <Button
+          variant="secondary"
+          size="sm"
+          loading={limpar.isPending}
+          iconLeft={<RotateCcw className="w-4 h-4" />}
+          onClick={() => limpar.mutate()}
+        >
+          Zerar demonstração
+        </Button>
+      }
+    >
           <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_420px] gap-6 items-start">
             {/* ------------------------------------------------- coluna esquerda */}
             <div className="space-y-4">
               <Passo numero={1} titulo="Escolha quem está escrevendo de fora">
                 <div className="grid sm:grid-cols-3 gap-3">
                   {!personas && (
-                    <Loader2 className="w-4 h-4 animate-spin text-gray-400" />
+                    <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
                   )}
                   {personas?.map((p) => {
                     const ativa = p.id === personaId;
@@ -202,8 +199,8 @@ export default function SimuladorPage() {
                         onClick={() => setPersonaId(p.id)}
                         className={`text-left rounded-lg border p-3 transition-colors ${
                           ativa
-                            ? "border-[#25D366] bg-[#25D366]/5 ring-1 ring-[#25D366]/30"
-                            : "border-gray-200 hover:border-gray-300 bg-white"
+                            ? "border-primary bg-primary/5 ring-1 ring-primary/30"
+                            : "border-border hover:border-border bg-card"
                         }`}
                       >
                         <div className="flex items-center gap-1.5 mb-1">
@@ -217,17 +214,17 @@ export default function SimuladorPage() {
                             {p.canal}
                           </span>
                         </div>
-                        <p className="text-sm font-semibold text-gray-900">
+                        <p className="text-sm font-semibold text-foreground">
                           {p.nome}
                         </p>
-                        <p className="text-xs text-gray-500 mt-0.5 leading-snug">
+                        <p className="text-xs text-muted-foreground mt-0.5 leading-snug">
                           {p.descricao}
                         </p>
                       </button>
                     );
                   })}
                 </div>
-                <p className="text-xs text-gray-500 mt-3 leading-relaxed">
+                <p className="text-xs text-muted-foreground mt-3 leading-relaxed">
                   Os três caem na <strong>mesma fila</strong>, com os mesmos
                   ramais e o mesmo relatório. Quem decide por onde a resposta sai
                   é o canal do contato — não a tela de quem atende.
@@ -243,12 +240,12 @@ export default function SimuladorPage() {
                       if (e.key === "Enter") mandar(texto);
                     }}
                     placeholder="Ex: Oi, preciso falar com a Emergência"
-                    className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#25D366]/40"
+                    className="flex-1 border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
                   />
                   <button
                     onClick={() => mandar(texto)}
                     disabled={!texto.trim() || enviar.isPending}
-                    className="bg-[#25D366] hover:bg-[#1ebe57] disabled:opacity-40 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2"
+                    className="bg-primary hover:bg-primary/90 disabled:opacity-40 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2"
                   >
                     {enviar.isPending ? (
                       <Loader2 className="w-4 h-4 animate-spin" />
@@ -267,7 +264,7 @@ export default function SimuladorPage() {
                     <button
                       key={s}
                       onClick={() => mandar(s)}
-                      className="text-xs border border-gray-200 hover:bg-gray-50 rounded-full px-3 py-1 text-gray-600"
+                      className="text-xs border border-border hover:bg-muted rounded-full px-3 py-1 text-muted-foreground"
                     >
                       {s}
                     </button>
@@ -277,11 +274,11 @@ export default function SimuladorPage() {
 
               <Passo numero={3} titulo="Responda ao robô como o paciente faria">
                 {opcoesDoMenu.length === 0 ? (
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-muted-foreground">
                     Nenhum ramal no menu ainda. Monte o menu em{" "}
                     <Link
                       href="/configuracoes-canal"
-                      className="text-[#25D366] font-medium"
+                      className="text-primary font-medium"
                     >
                       Atendimento automático
                     </Link>
@@ -289,7 +286,7 @@ export default function SimuladorPage() {
                   </p>
                 ) : (
                   <>
-                    <p className="text-xs text-gray-500 mb-2">
+                    <p className="text-xs text-muted-foreground mb-2">
                       Estes são os ramais do menu de verdade desta central:
                     </p>
                     <div className="flex flex-wrap gap-2">
@@ -297,9 +294,9 @@ export default function SimuladorPage() {
                         <button
                           key={o.key}
                           onClick={() => mandar(o.key)}
-                          className="text-xs bg-gray-50 border border-gray-200 hover:border-[#25D366] hover:bg-[#25D366]/5 rounded-lg px-3 py-1.5 text-gray-700 font-medium"
+                          className="text-xs bg-muted border border-border hover:border-primary hover:bg-primary/5 rounded-lg px-3 py-1.5 text-foreground font-medium"
                         >
-                          <span className="text-[#25D366] font-bold mr-1">
+                          <span className="text-primary font-bold mr-1">
                             {o.key}
                           </span>
                           {o.label}
@@ -308,8 +305,8 @@ export default function SimuladorPage() {
                     </div>
                   </>
                 )}
-                <div className="mt-4 pt-4 border-t border-gray-100">
-                  <p className="text-xs text-gray-500 mb-2">
+                <div className="mt-4 pt-4 border-t border-border">
+                  <p className="text-xs text-muted-foreground mb-2">
                     Depois do atendimento, a central pede uma nota de 1 a 5:
                   </p>
                   <div className="flex gap-2">
@@ -317,7 +314,7 @@ export default function SimuladorPage() {
                       <button
                         key={n}
                         onClick={() => mandar(n)}
-                        className="w-9 h-9 rounded-lg border border-gray-200 hover:border-[#25D366] text-sm font-semibold text-gray-700"
+                        className="w-9 h-9 rounded-lg border border-border hover:border-primary text-sm font-semibold text-foreground"
                       >
                         {n}
                       </button>
@@ -326,21 +323,21 @@ export default function SimuladorPage() {
                 </div>
               </Passo>
 
-              <div className="bg-[#0F1923] rounded-xl p-5 text-white">
+              <div className="sala-escura bg-background rounded-xl p-5 text-[var(--text-strong)]">
                 <div className="flex items-start gap-3">
-                  <MessageCircle className="w-5 h-5 text-[#25D366] mt-0.5 shrink-0" />
+                  <MessageCircle className="w-5 h-5 text-primary mt-0.5 shrink-0" />
                   <div>
                     <p className="font-semibold text-sm mb-1">
                       Agora abra o outro lado
                     </p>
-                    <p className="text-xs text-[#8899A6] leading-relaxed mb-3">
+                    <p className="text-xs text-muted-foreground leading-relaxed mb-3">
                       A conversa que você acabou de criar está na fila do ramal.
                       Abra o Atendimento numa segunda aba e responda: a mensagem
                       aparece aqui no mesmo instante.
                     </p>
                     <Link
                       href="/atendimento"
-                      className="inline-flex items-center gap-1.5 text-xs font-semibold bg-[#25D366] hover:bg-[#1ebe57] text-white px-3 py-1.5 rounded-lg"
+                      className="inline-flex items-center gap-1.5 text-xs font-semibold bg-primary hover:bg-primary/90 text-white px-3 py-1.5 rounded-lg"
                     >
                       Ir para o Atendimento
                       <ArrowRight className="w-3.5 h-3.5" />
@@ -351,40 +348,36 @@ export default function SimuladorPage() {
             </div>
 
             {/* -------------------------------------------------- coluna direita */}
-            <div className="bg-white rounded-xl shadow-sm overflow-hidden xl:sticky xl:top-8">
-              <div className="bg-[#0F1923] px-4 py-3 flex items-center gap-3">
-                <div className="w-9 h-9 rounded-full bg-[#25D366]/20 flex items-center justify-center">
-                  <Smartphone className="w-4 h-4 text-[#25D366]" />
+            <div className="bg-card rounded-xl shadow-sm overflow-hidden xl:sticky xl:top-8">
+              <div className="sala-escura bg-background px-4 py-3 flex items-center gap-3">
+                <div className="w-9 h-9 rounded-full bg-primary/20 flex items-center justify-center">
+                  <Smartphone className="w-4 h-4 text-primary" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-white text-sm font-semibold truncate">
+                  <p className="text-[var(--text-strong)] text-sm font-semibold truncate">
                     {personaAtual?.nome ?? "Selecione uma pessoa"}
                   </p>
-                  <p className="text-[#8899A6] text-xs truncate">
+                  <p className="text-muted-foreground text-xs truncate">
                     {personaAtual
                       ? `${personaAtual.canal === "telegram" ? "Telegram" : "WhatsApp"} · ${personaAtual.telefone}`
                       : "—"}
                   </p>
                 </div>
                 {conversa?.status && (
-                  <span
-                    className={`text-[10px] font-semibold px-2 py-1 rounded-full whitespace-nowrap ${
-                      ESTADO[conversa.status]?.cor ?? "bg-gray-100 text-gray-700"
-                    }`}
-                  >
+                  <Badge variant={ESTADO[conversa.status]?.variante ?? "neutral"}>
                     {ESTADO[conversa.status]?.texto ?? conversa.status}
-                  </span>
+                  </Badge>
                 )}
               </div>
 
               <div className="h-[520px] overflow-y-auto p-4 bg-[#ECE5DD] space-y-2">
                 {mensagens.length === 0 && (
                   <div className="h-full flex flex-col items-center justify-center text-center px-6">
-                    <Smartphone className="w-10 h-10 text-gray-400 mb-3" />
-                    <p className="text-sm font-medium text-gray-600">
+                    <Smartphone className="w-10 h-10 text-muted-foreground mb-3" />
+                    <p className="text-sm font-medium text-muted-foreground">
                       A conversa aparece aqui
                     </p>
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-muted-foreground mt-1">
                       Comece pelo passo 2. O que o robô responder é o robô de
                       verdade, não um roteiro.
                     </p>
@@ -400,19 +393,19 @@ export default function SimuladorPage() {
                       <div
                         className={`max-w-[80%] rounded-lg px-3 py-2 shadow-sm ${
                           doPaciente
-                            ? "bg-[#DCF8C6] text-gray-800"
-                            : "bg-white text-gray-800"
+                            ? "bg-[#DCF8C6] text-foreground"
+                            : "bg-card text-foreground"
                         }`}
                       >
                         {!doPaciente && (
-                          <p className="text-[10px] font-semibold text-[#25D366] mb-0.5">
+                          <p className="text-[10px] font-semibold text-primary mb-0.5">
                             {m.sentBy ? "Atendente" : "Central (robô)"}
                           </p>
                         )}
                         <p className="text-sm whitespace-pre-wrap break-words">
                           {comNegrito(m.content ?? "")}
                         </p>
-                        <p className="text-[10px] text-gray-500 text-right mt-1">
+                        <p className="text-[10px] text-muted-foreground text-right mt-1">
                           {new Date(m.timestamp).toLocaleTimeString("pt-BR", {
                             hour: "2-digit",
                             minute: "2-digit",
@@ -425,7 +418,7 @@ export default function SimuladorPage() {
                 <div ref={fimDaConversa} />
               </div>
 
-              <div className="px-4 py-3 border-t border-gray-100 flex gap-2">
+              <div className="px-4 py-3 border-t border-border flex gap-2">
                 <input
                   value={texto}
                   onChange={(e) => setTexto(e.target.value)}
@@ -433,12 +426,12 @@ export default function SimuladorPage() {
                     if (e.key === "Enter") mandar(texto);
                   }}
                   placeholder="Escrever como esta pessoa…"
-                  className="flex-1 border border-gray-200 rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#25D366]/40"
+                  className="flex-1 border border-border rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
                 />
                 <button
                   onClick={() => mandar(texto)}
                   disabled={!texto.trim() || enviar.isPending}
-                  className="w-10 h-10 rounded-full bg-[#25D366] hover:bg-[#1ebe57] disabled:opacity-40 text-white flex items-center justify-center shrink-0"
+                  className="w-10 h-10 rounded-full bg-primary hover:bg-primary/90 disabled:opacity-40 text-white flex items-center justify-center shrink-0"
                 >
                   {enviar.isPending ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
@@ -449,8 +442,6 @@ export default function SimuladorPage() {
               </div>
             </div>
           </div>
-        </main>
-      </div>
-    </div>
+    </PageShell>
   );
 }

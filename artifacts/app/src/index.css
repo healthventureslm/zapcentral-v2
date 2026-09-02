@@ -1,35 +1,146 @@
-@layer theme, base, clerk, components, utilities;
+/*
+ * Ordem das camadas — quem vem depois vence.
+ *
+ * `hv` entra depois do `base` do Tailwind de proposito: o design system tem
+ * seus proprios resets (*, html, body, h1-h4, a, button) e eles precisam
+ * vencer o preflight. Mas fica antes de `utilities`, entao qualquer classe
+ * utilitaria do Tailwind ainda sobrepoe o design system quando preciso.
+ */
+@layer theme, base, hv, hv-components, clerk, components, utilities;
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "@clerk/themes/shadcn.css";
 
+/*
+ * Design system da Health Ventures.
+ *
+ * Os tokens sao importados um a um, na ordem do styles.css do pacote, em vez
+ * de importar o proprio styles.css. Ele e so um manifesto de
+ * `@import url("tokens/x.css")` — caminho relativo sem "./", forma que o
+ * Vite nao reescreve. O import ficava literal no bundle e o navegador tentava
+ * resolve-lo a partir de /src/, onde nao existe: nenhum token carregava.
+ *
+ * theme-dark por ultimo, como no manifesto: ele redefine as rampas por papel.
+ */
+@import "@healthventureslm/design-system/tokens/fonts.css" layer(hv);
+@import "@healthventureslm/design-system/tokens/colors.css" layer(hv);
+@import "@healthventureslm/design-system/tokens/typography.css" layer(hv);
+@import "@healthventureslm/design-system/tokens/spacing.css" layer(hv);
+@import "@healthventureslm/design-system/tokens/elevation.css" layer(hv);
+@import "@healthventureslm/design-system/tokens/motion.css" layer(hv);
+@import "@healthventureslm/design-system/tokens/mobile.css" layer(hv);
+@import "@healthventureslm/design-system/tokens/base.css" layer(hv);
+@import "@healthventureslm/design-system/tokens/theme-dark.css" layer(hv);
+@import "@healthventureslm/design-system/components.css" layer(hv-components);
+
+/*
+ * As paginas compensam a barra fixa com `ml-64` (16rem). O design system
+ * usa 264px, o que deixaria 8px de sobra em todas as telas. Igualar aqui
+ * evita editar as onze paginas.
+ */
+:root {
+  --sidebar-width: 16rem;
+}
+
+/*
+ * O conteudo acompanha o colapso da barra.
+ *
+ * As onze paginas compensam a barra fixa com `ml-64`, valor absoluto. Ao
+ * recolher, a barra vai para 72px e sobraria uma faixa vazia de quase 200px
+ * em todas as telas. Em vez de trocar `ml-64` por uma classe propria em cada
+ * pagina, a margem passa a seguir o estado pelo seletor :has().
+ *
+ * A transicao usa a mesma duracao e curva da barra, senao o conteudo chega
+ * antes dela e o movimento parece dois.
+ */
+.ml-64 {
+  transition: margin-left var(--dur-slow) var(--ease-soft);
+}
+
+body:has(.hv-sidebar--collapsed) .ml-64 {
+  margin-left: var(--sidebar-width-collapsed);
+}
+
+/*
+ * A sala de atendimento e escura por decisao de produto: o agente passa o dia
+ * nela e o painel claro cansa.
+ *
+ * As superficies vinham de dez hex azul-marinho inventados na tela. Duas
+ * consequencias:
+ *
+ *   1. O azul nao era a marca. O escuro do design system e um preto-verde
+ *      quente (#0F1917), escolhido para a marca sobreviver no escuro; o
+ *      #0F1923 puxava para o azul e a tela destoava do resto do produto.
+ *   2. A tela continuava herdando os tokens de TEXTO do tema claro. `muted`
+ *      era o ink-500 claro (#65726C), que sobre esses fundos dava de 3.26:1 a
+ *      4.13:1 — horario, telefone, nome do setor e o rodape de status ficavam
+ *      abaixo dos 4.5:1 de texto normal. Nao era gosto: era ilegivel.
+ *
+ * Os valores abaixo sao a rampa escura publicada em tokens/theme-dark.css.
+ * Sao copiados, e nao importados, porque la ela vive em `:root[data-theme=
+ * "dark"]` — vale para o documento inteiro. Aqui so estas duas telas (e os
+ * dois blocos escuros do simulador) escurecem, com o resto do app claro.
+ * Se o app um dia adotar o tema escuro inteiro, este bloco sai e a tela
+ * herda tudo de graca.
+ *
+ * `--surface-card` PRECISA entrar: os campos do design system usam
+ * `background: var(--surface-card)` com `color: var(--text-strong)`. Deixar
+ * o cartao branco com o texto claro deixava o compositor de mensagem branco
+ * no branco. Por isso os veus de hover viraram `bg-white/N` explicito — eles
+ * sao branco de proposito, nao a cor do cartao.
+ */
+.sala-escura {
+  --surface-sunken: #0A1211;   /* barras de topo e rodape   */
+  --surface-canvas: #0F1917;   /* fundo da tela e da conversa */
+  --surface-card:   #16211E;   /* baloes, campos, cartoes   */
+  --surface-raised: #16211E;   /* menus suspensos           */
+
+  /* Contraste medido sobre o canvas; sobre o cartao, o pior caso, cai
+     para 14.57 / 10.42 / 5.63 / 3.88. */
+  --text-strong: #ECF2EF;   /* 15.80:1 */
+  --text-body:   #C4D0CB;   /* 11.29:1 */
+  --text-muted:  #8B9A94;   /*  6.10:1 */
+  --text-subtle: #6F7E78;   /*  4.21:1 — so para rotulo secundario */
+
+  --border-strong:  #3C4A45;
+  --border-default: #2B3833;
+  --border-subtle:  #212D29;
+}
+
 @custom-variant dark (&:is(.dark *));
 
+/*
+ * As cores do shadcn apontam para os tokens semanticos do design system.
+ * Feito aqui, e nao tela a tela: toda utility do Tailwind (bg-background,
+ * text-muted-foreground, border-border) e todo componente shadcn ja existente
+ * herdam a marca de uma vez — inclusive o tema escuro, que o proprio design
+ * system controla em theme-dark.css.
+ */
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
 
-  --color-background:          hsl(var(--background));
-  --color-foreground:          hsl(var(--foreground));
-  --color-card:                hsl(var(--card));
-  --color-card-foreground:     hsl(var(--card-foreground));
-  --color-popover:             hsl(var(--popover));
-  --color-popover-foreground:  hsl(var(--popover-foreground));
-  --color-primary:             hsl(var(--primary));
-  --color-primary-foreground:  hsl(var(--primary-foreground));
-  --color-secondary:           hsl(var(--secondary));
-  --color-secondary-foreground: hsl(var(--secondary-foreground));
-  --color-muted:               hsl(var(--muted));
-  --color-muted-foreground:    hsl(var(--muted-foreground));
-  --color-accent:              hsl(var(--accent));
-  --color-accent-foreground:   hsl(var(--accent-foreground));
-  --color-destructive:         hsl(var(--destructive));
-  --color-destructive-foreground: hsl(var(--destructive-foreground));
-  --color-border:              hsl(var(--border));
-  --color-input:               hsl(var(--input));
-  --color-ring:                hsl(var(--ring));
+  --color-background: var(--surface-canvas);
+  --color-foreground: var(--text-body);
+  --color-card: var(--surface-card);
+  --color-card-foreground: var(--text-body);
+  --color-popover: var(--surface-raised);
+  --color-popover-foreground: var(--text-body);
+  --color-primary: var(--petrol-600);
+  --color-primary-foreground: var(--text-on-brand);
+  --color-secondary: var(--surface-sunken);
+  --color-secondary-foreground: var(--text-strong);
+  --color-muted: var(--surface-sunken);
+  --color-muted-foreground: var(--text-muted);
+  --color-accent: var(--surface-brand-soft);
+  --color-accent-foreground: var(--petrol-900);
+  --color-destructive: var(--coral-600);
+  --color-destructive-foreground: var(--text-inverse);
+  --color-border: var(--border-default);
+  --color-input: var(--border-default);
+  --color-ring: var(--focus-ring);
 
   --color-chart-1: hsl(var(--chart-1));
   --color-chart-2: hsl(var(--chart-2));
